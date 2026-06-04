@@ -55,10 +55,10 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 初始化地图中心到浙江衢州区
-        const map = L.map('map', { zoomControl: false }).setView([28.957608, 118.875885], 13);
+        // 初始化地图中心到河南信阳鸡公山附近（纬度 31.80，经度 114.08）
+        const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 13);
         
-        // 🌟 核心优化：将原本的英文底图切换为高德官方的高清纯中文矢量底图源
+        // 使用高德官方高清纯中文底图图层
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: ["1", "2", "3", "4"],
             attribution: '© 高德地图 AutoNavi'
@@ -66,68 +66,18 @@
 
         let currentPoi = null;
 
-        // 实时读取你的 Notion 数据
-        const NOTION_DATA_URL = 'https://notion-api.splitbee.io/v1/table/375b936d83cc8086bb80e04bad65997a';
+        // 🔗 完美连接到你的最新版列名 Notion 表格数据源
+        const NOTION_DATA_URL = 'https://notion-api.splitbee.io/v1/table/375b936d83cc80a582e3eca4f521873b';
 
         fetch(NOTION_DATA_URL)
             .then(response => response.json())
             .then(mockPois => {
+                // 自动按照 Notion 里的 Name（001，002）排序，防止路线乱连
+                mockPois.sort((a, b) => a.Name.localeCompare(b.Name));
+
                 // 过滤掉经纬度没填的空行
                 const validPois = mockPois.filter(poi => poi.lat && poi.lng);
 
-                // 1. 自动绘制轨迹连线
-                const linePoints = validPois.map(poi => [parseFloat(poi.lat), parseFloat(poi.lng)]);
-                L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
-
-                // 2. 全自动打点
-                validPois.forEach(poi => {
-                    const marker = L.marker([parseFloat(poi.lat), parseFloat(poi.lng)]).addTo(map);
-                    marker.on('click', () => {
-                        currentPoi = poi;
-                        map.setView([parseFloat(poi.lat), parseFloat(poi.lng)], 15);
-                        
-                        // 填充抽屉资产
-                        document.getElementById('poi-cover').src = poi.cover || 'https://picsum.photos/800/400?random=default';
-                        document.getElementById('poi-title').innerText = poi.name;
-                        document.getElementById('poi-meta').innerText = `历史时期：${poi.era || '未考证'}`;
-                        document.getElementById('poi-story').innerText = poi.story || '暂无故事内容';
-                        
-                        // VR 按钮显示/隐藏控制
-                        if(poi.vr_url) {
-                            document.getElementById('btn-vr').style.display = 'block';
-                            document.getElementById('btn-vr').href = poi.vr_url;
-                        } else {
-                            document.getElementById('btn-vr').style.display = 'none';
-                        }
-
-                        document.getElementById('drawer').classList.add('show');
-                    });
-                });
-            })
-            .catch(err => console.error("读取 Notion 地图数据失败:", err));
-
-        function closeDrawer() {
-            document.getElementById('drawer').classList.remove('show');
-        }
-
-        // 唤醒第三方 App 导航协议
-        function invokeNavigation() {
-            if (!currentPoi) return;
-            const lat = currentPoi.lat;
-            const lng = currentPoi.lng;
-            const name = encodeURIComponent(currentPoi.name);
-
-            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`;
-                return;
-            }
-            const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
-            if (choice) {
-                window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`;
-            } else {
-                window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`;
-            }
-        }
-    </script>
-</body>
-</html>
+                // 如果有数据，自动将地图视角中心移到第一个点位
+                if(validPois.length > 0) {
+                    map.setView([parseFloat(validPois[0].lat), parseFloat(validP

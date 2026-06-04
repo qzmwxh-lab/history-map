@@ -115,7 +115,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 初始化高德纯中文底图设置，默认视角先定在你的核心点
+        // 1. 初始化高德高清底图
         const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 13);
         
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -126,126 +126,86 @@
         let currentPoi = null;
         let markerMap = {};
 
-        // 🌟 终极手段：使用直读网关，彻底摆脱 Notion 属性类型和大小写的限制
-        const TARGET_URL = 'https://notion-api.splitbee.io/v1/table/375b936d83cc80a582e3eca4f521873b';
+        // 🌟 核心數據矩陣：直接內嵌！以後想增加 002、003 號點，直接複製下面大括號裡面的內容即可！
+        const finalRenderList = [
+            {
+                id: "001",
+                name: "鸡公山美文学效（美国大楼）",
+                lat: 31.80,
+                lng: 114.08,
+                era: "民国时期",
+                story: "鸡公山美文学效旧址，俗称“美国大楼”。兴建于20世纪初，是江汉地区极具历史价值的西式近代建筑。作为数字化足迹的起航首站，这里沉淀了深厚的人文及文旅寻访记忆。",
+                cover: "https://picsum.photos/800/400?random=1",
+                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html" // 如果你有了全景图H5直链，直接替换这里
+            }
+            // 💡 以后要加新点位，在这里加个逗号，把下面这段解开貼進去即可：
+            // ,{
+            //     id: "002",
+            //     name: "你的第二个文旅站名",
+            //     lat: 30.00,
+            //     lng: 120.00,
+            //     era: "历史时期",
+            //     story: "这里是第二个故事介绍...",
+            //     cover: "封面图链接",
+            //     vr_url: ""
+            // }
+        ];
 
-        fetch(TARGET_URL)
-            .then(res => res.json())
-            .then(data => {
-                // 🌟 超强力硬核脱壳机制：不管 Notion 的主键叫 Name、name 还是 id，代码暴力遍历自动抓取
-                const cleanData = data.map(row => {
-                    let finalId = '001';
-                    let finalName = '未命名历史点位';
+        // 2. 自动连接那条完美的复古棕色足迹轨迹线
+        const linePoints = finalRenderList.map(poi => [poi.lat, poi.lng]);
+        L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
 
-                    // 循环扫描这行数据的每个格子，聪明地抓取内容
-                    for (let key in row) {
-                        const lowKey = key.toLowerCase().trim();
-                        if (lowKey === 'id' || lowKey === 'name' || key === 'Name') {
-                            if (row[key] && row[key].toString().match(/^\d+$/)) {
-                                finalId = row[key].toString(); // 如果是纯数字，作为ID
-                            } else if (row[key]) {
-                                finalName = row[key].toString(); // 如果是文字，作为名字
-                            }
-                        }
-                    }
+        const rankListContainer = document.getElementById('rank-list');
+        const mobileTagsContainer = document.getElementById('mobile-tags');
 
-                    // 抓取并清洗经纬度，剔除任何可能导致白屏的灰色代码框格式
-                    let latStr = (row.lat || row.Lat || '').toString().replace(/<[^>]*>/g, "").trim();
-                    let lngStr = (row.lng || row.Lng || '').toString().replace(/<[^>]*>/g, "").trim();
+        // 3. 循环绘制列表与大头针标记
+        finalRenderList.forEach((poi, index) => {
+            const rankNum = index + 1;
 
-                    return {
-                        id: finalId,
-                        name: row.name || row.Name || finalName, // 如果独立设了 name 列则用，没有则用主键名
-                        lat: parseFloat(latStr),
-                        lng: parseFloat(lngStr),
-                        era: row.era || row.Era || '未知时期',
-                        story: row.story || row.Story || '暂无详细考证故事。',
-                        cover: row.cover || row.Cover || 'https://picsum.photos/800/400?random=' + Math.random(),
-                        vr_url: row.vr_url || row.Vr_url || row.VR_url || ''
-                    };
-                });
+            // 地图打点
+            const marker = L.marker([poi.lat, poi.lng]).addTo(map);
+            markerMap[poi.id] = marker;
 
-                // 强制只保留拥有正确数字坐标的行
-                const validPois = cleanData.filter(poi => !isNaN(poi.lat) && !isNaN(poi.lng));
+            const openDetail = () => {
+                currentPoi = poi;
+                map.setView([poi.lat, poi.lng], 15);
+                
+                document.getElementById('poi-cover').src = poi.cover;
+                document.getElementById('poi-title').innerText = poi.name;
+                document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
+                document.getElementById('poi-story').innerText = poi.story;
+                
+                if(poi.vr_url) {
+                    document.getElementById('btn-vr').style.display = 'block';
+                    document.getElementById('btn-vr').href = poi.vr_url;
+                } else {
+                    document.getElementById('btn-vr').style.display = 'none';
+                }
+                document.getElementById('drawer').classList.add('show');
+            };
 
-                // 🌟 【保底备用机制】如果 Notion 真的因为权限完全拉不到数据，启用保底死数据，确保摄影师在客户面前演示绝对不穿帮！
-                const backupPois = [{
-                    id: "001",
-                    name: "鸡公山美文学效（美国大楼）",
-                    lat: 31.80,
-                    lng: 114.08,
-                    era: "民国时期",
-                    story: "鸡公山美文学效旧址，俗称“美国大楼”。是江汉及浙西内陆寻访历史足迹的重要近代西式建筑遗存，也是数字化历史文旅轨迹的核心首站。",
-                    cover: "https://picsum.photos/800/400?random=1",
-                    vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html"
-                }];
+            marker.on('click', openDetail);
 
-                // 最终渲染决断
-                const finalRenderList = validPois.length > 0 ? validPois : backupPois;
+            // 填充电脑侧边栏排行榜
+            const rankItem = document.createElement('div');
+            rankItem.className = 'rank-item';
+            rankItem.innerHTML = `
+                <div class="rank-num">${rankNum}</div>
+                <div class="rank-info">
+                    <div class="rank-name">${poi.name}</div>
+                    <div class="rank-era">${poi.era}</div>
+                </div>
+            `;
+            rankItem.onclick = openDetail;
+            rankListContainer.appendChild(rankItem);
 
-                // 按照 001、002 序号自动排好队
-                finalRenderList.sort((a, b) => a.id.localeCompare(b.id));
-
-                // 精准重新聚焦视角
-                map.setView([finalRenderList[0].lat, finalRenderList[0].lng], 13);
-
-                // 1. 自动连接那条完美的复古棕色足迹线
-                const linePoints = finalRenderList.map(poi => [poi.lat, poi.lng]);
-                L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
-
-                const rankListContainer = document.getElementById('rank-list');
-                const mobileTagsContainer = document.getElementById('mobile-tags');
-
-                // 2. 循环绘制列表与大头针
-                finalRenderList.forEach((poi, index) => {
-                    const rankNum = index + 1;
-
-                    // 地图打点
-                    const marker = L.marker([poi.lat, poi.lng]).addTo(map);
-                    markerMap[poi.id] = marker;
-
-                    const openDetail = () => {
-                        currentPoi = poi;
-                        map.setView([poi.lat, poi.lng], 15);
-                        
-                        document.getElementById('poi-cover').src = poi.cover;
-                        document.getElementById('poi-title').innerText = poi.name;
-                        document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
-                        document.getElementById('poi-story').innerText = poi.story;
-                        
-                        if(poi.vr_url) {
-                            document.getElementById('btn-vr').style.display = 'block';
-                            document.getElementById('btn-vr').href = poi.vr_url;
-                        } else {
-                            document.getElementById('btn-vr').style.display = 'none';
-                        }
-                        document.getElementById('drawer').classList.add('show');
-                    };
-
-                    marker.on('click', openDetail);
-
-                    // 电脑侧边栏
-                    const rankItem = document.createElement('div');
-                    rankItem.className = 'rank-item';
-                    rankItem.innerHTML = `
-                        <div class="rank-num">${rankNum}</div>
-                        <div class="rank-info">
-                            <div class="rank-name">${poi.name}</div>
-                            <div class="rank-era">${poi.era}</div>
-                        </div>
-                    `;
-                    rankItem.onclick = openDetail;
-                    rankListContainer.appendChild(rankItem);
-
-                    // 手机顶栏
-                    const tagItem = document.createElement('div');
-                    tagItem.className = 'tag-item';
-                    tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
-                    tagItem.onclick = openDetail;
-                    mobileTagsContainer.appendChild(tagItem);
-                });
-            })
-            .catch(err => console.error("渲染遇到小波折:", err));
+            // 填充手机顶栏滑动胶囊
+            const tagItem = document.createElement('div');
+            tagItem.className = 'tag-item';
+            tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
+            tagItem.onclick = openDetail;
+            mobileTagsContainer.appendChild(tagItem);
+        });
 
         function closeDrawer() {
             document.getElementById('drawer').classList.remove('show');

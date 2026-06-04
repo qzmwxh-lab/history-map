@@ -9,7 +9,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; display: flex; }
         
-        /* 1. 整体框架布局：电脑端侧边栏 */
+        /* 电脑端左侧边栏 */
         .sidebar {
             width: 320px; height: 100%; background: #fdfaf6; border-right: 1px solid #e6dfd3;
             display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
@@ -18,7 +18,7 @@
         .sidebar-header h1 { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
         .sidebar-header p { font-size: 12px; color: #f5f5f5; opacity: 0.8; margin-top: 5px; }
         
-        /* 排行榜滚动区域 */
+        /* 排行榜列表区域 */
         .rank-list { flex: 1; overflow-y: auto; padding: 15px 10px; }
         .rank-item {
             display: flex; align-items: center; padding: 12px 15px; margin-bottom: 8px;
@@ -30,7 +30,6 @@
             width: 24px; height: 24px; border-radius: 50%; background: #d2c4b4; color: #6d5542;
             font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-right: 12px;
         }
-        /* 前三名突出金色质感 */
         .rank-item:nth-child(1) .rank-num { background: #FFD700; color: #5c4308; }
         .rank-item:nth-child(2) .rank-num { background: #C0C0C0; color: #3d3d3d; }
         .rank-item:nth-child(3) .rank-num { background: #CD7F32; color: white; }
@@ -41,16 +40,14 @@
 
         /* 地图主容器 */
         .map-container { flex: 1; height: 100%; position: relative; }
-        #map { width: 100%; height: 100%; z-index: 1; }
+        #map { width: 100%; height: 100%; z-index: 1; background: #e5ecef; }
 
-        /* 2. 手机端适配：当屏幕小于 768px 时自动变形 */
+        /* 手机端适配标签区 */
         .mobile-rank-tags { display: none; }
 
         @media (max-width: 768px) {
             body, html { flex-direction: column; }
-            .sidebar { display: none; } /* 手机端隐藏左侧大侧边栏 */
-            
-            /* 手机端顶部横向滚动热门标签区 */
+            .sidebar { display: none; }
             .mobile-rank-tags {
                 display: flex; gap: 8px; padding: 10px; background: rgba(255, 255, 255, 0.95);
                 overflow-x: auto; white-space: nowrap; position: absolute; top: 0; left: 0; width: 100%;
@@ -60,12 +57,12 @@
             .tag-item {
                 display: inline-flex; align-items: center; padding: 8px 14px;
                 background: white; border: 1px solid #e0e0e0; border-radius: 20px;
-                font-size: 13px; font-weight: 500; color: #4a4a4a; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+                font-size: 13px; font-weight: 500; color: #4a4a4a; cursor: pointer;
             }
             .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
         }
 
-        /* 半屏详情抽屉保持清爽 */
+        /* 半屏多媒体抽屉 */
         .drawer {
             position: fixed; bottom: 0; left: 0; width: 100%; max-height: 50%;
             background: white; z-index: 999; border-radius: 20px 20px 0 0;
@@ -94,13 +91,11 @@
             <h1>拓荒者足迹</h1>
             <p>数字化历史文旅轨迹图</p>
         </div>
-        <div id="rank-list" class="rank-list">
-            </div>
+        <div id="rank-list" class="rank-list"></div>
     </div>
 
     <div class="map-container">
         <div id="mobile-tags" class="mobile-rank-tags"></div>
-        
         <div id="map"></div>
     </div>
 
@@ -120,33 +115,39 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 初始化地图默认中心
+        // 🌟 容错优化1：初始化地图基础设置，确保哪怕数据拉取卡住，高德地图也会优先平铺显示
         const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 12);
         
-        // 使用高德官方高清纯中文底图图层
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: ["1", "2", "3", "4"],
             attribution: '© 高德地图'
         }).addTo(map);
 
         let currentPoi = null;
-        let markerMap = {}; // 用来存放所有大头针的字典，方便点击列表跳转
+        let markerMap = {};
 
-        // 🔗 你的 Notion 数据库转换直链
         const NOTION_DATA_URL = 'https://notion-api.splitbee.io/v1/table/375b936d83cc80a582e3eca4f521873b';
 
         fetch(NOTION_DATA_URL)
-            .then(response => response.json())
+            .then(response => {
+                if(!response.ok) throw new Error("Notion 接口响应异常");
+                return response.json();
+            })
             .then(mockPois => {
-                if (!Array.isArray(mockPois)) return;
+                if (!Array.isArray(mockPois) || mockPois.length === 0) return;
 
-                // 容错映射：大小写完全相容机制
+                // 🌟 容错优化2：超强力清洗机制，清洗并确保 lat/lng 无论在 Notion 是大写还是小写、字符还是数字，统统转为干净的浮点数
                 const processedPois = mockPois.map(poi => {
+                    const rawLat = poi.lat || poi.Lat || '';
+                    const rawLng = poi.lng || poi.Lng || '';
+                    const cleanLat = parseFloat(rawLat);
+                    const cleanLng = parseFloat(rawLng);
+
                     return {
                         id: poi.id || poi.Id || poi.Name || poi.name || '',
                         name: poi.name || poi.Name || '未命名地点',
-                        lat: poi.lat || poi.Lat || '',
-                        lng: poi.lng || poi.Lng || '',
+                        lat: isNaN(cleanLat) ? null : cleanLat,
+                        lng: isNaN(cleanLng) ? null : cleanLng,
                         era: poi.era || poi.Era || '',
                         story: poi.story || poi.Story || '',
                         cover: poi.cover || poi.Cover || '',
@@ -154,10 +155,99 @@
                     };
                 });
 
-                // 过滤出填了经纬度的有效数据
-                const validPois = processedPois.filter(poi => poi.lat && poi.lng);
+                // 严格过滤出已经成功清洗出有效数字经纬度的点位
+                const validPois = processedPois.filter(poi => poi.lat !== null && poi.lng !== null);
 
-                if (validPois.length === 0) return;
+                if (validPois.length === 0) {
+                    console.warn("清洗后未发现包含有效坐标的 Notion 数据行");
+                    return;
+                }
 
-                // 按照 001、002 序号进行先后排序
-                validPois.sort((a, b
+                // 按照卡片序号排序
+                validPois.sort((a, b) => a.id.toString().localeCompare(b.id.toString()));
+
+                // 动态拉近视角到第一个点
+                map.setView([validPois[0].lat, validPois[0].lng], 13);
+
+                // 1. 自动渲染轨迹线
+                const linePoints = validPois.map(poi => [poi.lat, poi.lng]);
+                L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
+
+                const rankListContainer = document.getElementById('rank-list');
+                const mobileTagsContainer = document.getElementById('mobile-tags');
+
+                // 2. 动态渲染点位、侧边栏和标签
+                validPois.forEach((poi, index) => {
+                    const rankNum = index + 1;
+
+                    // 生成大头针
+                    const marker = L.marker([poi.lat, poi.lng]).addTo(map);
+                    markerMap[poi.id] = marker;
+
+                    const openDetail = () => {
+                        currentPoi = poi;
+                        map.setView([poi.lat, poi.lng], 15);
+                        
+                        document.getElementById('poi-cover').src = poi.cover || 'https://picsum.photos/800/400?random=default';
+                        document.getElementById('poi-title').innerText = poi.name;
+                        document.getElementById('poi-meta').innerText = `历史时期：${poi.era || '未考证'}`;
+                        document.getElementById('poi-story').innerText = poi.story || '暂无故事内容';
+                        
+                        if(poi.vr_url) {
+                            document.getElementById('btn-vr').style.display = 'block';
+                            document.getElementById('btn-vr').href = poi.vr_url;
+                        } else {
+                            document.getElementById('btn-vr').style.display = 'none';
+                        }
+                        document.getElementById('drawer').classList.add('show');
+                    };
+
+                    marker.on('click', openDetail);
+
+                    // 填充电脑侧边栏排行榜
+                    const rankItem = document.createElement('div');
+                    rankItem.className = 'rank-item';
+                    rankItem.innerHTML = `
+                        <div class="rank-num">${rankNum}</div>
+                        <div class="rank-info">
+                            <div class="rank-name">${poi.name}</div>
+                            <div class="rank-era">${poi.era || '未考证'}</div>
+                        </div>
+                    `;
+                    rankItem.onclick = openDetail;
+                    rankListContainer.appendChild(rankItem);
+
+                    // 填充手机端横向标签
+                    const tagItem = document.createElement('div');
+                    tagItem.className = 'tag-item';
+                    tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
+                    tagItem.onclick = openDetail;
+                    mobileTagsContainer.appendChild(tagItem);
+                });
+            })
+            .catch(err => console.error("Notion数据渲染失败，请检查表格字段:", err));
+
+        function closeDrawer() {
+            document.getElementById('drawer').classList.remove('show');
+        }
+
+        function invokeNavigation() {
+            if (!currentPoi) return;
+            const lat = currentPoi.lat;
+            const lng = currentPoi.lng;
+            const name = encodeURIComponent(currentPoi.name);
+
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`;
+                return;
+            }
+            const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
+            if (choice) {
+                window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`;
+            } else {
+                window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`;
+            }
+        }
+    </script>
+</body>
+</html>

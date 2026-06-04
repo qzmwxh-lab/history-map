@@ -3,42 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数字化文旅历史地图平台</title>
+    <title>拓荒者足迹 | 数字化文旅历史地图</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
-        
-        /* 地图占满全屏 */
+        body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
         #map { width: 100%; height: 100%; z-index: 1; }
-
-        /* 移动端/网页端自适应丝滑半屏抽屉 */
-        .drawer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            max-height: 50%;
-            background: white;
-            z-index: 999;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.1, 0.7, 0.1, 1);
-            display: flex;
-            flex-direction: column;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+        .drawer { position: fixed; bottom: 0; left: 0; width: 100%; max-height: 50%; background: white; z-index: 999; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); transform: translateY(100%); transition: transform 0.3s ease-out; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         .drawer.show { transform: translateY(0); }
-        
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #999; cursor: pointer; z-index: 1001; }
         .poi-cover { width: 100%; height: 180px; object-fit: cover; border-radius: 20px 20px 0 0; }
         .poi-content { padding: 20px; overflow-y: auto; flex: 1; }
         .poi-title { font-size: 22px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .poi-meta { font-size: 13px; color: #95a5a6; margin-bottom: 10px; }
-        .poi-story { font-size: 15px; color: #34495e; line-height: 1.6; }
-        
-        /* 底部操作按钮 */
+        .poi-story { font-size: 15px; color: #34495e; line-height: 1.6; white-space: pre-line; }
         .poi-actions { display: flex; padding: 15px 20px; background: #f8f9fa; gap: 10px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 25px; color: white; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
         .btn-vr { background: #2ecc71; }
@@ -65,90 +43,61 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. 初始化地图（以浙江衢州中心区为例，采用标准 WGS-84 GPS 坐标）
-        // 如果以后有手绘图，直接把这里的 TileLayer 换成你的手绘图切片地址即可
+        // 初始化地图
         const map = L.map('map', { zoomControl: false }).setView([28.957608, 118.875885], 13);
         
-        // 加载一个极简干净的国际通用底图（避免国内底图的样式干扰）
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 2. 模拟你的首发精品多媒体点位资产数据
-        const mockPois = [
-            {
-                id: "poi_001",
-                name: "衢州圣公会圣雅各堂旧址",
-                lat: 28.957608,
-                lng: 118.875885,
-                era: "晚清 (1890年代)",
-                story: "该堂由近代传教士建立，是浙西内陆保存完好的近代西式建筑标本。这里曾是当地医疗与现代学校的萌芽之地，承载了丰富的历史记忆。",
-                cover: "https://picsum.photos/800/400?random=1", // 先用随机精美图替代，后续换成你的专业实拍
-                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html" // 你的 360° VR H5 页面链接
-            },
-            {
-                id: "poi_002",
-                name: "钱塘江上游古埠头遗迹",
-                lat: 28.965000,
-                lng: 118.885000,
-                era: "民国时期",
-                story: "作为沿钱塘江逆流而上进入浙西的终点码头，此处是历史人物进入赣东、闽北的交通咽喉。沿岸仍保留有完好的石质丁坝结构。",
-                cover: "https://picsum.photos/800/400?random=2",
-                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html"
-            }
-        ];
-
         let currentPoi = null;
 
-        // 3. 渲染路线（将点位连成线）
-        const linePoints = mockPois.map(poi => [poi.lat, poi.lng]);
-        L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
+        // 🌟 核心：直接去读取你的飞书多维表格转化后的开放链接
+        // 将下面的网址换成你最终拿到的飞书数据源网址
+        const FEISHU_DATA_URL = 'https://api.your-bridge.com/feishu-data'; 
 
-        // 4. 渲染打点（Markers）并绑定点击事件
-        mockPois.forEach(poi => {
-            const marker = L.marker([poi.lat, poi.lng]).addTo(map);
-            marker.on('click', () => {
-                currentPoi = poi;
-                // 居中放大到该点
-                map.setView([poi.lat, poi.lng], 15);
-                // 填充抽屉内容
-                document.getElementById('poi-cover').src = poi.cover;
-                document.getElementById('poi-title').innerText = poi.name;
-                document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
-                document.getElementById('poi-story').innerText = poi.story;
-                document.getElementById('btn-vr').href = poi.vr_url;
-                
-                // 弹窗抽屉
-                document.getElementById('drawer').classList.add('show');
-            });
-        });
+        fetch(FEISHU_DATA_URL)
+            .then(response => response.json())
+            .then(mockPois => {
+                // 1. 自动根据表格行顺序绘制历史轨迹连线
+                const linePoints = mockPois.map(poi => [parseFloat(poi.lat), parseFloat(poi.lng)]);
+                L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
+
+                // 2. 自动在地图上打点
+                mockPois.forEach(poi => {
+                    const marker = L.marker([parseFloat(poi.lat), parseFloat(poi.lng)]).addTo(map);
+                    marker.on('click', () => {
+                        currentPoi = poi;
+                        map.setView([parseFloat(poi.lat), parseFloat(poi.lng)], 15);
+                        document.getElementById('poi-cover').src = poi.cover;
+                        document.getElementById('poi-title').innerText = poi.name;
+                        document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
+                        document.getElementById('poi-story').innerText = poi.story;
+                        document.getElementById('btn-vr').href = poi.vr_url;
+                        document.getElementById('drawer').classList.add('show');
+                    });
+                });
+            })
+            .catch(err => console.error("加载飞书数据失败:", err));
 
         function closeDrawer() {
             document.getElementById('drawer').classList.remove('show');
         }
 
-        // 5. 核心：在网页端如何唤醒手机上的高德/百度/Apple Maps APP？
-        // 通过手机浏览器特有的 URL Scheme 直达 App 客户端
         function invokeNavigation() {
             if (!currentPoi) return;
-            
             const lat = currentPoi.lat;
             const lng = currentPoi.lng;
             const name = encodeURIComponent(currentPoi.name);
 
-            // 如果是在 iPhone 上，默认尝试唤醒苹果原生自带地图，最顺滑
             if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
                 window.location.href = `maps://?q=${name}&ll=${lat},${lng}`;
                 return;
             }
-
-            // 如果在安卓或通用设备上，弹窗让用户选择唤醒高德还是百度
-            const choice = confirm("点击确定尝试打开【高德地图】开始导航，点击取消尝试打开【百度地图】");
+            const choice = confirm("确定打开【高德地图】导航，取消打开【百度地图】");
             if (choice) {
-                // 唤醒高德 App 协议
                 window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`;
             } else {
-                // 唤醒百度 App 协议
                 window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`;
             }
         }

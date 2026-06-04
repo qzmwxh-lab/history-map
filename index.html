@@ -7,10 +7,65 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
-        #map { width: 100%; height: 100%; z-index: 1; background: #f8f9fa; }
+        body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; display: flex; }
+        
+        /* 1. 整体框架布局：电脑端侧边栏 */
+        .sidebar {
+            width: 320px; height: 100%; background: #fdfaf6; border-right: 1px solid #e6dfd3;
+            display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+        .sidebar-header { padding: 25px 20px 15px 20px; background: #8B4513; color: white; }
+        .sidebar-header h1 { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+        .sidebar-header p { font-size: 12px; color: #f5f5f5; opacity: 0.8; margin-top: 5px; }
+        
+        /* 排行榜滚动区域 */
+        .rank-list { flex: 1; overflow-y: auto; padding: 15px 10px; }
+        .rank-item {
+            display: flex; align-items: center; padding: 12px 15px; margin-bottom: 8px;
+            background: white; border: 1px solid #efeae1; border-radius: 10px;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .rank-item:hover { background: #f9f6f0; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .rank-num {
+            width: 24px; height: 24px; border-radius: 50%; background: #d2c4b4; color: #6d5542;
+            font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-right: 12px;
+        }
+        /* 前三名突出金色质感 */
+        .rank-item:nth-child(1) .rank-num { background: #FFD700; color: #5c4308; }
+        .rank-item:nth-child(2) .rank-num { background: #C0C0C0; color: #3d3d3d; }
+        .rank-item:nth-child(3) .rank-num { background: #CD7F32; color: white; }
+        
+        .rank-info { flex: 1; }
+        .rank-name { font-size: 15px; font-weight: bold; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+        .rank-era { font-size: 12px; color: #95a5a6; margin-top: 2px; }
 
-        /* 半屏抽屉 */
+        /* 地图主容器 */
+        .map-container { flex: 1; height: 100%; position: relative; }
+        #map { width: 100%; height: 100%; z-index: 1; }
+
+        /* 2. 手机端适配：当屏幕小于 768px 时自动变形 */
+        .mobile-rank-tags { display: none; }
+
+        @media (max-width: 768px) {
+            body, html { flex-direction: column; }
+            .sidebar { display: none; } /* 手机端隐藏左侧大侧边栏 */
+            
+            /* 手机端顶部横向滚动热门标签区 */
+            .mobile-rank-tags {
+                display: flex; gap: 8px; padding: 10px; background: rgba(255, 255, 255, 0.95);
+                overflow-x: auto; white-space: nowrap; position: absolute; top: 0; left: 0; width: 100%;
+                z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.08); scrollbar-width: none;
+            }
+            .mobile-rank-tags::-webkit-scrollbar { display: none; }
+            .tag-item {
+                display: inline-flex; align-items: center; padding: 8px 14px;
+                background: white; border: 1px solid #e0e0e0; border-radius: 20px;
+                font-size: 13px; font-weight: 500; color: #4a4a4a; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            }
+            .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
+        }
+
+        /* 半屏详情抽屉保持清爽 */
         .drawer {
             position: fixed; bottom: 0; left: 0; width: 100%; max-height: 50%;
             background: white; z-index: 999; border-radius: 20px 20px 0 0;
@@ -26,7 +81,6 @@
         .poi-meta { font-size: 13px; color: #95a5a6; margin-bottom: 10px; }
         .poi-story { font-size: 15px; color: #34495e; line-height: 1.6; white-space: pre-line; }
         
-        /* 操作按钮 */
         .poi-actions { display: flex; padding: 15px 20px; background: #f8f9fa; gap: 10px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 25px; color: white; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
         .btn-vr { background: #2ecc71; }
@@ -35,7 +89,20 @@
 </head>
 <body>
 
-    <div id="map"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>拓荒者足迹</h1>
+            <p>数字化历史文旅轨迹图</p>
+        </div>
+        <div id="rank-list" class="rank-list">
+            </div>
+    </div>
+
+    <div class="map-container">
+        <div id="mobile-tags" class="mobile-rank-tags"></div>
+        
+        <div id="map"></div>
+    </div>
 
     <div id="drawer" class="drawer">
         <div class="close-btn" onclick="closeDrawer()">×</div>
@@ -53,8 +120,8 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 初始化地图默认中心（如果没读到数据先落在这里）
-        const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 11);
+        // 初始化地图默认中心
+        const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 12);
         
         // 使用高德官方高清纯中文底图图层
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -63,99 +130,34 @@
         }).addTo(map);
 
         let currentPoi = null;
+        let markerMap = {}; // 用来存放所有大头针的字典，方便点击列表跳转
 
         // 🔗 你的 Notion 数据库转换直链
         const NOTION_DATA_URL = 'https://notion-api.splitbee.io/v1/table/375b936d83cc80a582e3eca4f521873b';
 
         fetch(NOTION_DATA_URL)
-            .then(response => {
-                if (!response.ok) throw new Error('网络请求失败');
-                return response.json();
-            })
+            .then(response => response.json())
             .then(mockPois => {
                 if (!Array.isArray(mockPois)) return;
 
-                // 🌟 容错过滤：严格确保只有填了 lat 和 lng 的有效点位才参与渲染，彻底防止因空行导致的白屏 Bug
-                const validPois = mockPois.filter(poi => {
-                    return poi && 
-                           (poi.lat !== undefined && poi.lat !== null && poi.lat !== '') && 
-                           (poi.lng !== undefined && poi.lng !== null && poi.lng !== '');
+                // 容错映射：大小写完全相容机制
+                const processedPois = mockPois.map(poi => {
+                    return {
+                        id: poi.id || poi.Id || poi.Name || poi.name || '',
+                        name: poi.name || poi.Name || '未命名地点',
+                        lat: poi.lat || poi.Lat || '',
+                        lng: poi.lng || poi.Lng || '',
+                        era: poi.era || poi.Era || '',
+                        story: poi.story || poi.Story || '',
+                        cover: poi.cover || poi.Cover || '',
+                        vr_url: poi.vr_url || poi.Vr_url || poi.VR_url || ''
+                    };
                 });
 
-                if (validPois.length === 0) {
-                    console.warn("未在 Notion 表格中找到有效的经纬度点位数据");
-                    return;
-                }
+                // 过滤出填了经纬度的有效数据
+                const validPois = processedPois.filter(poi => poi.lat && poi.lng);
 
-                // 🌟 自动排序：兼容大写 Name 和小写 id
-                validPois.sort((a, b) => {
-                    const idA = a.id || a.Name || '';
-                    const idB = b.id || b.Name || '';
-                    return idA.localeCompare(idB);
-                });
+                if (validPois.length === 0) return;
 
-                // 自动将地图视角中心移到第一个有效点位
-                map.setView([parseFloat(validPois[0].lat), parseFloat(validPois[0].lng)], 13);
-
-                // 1. 自动绘制连线
-                const linePoints = validPois.map(poi => [parseFloat(poi.lat), parseFloat(poi.lng)]);
-                L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
-
-                // 2. 全自动打点
-                validPois.forEach(poi => {
-                    const marker = L.marker([parseFloat(poi.lat), parseFloat(poi.lng)]).addTo(map);
-                    marker.on('click', () => {
-                        currentPoi = poi;
-                        map.setView([parseFloat(poi.lat), parseFloat(poi.lng)], 15);
-                        
-                        // 兼容属性名大小写：优先取小写 name，没有则取大写 Name
-                        const displayName = poi.name || poi.Name || "未命名地点";
-                        
-                        // 填充详情抽屉
-                        document.getElementById('poi-cover').src = poi.cover || 'https://picsum.photos/800/400?random=default';
-                        document.getElementById('poi-title').innerText = displayName;
-                        document.getElementById('poi-meta').innerText = `历史时期：${poi.era || '未考证'}`;
-                        document.getElementById('poi-story').innerText = poi.story || '暂无故事内容';
-                        
-                        // VR 全景按钮显示/隐藏
-                        if(poi.vr_url) {
-                            document.getElementById('btn-vr').style.display = 'block';
-                            document.getElementById('btn-vr').href = poi.vr_url;
-                        } else {
-                            document.getElementById('btn-vr').style.display = 'none';
-                        }
-
-                        document.getElementById('drawer').classList.add('show');
-                    });
-                });
-            })
-            .catch(err => {
-                console.error("读取 Notion 地图数据失败:", err);
-            });
-
-        function closeDrawer() {
-            document.getElementById('drawer').classList.remove('show');
-        }
-
-        // 一键唤醒手机地图 App 导航协议
-        function invokeNavigation() {
-            if (!currentPoi) return;
-            const lat = currentPoi.lat;
-            const lng = currentPoi.lng;
-            const displayName = currentPoi.name || currentPoi.Name || "历史遗迹";
-            const name = encodeURIComponent(displayName);
-
-            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`;
-                return;
-            }
-            const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
-            if (choice) {
-                window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`;
-            } else {
-                window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`;
-            }
-        }
-    </script>
-</body>
-</html>
+                // 按照 001、002 序号进行先后排序
+                validPois.sort((a, b

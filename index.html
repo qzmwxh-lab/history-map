@@ -62,20 +62,37 @@
             .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
         }
 
-        /* 半屏多媒体抽屉 */
+        /* 半屏多媒体抽屉（优化布局以适配媒体区） */
         .drawer {
-            position: fixed; bottom: 0; left: 0; width: 100%; max-height: 50%;
+            position: fixed; bottom: 0; left: 0; width: 100%; max-height: 60%;
             background: white; z-index: 999; border-radius: 20px 20px 0 0;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
             transform: translateY(100%); transition: transform 0.3s ease-out;
             display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom);
         }
         .drawer.show { transform: translateY(0); }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #999; cursor: pointer; z-index: 1001; }
-        .poi-cover { width: 100%; height: 180px; object-fit: cover; border-radius: 20px 20px 0 0; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: white; cursor: pointer; z-index: 1002; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        
+        /* 🌟 媒体区（支持图片与电影感微缩视频切换） */
+        .media-box { width: 100%; height: 210px; position: relative; background: #000; border-radius: 20px 20px 0 0; overflow: hidden; }
+        .poi-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .poi-video { width: 100%; height: 100%; object-fit: cover; display: none; }
+
         .poi-content { padding: 20px; overflow-y: auto; flex: 1; }
         .poi-title { font-size: 22px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
-        .poi-meta { font-size: 13px; color: #95a5a6; margin-bottom: 10px; }
+        .poi-meta { font-size: 13px; color: #95a5a6; margin-bottom: 15px; }
+        
+        /* 🌟 现场语音解说控制台样式 */
+        .audio-player-box { 
+            display: none; align-items: center; gap: 15px; padding: 12px 18px; 
+            background: #fdf6ec; border: 1px solid #f5dab1; border-radius: 12px; margin-bottom: 15px; 
+        }
+        .play-audio-btn { 
+            width: 36px; height: 36px; border-radius: 50%; background: #e6a23c; border: none; 
+            color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .audio-info-text { font-size: 13px; color: #b88230; font-weight: 500; }
+
         .poi-story { font-size: 15px; color: #34495e; line-height: 1.6; white-space: pre-line; }
         
         .poi-actions { display: flex; padding: 15px 20px; background: #f8f9fa; gap: 10px; }
@@ -101,10 +118,22 @@
 
     <div id="drawer" class="drawer">
         <div class="close-btn" onclick="closeDrawer()">×</div>
-        <img id="poi-cover" class="poi-cover" src="" alt="封面">
+        
+        <div class="media-box">
+            <img id="poi-cover" class="poi-cover" src="" alt="封面">
+            <video id="poi-video" class="poi-video" autoplay loop muted playsinline></video>
+        </div>
+
         <div class="poi-content">
             <div id="poi-title" class="poi-title"></div>
             <div id="poi-meta" class="poi-meta"></div>
+            
+            <div id="audio-box" class="audio-player-box">
+                <button id="audio-play-btn" class="play-audio-btn" onclick="toggleAudio()">▶</button>
+                <span class="audio-info-text">🔊 听听看：现场原声考证解说录音</span>
+                <audio id="poi-audio" onended="onAudioEnded()"></audio>
+            </div>
+
             <div id="poi-story" class="poi-story"></div>
         </div>
         <div class="poi-actions">
@@ -115,7 +144,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. 初始化高德高清底图
         const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 13);
         
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -126,7 +154,7 @@
         let currentPoi = null;
         let markerMap = {};
 
-        // 🌟 核心數據矩陣：直接內嵌！以後想增加 002、003 號點，直接複製下面大括號裡面的內容即可！
+        // 🌟 2.0 终极原生数据矩阵
         const finalRenderList = [
             {
                 id: "001",
@@ -136,41 +164,60 @@
                 era: "民国时期",
                 story: "鸡公山美文学效旧址，俗称“美国大楼”。兴建于20世纪初，是江汉地区极具历史价值的西式近代建筑。作为数字化足迹的起航首站，这里沉淀了深厚的人文及文旅寻访记忆。",
                 cover: "https://picsum.photos/800/400?random=1",
-                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html" // 如果你有了全景图H5直链，直接替换这里
+                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
+                
+                // 🎬 电影感微缩视频流（空着则不播视频，自动降级为显示上面的 cover 静态图）
+                video_url: "https://assets.mixkit.co/videos/preview/mixkit-cinematic-view-of-a-misty-forest-43246-large.mp4", 
+                
+                // 🔊 现场录制原声解说音频
+                audio_url: "https://www.w3schools.com/html/horse.mp3" 
             }
-            // 💡 以后要加新点位，在这里加个逗号，把下面这段解开貼進去即可：
-            // ,{
-            //     id: "002",
-            //     name: "你的第二个文旅站名",
-            //     lat: 30.00,
-            //     lng: 120.00,
-            //     era: "历史时期",
-            //     story: "这里是第二个故事介绍...",
-            //     cover: "封面图链接",
-            //     vr_url: ""
-            // }
         ];
 
-        // 2. 自动连接那条完美的复古棕色足迹轨迹线
+        // 轨迹绘制
         const linePoints = finalRenderList.map(poi => [poi.lat, poi.lng]);
         L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
 
         const rankListContainer = document.getElementById('rank-list');
         const mobileTagsContainer = document.getElementById('mobile-tags');
 
-        // 3. 循环绘制列表与大头针标记
         finalRenderList.forEach((poi, index) => {
             const rankNum = index + 1;
-
-            // 地图打点
             const marker = L.marker([poi.lat, poi.lng]).addTo(map);
             markerMap[poi.id] = marker;
 
             const openDetail = () => {
+                // 打开新点位前先强制暂停上一个可能在播放的音频
+                const audioEl = document.getElementById('poi-audio');
+                audioEl.pause();
+                document.getElementById('audio-play-btn').innerText = '▶';
+
                 currentPoi = poi;
                 map.setView([poi.lat, poi.lng], 15);
                 
-                document.getElementById('poi-cover').src = poi.cover;
+                // 1. 媒体盒子渲染逻辑：优先渲染微缩视频
+                const imgEl = document.getElementById('poi-cover');
+                const videoEl = document.getElementById('poi-video');
+                if (poi.video_url) {
+                    imgEl.style.display = 'none';
+                    videoEl.style.display = 'block';
+                    videoEl.src = poi.video_url;
+                    videoEl.play().catch(()=>{});
+                } else {
+                    videoEl.style.display = 'none';
+                    imgEl.style.display = 'block';
+                    imgEl.src = poi.cover;
+                }
+
+                // 2. 数字化原声语音导览渲染逻辑
+                const audioBox = document.getElementById('audio-box');
+                if (poi.audio_url) {
+                    audioBox.style.display = 'flex';
+                    audioEl.src = poi.audio_url;
+                } else {
+                    audioBox.style.display = 'none';
+                }
+
                 document.getElementById('poi-title').innerText = poi.name;
                 document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
                 document.getElementById('poi-story').innerText = poi.story;
@@ -181,25 +228,19 @@
                 } else {
                     document.getElementById('btn-vr').style.display = 'none';
                 }
-                document.getElementById('drawer').classList.add('show');
+                document.getElementById('drawer').addTo ? '' : document.getElementById('drawer').classList.add('show');
             };
 
             marker.on('click', openDetail);
 
-            // 填充电脑侧边栏排行榜
+            // 侧边栏
             const rankItem = document.createElement('div');
             rankItem.className = 'rank-item';
-            rankItem.innerHTML = `
-                <div class="rank-num">${rankNum}</div>
-                <div class="rank-info">
-                    <div class="rank-name">${poi.name}</div>
-                    <div class="rank-era">${poi.era}</div>
-                </div>
-            `;
+            rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank-era">${poi.era}</div></div>`;
             rankItem.onclick = openDetail;
             rankListContainer.appendChild(rankItem);
 
-            // 填充手机顶栏滑动胶囊
+            // 手机胶囊
             const tagItem = document.createElement('div');
             tagItem.className = 'tag-item';
             tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
@@ -207,7 +248,26 @@
             mobileTagsContainer.appendChild(tagItem);
         });
 
+        // 语音播放/暂停控制
+        function toggleAudio() {
+            const audioEl = document.getElementById('poi-audio');
+            const btn = document.getElementById('audio-play-btn');
+            if (audioEl.paused) {
+                audioEl.play();
+                btn.innerText = '⏸';
+            } else {
+                audioEl.pause();
+                btn.innerText = '▶';
+            }
+        }
+
+        function onAudioEnded() {
+            document.getElementById('audio-play-btn').innerText = '▶';
+        }
+
         function closeDrawer() {
+            document.getElementById('poi-audio').pause();
+            document.getElementById('poi-video').pause();
             document.getElementById('drawer').classList.remove('show');
         }
 
@@ -216,7 +276,6 @@
             const lat = currentPoi.lat;
             const lng = currentPoi.lng;
             const name = encodeURIComponent(currentPoi.name);
-
             if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
                 window.location.href = `maps://?q=${name}&ll=${lat},${lng}`;
                 return;

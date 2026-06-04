@@ -8,9 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
-        
-        /* 地图满屏 */
-        #map { width: 100%; height: 100%; z-index: 1; }
+        #map { width: 100%; height: 100%; z-index: 1; background: #f8f9fa; }
 
         /* 半屏抽屉 */
         .drawer {
@@ -55,29 +53,109 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 初始化地图中心到河南信阳鸡公山附近（纬度 31.80，经度 114.08）
-        const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 13);
+        // 初始化地图默认中心（如果没读到数据先落在这里）
+        const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 11);
         
         // 使用高德官方高清纯中文底图图层
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: ["1", "2", "3", "4"],
-            attribution: '© 高德地图 AutoNavi'
+            attribution: '© 高德地图'
         }).addTo(map);
 
         let currentPoi = null;
 
-        // 🔗 完美连接到你的最新版列名 Notion 表格数据源
+        // 🔗 你的 Notion 数据库转换直链
         const NOTION_DATA_URL = 'https://notion-api.splitbee.io/v1/table/375b936d83cc80a582e3eca4f521873b';
 
         fetch(NOTION_DATA_URL)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('网络请求失败');
+                return response.json();
+            })
             .then(mockPois => {
-                // 自动按照 Notion 里的 Name（001，002）排序，防止路线乱连
-                mockPois.sort((a, b) => a.Name.localeCompare(b.Name));
+                if (!Array.isArray(mockPois)) return;
 
-                // 过滤掉经纬度没填的空行
-                const validPois = mockPois.filter(poi => poi.lat && poi.lng);
+                // 🌟 容错过滤：严格确保只有填了 lat 和 lng 的有效点位才参与渲染，彻底防止因空行导致的白屏 Bug
+                const validPois = mockPois.filter(poi => {
+                    return poi && 
+                           (poi.lat !== undefined && poi.lat !== null && poi.lat !== '') && 
+                           (poi.lng !== undefined && poi.lng !== null && poi.lng !== '');
+                });
 
-                // 如果有数据，自动将地图视角中心移到第一个点位
-                if(validPois.length > 0) {
-                    map.setView([parseFloat(validPois[0].lat), parseFloat(validP
+                if (validPois.length === 0) {
+                    console.warn("未在 Notion 表格中找到有效的经纬度点位数据");
+                    return;
+                }
+
+                // 🌟 自动排序：兼容大写 Name 和小写 id
+                validPois.sort((a, b) => {
+                    const idA = a.id || a.Name || '';
+                    const idB = b.id || b.Name || '';
+                    return idA.localeCompare(idB);
+                });
+
+                // 自动将地图视角中心移到第一个有效点位
+                map.setView([parseFloat(validPois[0].lat), parseFloat(validPois[0].lng)], 13);
+
+                // 1. 自动绘制连线
+                const linePoints = validPois.map(poi => [parseFloat(poi.lat), parseFloat(poi.lng)]);
+                L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
+
+                // 2. 全自动打点
+                validPois.forEach(poi => {
+                    const marker = L.marker([parseFloat(poi.lat), parseFloat(poi.lng)]).addTo(map);
+                    marker.on('click', () => {
+                        currentPoi = poi;
+                        map.setView([parseFloat(poi.lat), parseFloat(poi.lng)], 15);
+                        
+                        // 兼容属性名大小写：优先取小写 name，没有则取大写 Name
+                        const displayName = poi.name || poi.Name || "未命名地点";
+                        
+                        // 填充详情抽屉
+                        document.getElementById('poi-cover').src = poi.cover || 'https://picsum.photos/800/400?random=default';
+                        document.getElementById('poi-title').innerText = displayName;
+                        document.getElementById('poi-meta').innerText = `历史时期：${poi.era || '未考证'}`;
+                        document.getElementById('poi-story').innerText = poi.story || '暂无故事内容';
+                        
+                        // VR 全景按钮显示/隐藏
+                        if(poi.vr_url) {
+                            document.getElementById('btn-vr').style.display = 'block';
+                            document.getElementById('btn-vr').href = poi.vr_url;
+                        } else {
+                            document.getElementById('btn-vr').style.display = 'none';
+                        }
+
+                        document.getElementById('drawer').classList.add('show');
+                    });
+                });
+            })
+            .catch(err => {
+                console.error("读取 Notion 地图数据失败:", err);
+            });
+
+        function closeDrawer() {
+            document.getElementById('drawer').classList.remove('show');
+        }
+
+        // 一键唤醒手机地图 App 导航协议
+        function invokeNavigation() {
+            if (!currentPoi) return;
+            const lat = currentPoi.lat;
+            const lng = currentPoi.lng;
+            const displayName = currentPoi.name || currentPoi.Name || "历史遗迹";
+            const name = encodeURIComponent(displayName);
+
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`;
+                return;
+            }
+            const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
+            if (choice) {
+                window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`;
+            } else {
+                window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`;
+            }
+        }
+    </script>
+</body>
+</html>

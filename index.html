@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>拓荒者足迹 | 数字化文旅历史地图</title>
+    <!-- 引入 Leaflet 地图样式 -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -62,7 +63,7 @@
             .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
         }
 
-        /* 半屏多媒体抽屉（优化布局以适配媒体区） */
+        /* 半屏多媒体抽屉 */
         .drawer {
             position: fixed; bottom: 0; left: 0; width: 100%; max-height: 60%;
             background: white; z-index: 999; border-radius: 20px 20px 0 0;
@@ -73,7 +74,6 @@
         .drawer.show { transform: translateY(0); }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: white; cursor: pointer; z-index: 1002; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
-        /* 🌟 媒体区（支持图片与电影感微缩视频切换） */
         .media-box { width: 100%; height: 210px; position: relative; background: #000; border-radius: 20px 20px 0 0; overflow: hidden; }
         .poi-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
         .poi-video { width: 100%; height: 100%; object-fit: cover; display: none; }
@@ -82,7 +82,6 @@
         .poi-title { font-size: 22px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .poi-meta { font-size: 13px; color: #95a5a6; margin-bottom: 15px; }
         
-        /* 🌟 现场语音解说控制台样式 */
         .audio-player-box { 
             display: none; align-items: center; gap: 15px; padding: 12px 18px; 
             background: #fdf6ec; border: 1px solid #f5dab1; border-radius: 12px; margin-bottom: 15px; 
@@ -118,12 +117,10 @@
 
     <div id="drawer" class="drawer">
         <div class="close-btn" onclick="closeDrawer()">×</div>
-        
         <div class="media-box">
             <img id="poi-cover" class="poi-cover" src="" alt="封面">
             <video id="poi-video" class="poi-video" autoplay loop muted playsinline></video>
         </div>
-
         <div class="poi-content">
             <div id="poi-title" class="poi-title"></div>
             <div id="poi-meta" class="poi-meta"></div>
@@ -144,7 +141,8 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 13);
+        // 初始化高德底图（默认视角我们先移到第2站衢州附近，方便同时看1和2的长途连线）
+        const map = L.map('map', { zoomControl: false }).setView([29.5, 116.5], 7);
         
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: ["1", "2", "3", "4"],
@@ -154,7 +152,7 @@
         let currentPoi = null;
         let markerMap = {};
 
-        // 🌟 2.0 终极原生数据矩阵
+        // 🌟 3.0 大师级叙事数据矩阵（为你扩展了 002 核心点位）
         const finalRenderList = [
             {
                 id: "001",
@@ -165,37 +163,74 @@
                 story: "鸡公山美文学效旧址，俗称“美国大楼”。兴建于20世纪初，是江汉地区极具历史价值的西式近代建筑。作为数字化足迹的起航首站，这里沉淀了深厚的人文及文旅寻访记忆。",
                 cover: "https://picsum.photos/800/400?random=1",
                 vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
+                video_url: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c0ee273d26ebf9db06d6da331b22e5a7&profile_id=139&oauth2_token_id=57447761", 
+                audio_url: "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg",
                 
-                // 🎬 电影感微缩视频流（空着则不播视频，自动降级为显示上面的 cover 静态图）
-                video_url: "https://assets.mixkit.co/videos/preview/mixkit-cinematic-view-of-a-misty-forest-43246-large.mp4", 
+                // 🌟 米纳德叙事属性
+                color_type: "republic", // republic = 民国蓝
+                level: 8                 // 8 = 核心重点保护（最粗线）
+            },
+            {
+                id: "002",
+                name: "衢州圣公会圣雅各堂旧址",
+                lat: 28.957608,
+                lng: 118.875885,
+                era: "晚清时期",
+                story: "衢州圣公会圣雅各堂旧址，是浙西内陆极为罕见的近代西洋宗教建筑与本土营造工艺融合的标本。对于研究钱塘江上游近代开埠、江畔水运码头文化变迁具有极高的历史考证价值。",
+                cover: "https://picsum.photos/800/400?random=2",
+                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
+                video_url: "", // 留空则自动降级显示封面静态图
+                audio_url: "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg",
                 
-                // 🔊 现场录制原声解说音频
-                audio_url: "https://www.w3schools.com/html/horse.mp3" 
+                // 🌟 米纳德叙事属性
+                color_type: "qing",    // qing = 晚清深褐
+                level: 5               // 5 = 中等历史规模
             }
         ];
 
-        // 轨迹绘制
-        const linePoints = finalRenderList.map(poi => [poi.lat, poi.lng]);
-        L.polyline(linePoints, { color: '#A0522D', weight: 4, opacity: 0.8 }).addTo(map);
+        // 🌟 米纳德流线渲染核心引擎：根据每一站的年代和级别，动态计算属于它那一段的线条颜色和粗细
+        const colorMap = {
+            "qing": "#8B4513",     // 晚清：古朴深褐
+            "republic": "#4682B4", // 民国：优雅民国蓝
+            "modern": "#2ECC71"    // 现代：活力文旅绿
+        };
+
+        for (let i = 0; i < finalRenderList.length - 1; i++) {
+            const startNode = finalRenderList[i];
+            const endNode = finalRenderList[i+1];
+            
+            // 采用当前出发站点的历史属性来定义这一段路程的视觉特征
+            const sectionColor = colorMap[startNode.color_type] || "#A0522D";
+            const sectionThickness = startNode.level || 4;
+
+            L.polyline([
+                [startNode.lat, startNode.lng],
+                [endNode.lat, endNode.lng]
+            ], {
+                color: sectionColor,
+                weight: sectionThickness,
+                opacity: 0.85,
+                dashArray: startNode.color_type === "qing" ? "5, 5" : null // 额外高级感：让晚清线变成复古虚线，民国线为实线
+            }).addTo(map);
+        }
 
         const rankListContainer = document.getElementById('rank-list');
         const mobileTagsContainer = document.getElementById('mobile-tags');
 
+        // 循环打点和填充UI
         finalRenderList.forEach((poi, index) => {
             const rankNum = index + 1;
             const marker = L.marker([poi.lat, poi.lng]).addTo(map);
             markerMap[poi.id] = marker;
 
             const openDetail = () => {
-                // 打开新点位前先强制暂停上一个可能在播放的音频
                 const audioEl = document.getElementById('poi-audio');
                 audioEl.pause();
                 document.getElementById('audio-play-btn').innerText = '▶';
 
                 currentPoi = poi;
-                map.setView([poi.lat, poi.lng], 15);
+                map.setView([poi.lat, poi.lng], 14);
                 
-                // 1. 媒体盒子渲染逻辑：优先渲染微缩视频
                 const imgEl = document.getElementById('poi-cover');
                 const videoEl = document.getElementById('poi-video');
                 if (poi.video_url) {
@@ -209,7 +244,6 @@
                     imgEl.src = poi.cover;
                 }
 
-                // 2. 数字化原声语音导览渲染逻辑
                 const audioBox = document.getElementById('audio-box');
                 if (poi.audio_url) {
                     audioBox.style.display = 'flex';
@@ -228,12 +262,12 @@
                 } else {
                     document.getElementById('btn-vr').style.display = 'none';
                 }
-                document.getElementById('drawer').addTo ? '' : document.getElementById('drawer').classList.add('show');
+                document.getElementById('drawer').classList.add('show');
             };
 
             marker.on('click', openDetail);
 
-            // 侧边栏
+            // 排行榜列表
             const rankItem = document.createElement('div');
             rankItem.className = 'rank-item';
             rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank-era">${poi.era}</div></div>`;
@@ -248,22 +282,14 @@
             mobileTagsContainer.appendChild(tagItem);
         });
 
-        // 语音播放/暂停控制
         function toggleAudio() {
             const audioEl = document.getElementById('poi-audio');
             const btn = document.getElementById('audio-play-btn');
-            if (audioEl.paused) {
-                audioEl.play();
-                btn.innerText = '⏸';
-            } else {
-                audioEl.pause();
-                btn.innerText = '▶';
-            }
+            if (audioEl.paused) { audioEl.play(); btn.innerText = '⏸'; } 
+            else { audioEl.pause(); btn.innerText = '▶'; }
         }
 
-        function onAudioEnded() {
-            document.getElementById('audio-play-btn').innerText = '▶';
-        }
+        function onAudioEnded() { document.getElementById('audio-play-btn').innerText = '▶'; }
 
         function closeDrawer() {
             document.getElementById('poi-audio').pause();
@@ -273,19 +299,14 @@
 
         function invokeNavigation() {
             if (!currentPoi) return;
-            const lat = currentPoi.lat;
-            const lng = currentPoi.lng;
+            const lat = currentPoi.lat; const lng = currentPoi.lng;
             const name = encodeURIComponent(currentPoi.name);
             if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`;
-                return;
+                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`; return;
             }
             const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
-            if (choice) {
-                window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`;
-            } else {
-                window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`;
-            }
+            if (choice) { window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`; } 
+            else { window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`; }
         }
     </script>
 </body>

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>拓荒者足迹 | 数字化文旅历史地图</title>
+    <title>拓荒者足跡 | 數位化文旅歷史地圖</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; display: flex; }
         
-        /* 电脑端左侧边栏 */
+        /* 電腦端左側邊欄 */
         .sidebar {
             width: 320px; height: 100%; background: #fdfaf6; border-right: 1px solid #e6dfd3;
             display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
@@ -18,7 +18,7 @@
         .sidebar-header h1 { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
         .sidebar-header p { font-size: 12px; color: #f5f5f5; opacity: 0.8; margin-top: 5px; }
         
-        /* 排行榜列表区域 */
+        /* 排行榜列表區域 */
         .rank-list { flex: 1; overflow-y: auto; padding: 15px 10px; }
         .rank-item {
             display: flex; align-items: center; padding: 12px 15px; margin-bottom: 8px;
@@ -38,29 +38,55 @@
         .rank-name { font-size: 15px; font-weight: bold; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
         .rank-era { font-size: 12px; color: #95a5a6; margin-top: 2px; }
 
-        /* 地图主容器 */
+        /* 地圖主容器 */
         .map-container { flex: 1; height: 100%; position: relative; }
         #map { width: 100%; height: 100%; z-index: 1; background: #e5ecef; }
 
-        /* 🌟 蛙色视觉震撼：高德底图之上的雷达呼吸光圈标记样式 */
-        .radar-marker {
-            width: 32px; height: 32px; background: rgba(46, 204, 113, 0.85);
-            border: 2px white solid; border-radius: 50%; position: relative;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
-            font-size: 12px; color: white; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        /* 🌟 蛙色視覺優化：強制寬高、文字完美置中的雷達呼吸光圈 */
+        .custom-radar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px !important;
+            height: 40px !important;
         }
-        /* 炫酷的环形雷达扩散波纹 */
+        .radar-marker {
+            width: 36px !important;
+            height: 36px !important;
+            background: rgba(46, 204, 113, 0.9);
+            border: 2px white solid;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 11px !important;
+            color: white !important;
+            font-weight: bold !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            line-height: 1 !important;
+            text-align: center;
+        }
+        /* 修正擴散圈的比例 */
         .radar-marker::after {
-            content: ''; position: absolute; top: -2px; left: -2px; width: 32px; height: 32px;
-            border-radius: 50%; border: 2px solid #2ecc71;
-            animation: radar-ripple 1.6s infinite ease-out; pointer-events: none;
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #2ecc71;
+            animation: radar-ripple 1.6s infinite ease-out;
+            pointer-events: none;
         }
         @keyframes radar-ripple {
             0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2.6); opacity: 0; }
+            100% { transform: scale(2.2); opacity: 0; }
         }
 
-        /* 手机端适配标签区 */
+        /* 手機端適配標籤區 */
         .mobile-rank-tags { display: none; }
 
         @media (max-width: 768px) {
@@ -80,7 +106,7 @@
             .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
         }
 
-        /* 半屏多媒体抽屉 */
+        /* 半屏多媒體抽屜 */
         .drawer {
             position: fixed; bottom: 0; left: 0; width: 100%; max-height: 60%;
             background: white; z-index: 999; border-radius: 20px 20px 0 0;
@@ -121,8 +147,8 @@
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h1>拓荒者足迹</h1>
-            <p>数字化全景历史轨迹图</p>
+            <h1>拓荒者足跡</h1>
+            <p>數位化全景歷史軌跡圖</p>
         </div>
         <div id="rank-list" class="rank-list"></div>
     </div>
@@ -144,69 +170,64 @@
             
             <div id="audio-box" class="audio-player-box">
                 <button id="audio-play-btn" class="play-audio-btn" onclick="toggleAudio()">▶</button>
-                <span class="audio-info-text">🔊 听听看：现场原声考证解说录音</span>
+                <span class="audio-info-text">🔊 聽聽看：現場原聲考證解說錄音</span>
                 <audio id="poi-audio" onended="onAudioEnded()"></audio>
             </div>
 
             <div id="poi-story" class="poi-story"></div>
         </div>
         <div class="poi-actions">
-            <a id="btn-vr" class="btn btn-vr" href="" target="_blank">🌐 云游 360° VR 空间</a>
-            <button id="btn-nav" class="btn btn-nav" onclick="invokeNavigation()">🚗 唤醒地图导航</button>
+            <a id="btn-vr" class="btn btn-vr" href="" target="_blank">🌐 雲遊 360° VR 空間</a>
+            <button id="btn-nav" class="btn btn-nav" onclick="invokeNavigation()">🚗 喚醒地圖導航</button>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. 初始化标准地球经纬度下的高德高清纯中文底图
-        const map = L.map('map', { zoomControl: false }).setView([31.80, 114.08], 13);
+        // 初始化地圖視角，聚焦在兩個站點之間
+        const map = L.map('map', { zoomControl: false }).setView([30.3, 116.5], 7);
         
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: ["1", "2", "3", "4"],
-            attribution: '© 高德地图'
+            attribution: '© 高德地圖'
         }).addTo(map);
 
         let currentPoi = null;
         let markerMap = {};
 
-        // 🌟 纯无代码填空矩阵：依然使用现实生活中的经纬度（lat, lng）
         const finalRenderList = [
             {
                 id: "001",
-                name: "鸡公山美文学效（美国大楼）",
+                name: "雞公山美文學效（美國大樓）",
                 lat: 31.80,
                 lng: 114.08,
                 era: "民国时期",
-                story: "鸡公山美文学效旧址，俗称“美国大楼”。兴建于20世纪初，是江汉地区极具历史价值的西式近代建筑。作为数字化足迹的起航首站，这里沉淀了深厚的人文及文旅寻访记忆。",
+                story: "雞公山美文學效舊址，俗稱“美國大樓”。興建於20世紀初，是江漢地區極具歷史價值的西式近代建築。作為數位化足跡的起航首站，這裡沉澱了深厚的人文及文旅尋訪記憶。",
                 cover: "https://picsum.photos/800/400?random=1",
                 vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
                 video_url: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c0ee273d26ebf9db06d6da331b22e5a7&profile_id=139&oauth2_token_id=57447761", 
                 audio_url: "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg",
-                
-                // 米纳德流线控制：年代与规模
                 color_type: "republic",
                 level: 8
             },
             {
                 id: "002",
-                name: "衢州圣公会圣雅各堂旧址",
+                name: "衢州聖公會聖雅各堂舊址",
                 lat: 28.957608,
                 lng: 118.875885,
                 era: "晚清时期",
-                story: "衢州圣公会圣雅各堂旧址，是浙西内陆极为罕见的近代西洋宗教建筑与本土营造工艺融合的标本。对于研究钱塘江上游近代开埠、江畔水运码头文化变迁具有极高的历史考证价值。",
+                story: "衢州聖公會聖雅各堂舊址，是浙西內陸極為罕見的近代西洋宗教建築與本土營造工藝融合的標本。對於研究錢塘江上遊近代開埠、江畔水運碼頭文化變遷具有極高的歷史考證價值。",
                 cover: "https://picsum.photos/800/400?random=2",
                 vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
                 video_url: "", 
                 audio_url: "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg",
-                
                 color_type: "qing",
                 level: 5
             }
         ];
 
-        // 🌟 2. 渲染兼具米纳德叙事感的“粗细、颜色渐变连线”
+        // 繪製軌跡連線
         const colorMap = { "qing": "#8B4513", "republic": "#4682B4", "modern": "#2ECC71" };
-
         for (let i = 0; i < finalRenderList.length - 1; i++) {
             const startNode = finalRenderList[i]; const endNode = finalRenderList[i+1];
             const sectionColor = colorMap[startNode.color_type] || "#A0522D";
@@ -223,16 +244,16 @@
         const rankListContainer = document.getElementById('rank-list');
         const mobileTagsContainer = document.getElementById('mobile-tags');
 
-        // 🌟 3. 全自动进行蛙色动态雷达锚点打点
+        // 循環打點和渲染 UI
         finalRenderList.forEach((poi, index) => {
             const rankNum = index + 1;
 
-            // 核心复刻：将标准大头针魔改为 HTML 动态雷达呼吸粒子
+            // 修正：傳入精確的 size 和 anchor，確保地圖移動時圖標不位移、不縮水
             const customRadarIcon = L.divIcon({
                 className: 'custom-radar-container',
                 html: `<div class="radar-marker">${poi.id}</div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
             });
 
             const marker = L.marker([poi.lat, poi.lng], { icon: customRadarIcon }).addTo(map);
@@ -244,45 +265,8 @@
                 document.getElementById('audio-play-btn').innerText = '▶';
 
                 currentPoi = poi;
-                map.setView([poi.lat, poi.lng], 15);
+                map.setView([poi.lat, poi.lng], 14);
                 
                 const imgEl = document.getElementById('poi-cover');
                 const videoEl = document.getElementById('poi-video');
                 if (poi.video_url) {
-                    imgEl.style.display = 'none';
-                    videoEl.style.display = 'block';
-                    videoEl.src = poi.video_url;
-                    videoEl.play().catch(()=>{});
-                } else {
-                    videoEl.style.display = 'none';
-                    imgEl.style.display = 'block';
-                    imgEl.src = poi.cover;
-                }
-
-                const audioBox = document.getElementById('audio-box');
-                if (poi.audio_url) {
-                    audioBox.style.display = 'flex';
-                    audioEl.src = poi.audio_url;
-                } else {
-                    audioBox.style.display = 'none';
-                }
-
-                document.getElementById('poi-title').innerText = poi.name;
-                document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
-                document.getElementById('poi-story').innerText = poi.story;
-                
-                if(poi.vr_url) {
-                    document.getElementById('btn-vr').style.display = 'block';
-                    document.getElementById('btn-vr').href = poi.vr_url;
-                } else {
-                    document.getElementById('btn-vr').style.display = 'none';
-                }
-                document.getElementById('drawer').classList.add('show');
-            };
-
-            marker.on('click', openDetail);
-
-            // 侧边栏列表
-            const rankItem = document.createElement('div');
-            rankItem.className = 'rank-item';
-            rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank

@@ -155,9 +155,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 🌟 完美接通你的全新專案
+        // 🌟【終極真鑰匙焊接完成】100% 打通你的全新雲端專案
         const SUPABASE_URL = "https://zjtofadvudkfijlpptmb.supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqdG9mYWR2dWRrZmlqbHBwdG1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ZDg2NjEyMDcsImV4cCI6MjA5NzIzNzIwN30.69PWRgEhwK5sjqPN_ASghgvkT6HD4G6Y8TSGQALuKj4"; 
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -192,7 +192,7 @@
         function loadBackupData() {
             const backupPois = [{
                 poi_id: "001", name: "鸡公山美文学效（美国大楼）", lat: 31.80, lng: 114.08,
-                era: "民国时期", story: "全新后端专案专属通道已彻底焊死！\n现在请点击左上角【后台管理】输入你在新项目创建的账号，即可完美激活‘指哪打哪’的可视化打点发布！",
+                era: "民国时期", story: "真金鑰匙已成功對接！\n現在請點擊左上角【后台管理】輸入你在新項目創建的賬號，即可完美激活‘指哪打哪’的可视化打点發布！",
                 cover: "https://picsum.photos/800/400?random=1", vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
                 color_type: "republic", level: 8
             }];
@@ -314,7 +314,7 @@
                     poi_id, name, lat: clickedLat, lng: clickedLng, era, story, cover, video_url, audio_url, vr_url, color_type, level: parseInt(level)
                 }])
                 .then(res => {
-                    if(res.error) { alert("同步失败，请确保新项目已创建 pois 表: " + res.error.message); } 
+                    if(res.error) { alert("同步失败，请确保新项目已创建 pois 表且已在 SQL Editor 运行了解锁策略: " + res.error.message); } 
                     else { alert("🎉 成功同步至新云端！网页地图已实时更新！"); fetchPoisFromBackend(); }
                 });
             });

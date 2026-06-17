@@ -50,7 +50,7 @@
         .map-container { flex: 1; height: 100%; position: relative; }
         #map { width: 100%; height: 100%; z-index: 1; background: #e5ecef; }
 
-        /* 蛙色粒子标记样式修正：消除偏置，完美对齐 */
+        /* 蛙色粒子标记样式：消除偏置，完美对齐 */
         .leaflet-marker-icon.radar-icon-holder { background: none !important; border: none !important; box-shadow: none !important; }
         .radar-box {
             width: 36px; height: 36px; background: #2ecc71; border: 2px solid #ffffff; border-radius: 50%;
@@ -154,9 +154,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 🌟 【生产环境完美缝合】安全打通无头云后台
+        // 🌟 【生产环境完美缝合】绑定你的专用云后台
         const SUPABASE_URL = "https://brwsrkdxkeldzsfwmfsg.supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_AEPIwNAS9E3EV4Zw1qv4OQ_17VN_0Mg"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb"; 
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -194,14 +194,12 @@
         }
 
         function renderMapElements(list) {
-            // 清理上一轮的旧图层
             polylineLayerGroup.clearLayers();
             for(let key in markerMap) map.removeLayer(markerMap[key]);
             markerMap = {};
             document.getElementById('rank-list').innerHTML = '';
             document.getElementById('mobile-tags').innerHTML = '';
 
-            // 动态居中首个点
             map.setView([list[0].lat, list[0].lng], 7);
 
             // 绘制米纳德渐变轨迹
@@ -271,7 +269,7 @@
             });
         }
 
-        // 🌟 3. 管理员鉴权通道
+        // 管理员鉴权通道
         function triggerAdminAuth() {
             const userEmail = prompt("请输入管理员登录邮箱：");
             const userPassword = prompt("请输入管理登录密码：");
@@ -287,7 +285,7 @@
             });
         }
 
-        // 🌟 4. 激活高德地图直接交互式插点逻辑
+        // 激活高德地图直接交互式插点逻辑
         function activateAdminControls() {
             document.getElementById('login-btn').innerText = "⚡ 主控中";
             document.getElementById('login-btn').style.background = "#2ecc71";
@@ -312,7 +310,6 @@
 
                 if(!poi_id || !name) { alert("编号和名称不能为空！"); return; }
 
-                // 实时写入 Supabase 数据库
                 _supabase.from('pois').insert([{
                     poi_id, name, lat: clickedLat, lng: clickedLng, era, story, cover, video_url, audio_url, vr_url, color_type, level: parseInt(level)
                 }])
@@ -340,7 +337,6 @@
             else { window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`; }
         }
 
-        // 初始化启动拉取
         fetchPoisFromBackend();
     </script>
 </body>

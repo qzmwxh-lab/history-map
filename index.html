@@ -91,6 +91,7 @@
             color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
         .audio-info-text { font-size: 13px; color: #b88230; font-weight: 500; }
+        .poi-audio { display: none; }
         .poi-story { font-size: 15px; color: #34495e; line-height: 1.6; white-space: pre-line; }
         
         .poi-actions { display: flex; padding: 15px 20px; background: #f8f9fa; gap: 10px; }
@@ -105,7 +106,7 @@
             .mobile-rank-tags {
                 display: flex; gap: 8px; padding: 10px; background: rgba(255, 255, 255, 0.95);
                 overflow-x: auto; white-space: nowrap; position: absolute; top: 0; left: 0; width: 100%;
-                z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.088); scrollbar-width: none;
+                z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.08); scrollbar-width: none;
             }
             .mobile-rank-tags::-webkit-scrollbar { display: none; }
             .tag-item { display: inline-flex; align-items: center; padding: 8px 14px; background: white; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 13px; font-weight: 500; color: #4a4a4a; cursor: pointer; }
@@ -141,7 +142,7 @@
             <div id="audio-box" class="audio-player-box">
                 <button id="audio-play-btn" class="play-audio-btn" onclick="toggleAudio()">▶</button>
                 <span class="audio-info-text">🔊 听听看：现场原声考证解说录音</span>
-                <audio id="poi-audio" onended="onAudioEnded()"></audio>
+                <audio id="poi-audio" class="poi-audio" onended="onAudioEnded()"></audio>
             </div>
             <div id="poi-story" class="poi-story"></div>
         </div>
@@ -154,8 +155,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 🌟 核心修复：100% 完整封装的通道凭证，绝不截断
-        const SUPABASE_URL = "https://brwsrkdxkeldzsfwmfsg.supabase.co"; 
+        // 🌟 完美接通你的全新專案
+        const SUPABASE_URL = "https://zjtofadvudkfijlpptmb.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb"; 
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -169,16 +170,13 @@
         let markerMap = {};
         let polylineLayerGroup = L.layerGroup().addTo(map);
 
-        // 从云端数据库拉取资产
         function fetchPoisFromBackend() {
             _supabase.from('pois').select('*')
             .then(res => {
                 if (res.error) {
-                    console.error("Supabase 读取失败，启动本地保底安全机制");
                     loadBackupData();
                     return;
                 }
-                
                 let finalRenderList = res.data;
                 if (!finalRenderList || finalRenderList.length === 0) {
                     loadBackupData();
@@ -194,7 +192,7 @@
         function loadBackupData() {
             const backupPois = [{
                 poi_id: "001", name: "鸡公山美文学效（美国大楼）", lat: 31.80, lng: 114.08,
-                era: "民国时期", story: "专属无头商业后台连接线已彻底修复！\n现在请点击左上角【后台管理】登录你在 Supabase 开通的邮箱密码，即可完美解锁‘指哪打哪’的高清可视化打点发布！",
+                era: "民国时期", story: "全新后端专案专属通道已彻底焊死！\n现在请点击左上角【后台管理】输入你在新项目创建的账号，即可完美激活‘指哪打哪’的可视化打点发布！",
                 cover: "https://picsum.photos/800/400?random=1", vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
                 color_type: "republic", level: 8
             }];
@@ -210,7 +208,6 @@
 
             map.setView([list[0].lat, list[0].lng], 7);
 
-            // 渐变历史连线
             const colorMap = { "qing": "#8B4513", "republic": "#4682B4", "modern": "#2ECC71" };
             for (let i = 0; i < list.length - 1; i++) {
                 const startNode = list[i]; const endNode = list[i+1];
@@ -220,7 +217,6 @@
                 }).addTo(polylineLayerGroup);
             }
 
-            // 打点渲染
             list.forEach((poi, index) => {
                 const rankNum = index + 1;
                 const customRadarIcon = L.divIcon({
@@ -261,14 +257,12 @@
 
                 marker.on('click', openDetail);
 
-                // 排行榜列表
                 const rankItem = document.createElement('div');
                 rankItem.className = 'rank-item';
                 rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank-era">${poi.era}</div></div>`;
                 rankItem.onclick = openDetail;
                 document.getElementById('rank-list').appendChild(rankItem);
 
-                // 手机滑动胶囊
                 const tagItem = document.createElement('div');
                 tagItem.className = 'tag-item';
                 tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
@@ -277,7 +271,6 @@
             });
         }
 
-        // 后台管理鉴权验证
         function triggerAdminAuth() {
             const userEmail = prompt("请输入管理员登录邮箱：");
             const userPassword = prompt("请输入管理登录密码：");
@@ -287,13 +280,12 @@
             .then(res => {
                 if(res.error) { alert("验证失败: " + res.error.message); } 
                 else {
-                    alert("🎉 认证成功！主控系统已激活。现在您可以直接在地图上随意点击，进行可视化空间插点发布了！");
+                    alert("🎉 认证成功！主控芯片已激活。现在您可以直接在地图上随意点击，进行可视化空间插点发布了！");
                     activateAdminControls();
                 }
             });
         }
 
-        // 交互式插点逻辑
         function activateAdminControls() {
             document.getElementById('login-btn').innerText = "⚡ 主控中";
             document.getElementById('login-btn').style.background = "#2ecc71";
@@ -302,7 +294,7 @@
                 const clickedLat = e.latlng.lat;
                 const clickedLng = e.latlng.lng;
                 
-                const isAdd = confirm(`触发地理打点机制！\n坐标捕捉成功：\n纬度: ${clickedLat}\n经度: ${clickedLng}\n\n是否立即将这个坐标录入到云端数据表？`);
+                const isAdd = confirm(`触发地理打点机制！\n坐标捕捉成功：\n纬度: ${clickedLat}\n经度: ${clickedLng}\n\n是否立即将这个坐标录入到新云端项目？`);
                 if(!isAdd) return;
 
                 const poi_id = prompt("请输入点位编号（如 002）：");
@@ -322,13 +314,12 @@
                     poi_id, name, lat: clickedLat, lng: clickedLng, era, story, cover, video_url, audio_url, vr_url, color_type, level: parseInt(level)
                 }])
                 .then(res => {
-                    if(res.error) { alert("写入失败，请确保您在云端建好了pois表且拥有权限: " + res.error.message); } 
-                    else { alert("🎉 成功同步至云端！全球线上网页地图已实时重新编译点亮！"); fetchPoisFromBackend(); }
+                    if(res.error) { alert("同步失败，请确保新项目已创建 pois 表: " + res.error.message); } 
+                    else { alert("🎉 成功同步至新云端！网页地图已实时更新！"); fetchPoisFromBackend(); }
                 });
             });
         }
 
-        // 播放器组件
         function toggleAudio() {
             const audioEl = document.getElementById('poi-audio');
             const btn = document.getElementById('audio-play-btn');

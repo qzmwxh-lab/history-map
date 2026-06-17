@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>拓荒者足迹 | 数字化文旅历史地图</title>
+    <title>拓荒者足迹 | 数字化智慧文旅地图</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,10 +14,18 @@
             width: 320px; height: 100%; background: #fdfaf6; border-right: 1px solid #e6dfd3;
             display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
-        .sidebar-header { padding: 25px 20px 15px 20px; background: #8B4513; color: white; }
+        .sidebar-header { padding: 25px 20px 15px 20px; background: #8B4513; color: white; position: relative; }
         .sidebar-header h1 { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
         .sidebar-header p { font-size: 12px; color: #f5f5f5; opacity: 0.8; margin-top: 5px; }
         
+        /* 独立精美登录按钮 */
+        .admin-login-btn {
+            position: absolute; top: 22px; right: 20px; background: rgba(255,255,255,0.2);
+            color: white; border: 1px solid rgba(255,255,255,0.4); padding: 4px 10px;
+            border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s;
+        }
+        .admin-login-btn:hover { background: white; color: #8B4513; }
+
         /* 排行榜列表区域 */
         .rank-list { flex: 1; overflow-y: auto; padding: 15px 10px; }
         .rank-item {
@@ -42,67 +50,25 @@
         .map-container { flex: 1; height: 100%; position: relative; }
         #map { width: 100%; height: 100%; z-index: 1; background: #e5ecef; }
 
-        /* 🌟 蛙色底图粒子：使用极致精简的纯CSS容器，完全抹平Leaflet内部偏置干扰 */
-        .leaflet-marker-icon.radar-icon-holder {
-            background: none !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-
-        /* 核心雷达绿圆点：保证绝对正圆、文字完美死锁在中央 */
+        /* 蛙色粒子标记样式修正：消除偏置，完美对齐 */
+        .leaflet-marker-icon.radar-icon-holder { background: none !important; border: none !important; box-shadow: none !important; }
         .radar-box {
-            width: 36px; height: 36px;
-            background: #2ecc71;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            color: #ffffff !important;
-            font-weight: bold !important;
-            font-size: 11px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            position: absolute;
-            top: -18px; left: -18px; /* 👈 精准的一半偏移，保证圆心和地理坐标严丝合缝 */
+            width: 36px; height: 36px; background: #2ecc71; border: 2px solid #ffffff; border-radius: 50%;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            color: #ffffff !important; font-weight: bold !important; font-size: 11px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: absolute; top: -18px; left: -18px;
         }
-
-        /* 呼吸波纹扩散动效 */
         .radar-box::after {
             content: ''; position: absolute; top: -2px; left: -2px; width: 36px; height: 36px;
-            border-radius: 50%; border: 2px solid #2ecc71;
-            animation: radar-wave 1.6s infinite ease-out; pointer-events: none;
+            border-radius: 50%; border: 2px solid #2ecc71; animation: radar-wave 1.6s infinite ease-out; pointer-events: none;
         }
-        @keyframes radar-wave {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2.5); opacity: 0; }
-        }
-
-        /* 手机端适配标签区 */
-        .mobile-rank-tags { display: none; }
-
-        @media (max-width: 768px) {
-            body, html { flex-direction: column; }
-            .sidebar { display: none; }
-            .mobile-rank-tags {
-                display: flex; gap: 8px; padding: 10px; background: rgba(255, 255, 255, 0.95);
-                overflow-x: auto; white-space: nowrap; position: absolute; top: 0; left: 0; width: 100%;
-                z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.08); scrollbar-width: none;
-            }
-            .mobile-rank-tags::-webkit-scrollbar { display: none; }
-            .tag-item {
-                display: inline-flex; align-items: center; padding: 8px 14px;
-                background: white; border: 1px solid #e0e0e0; border-radius: 20px;
-                font-size: 13px; font-weight: 500; color: #4a4a4a; cursor: pointer;
-            }
-            .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
-        }
+        @keyframes radar-wave { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
         /* 半屏多媒体抽屉 */
         .drawer {
             position: fixed; bottom: 0; left: 0; width: 100%; max-height: 60%;
             background: white; z-index: 999; border-radius: 20px 20px 0 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
-            transform: translateY(100%); transition: transform 0.3s ease-out;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.15); transform: translateY(100%); transition: transform 0.3s ease-out;
             display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom);
         }
         .drawer.show { transform: translateY(0); }
@@ -125,13 +91,26 @@
             color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
         .audio-info-text { font-size: 13px; color: #b88230; font-weight: 500; }
-
         .poi-story { font-size: 15px; color: #34495e; line-height: 1.6; white-space: pre-line; }
         
         .poi-actions { display: flex; padding: 15px 20px; background: #f8f9fa; gap: 10px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 25px; color: white; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
         .btn-vr { background: #2ecc71; }
         .btn-nav { background: #3498db; }
+
+        /* 手机端适配 */
+        .mobile-rank-tags { display: none; }
+        @media (max-width: 768px) {
+            body, html { flex-direction: column; } .sidebar { display: none; }
+            .mobile-rank-tags {
+                display: flex; gap: 8px; padding: 10px; background: rgba(255, 255, 255, 0.95);
+                overflow-x: auto; white-space: nowrap; position: absolute; top: 0; left: 0; width: 100%;
+                z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.08); scrollbar-width: none;
+            }
+            .mobile-rank-tags::-webkit-scrollbar { display: none; }
+            .tag-item { display: inline-flex; align-items: center; padding: 8px 14px; background: white; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 13px; font-weight: 500; color: #4a4a4a; cursor: pointer; }
+            .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
+        }
     </style>
 </head>
 <body>
@@ -140,6 +119,7 @@
         <div class="sidebar-header">
             <h1>拓荒者足迹</h1>
             <p>数字化全景历史轨迹图</p>
+            <button id="login-btn" class="admin-login-btn" onclick="triggerAdminAuth()">后台管理</button>
         </div>
         <div id="rank-list" class="rank-list"></div>
     </div>
@@ -158,13 +138,11 @@
         <div class="poi-content">
             <div id="poi-title" class="poi-title"></div>
             <div id="poi-meta" class="poi-meta"></div>
-            
             <div id="audio-box" class="audio-player-box">
                 <button id="audio-play-btn" class="play-audio-btn" onclick="toggleAudio()">▶</button>
                 <span class="audio-info-text">🔊 听听看：现场原声考证解说录音</span>
                 <audio id="poi-audio" onended="onAudioEnded()"></audio>
             </div>
-
             <div id="poi-story" class="poi-story"></div>
         </div>
         <div class="poi-actions">
@@ -174,166 +152,196 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 初始化高德高清底图，视角设置在合理的中间层级
-        const map = L.map('map', { zoomControl: false }).setView([30.3, 116.5], 7);
+        // 🌟 【生产环境完美缝合】安全打通无头云后台
+        const SUPABASE_URL = "https://brwsrkdxkeldzsfwmfsg.supabase.co"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_AEPIwNAS9E3EV4Zw1qv4OQ_17VN_0Mg"; 
         
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const map = L.map('map', { zoomControl: false }).setView([30.3, 116.5], 7);
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-            subdomains: ["1", "2", "3", "4"],
-            attribution: '© 高德地图'
+            subdomains: ["1", "2", "3", "4"], attribution: '© 高德地图'
         }).addTo(map);
 
         let currentPoi = null;
         let markerMap = {};
+        let polylineLayerGroup = L.layerGroup().addTo(map);
 
-        const finalRenderList = [
-            {
-                id: "001",
-                name: "鸡公山美文学效（美国大楼）",
-                lat: 31.80,
-                lng: 114.08,
-                era: "民国时期",
-                story: "鸡公山美文学效旧址，俗称“美国大楼”。兴建于20世纪初，是江汉地区极具历史价值的西式近代建筑。作为数字化足迹的起航首站，这里沉淀了深厚的人文及文旅寻访记忆。",
-                cover: "https://picsum.photos/800/400?random=1",
-                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
-                video_url: "https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c0ee273d26ebf9db06d6da331b22e5a7&profile_id=139&oauth2_token_id=57447761", 
-                audio_url: "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg",
-                color_type: "republic",
-                level: 8
-            },
-            {
-                id: "002",
-                name: "衢州圣公会圣雅各堂旧址",
-                lat: 28.957608,
-                lng: 118.875885,
-                era: "晚清时期",
-                story: "衢州圣公会圣雅各堂旧址，是浙西内陆极为罕见的近代西洋宗教建筑与本土营造工艺融合的标本。对于研究钱塘江上游近代开埠、江畔水运码头文化变迁具有极高的历史考证价值。",
-                cover: "https://picsum.photos/800/400?random=2",
-                vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
-                video_url: "", 
-                audio_url: "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg",
-                color_type: "qing",
-                level: 5
-            }
-        ];
+        // 🌟 实时拉取云端资产数据
+        function fetchPoisFromBackend() {
+            _supabase.from('pois').select('*')
+            .then(res => {
+                let finalRenderList = res.data;
 
-        // 米纳德流线渲染
-        const colorMap = { "qing": "#8B4513", "republic": "#4682B4", "modern": "#2ECC71" };
-        for (let i = 0; i < finalRenderList.length - 1; i++) {
-            const startNode = finalRenderList[i]; const endNode = finalRenderList[i+1];
-            const sectionColor = colorMap[startNode.color_type] || "#A0522D";
-            const sectionThickness = startNode.level || 4;
+                // 保底测试数据，防止空表格导致页面全白
+                const backupPois = [{
+                    poi_id: "001", name: "鸡公山美文学效（美国大楼）", lat: 31.80, lng: 114.08,
+                    era: "民国时期", story: "商业级无头数据库后台已成功建立！\n请点击左上角【后台管理】绑定你的Supabase账号，之后只需在地图任意地方点击，即可实现可视化打点发布！",
+                    cover: "https://picsum.photos/800/400?random=1", vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
+                    color_type: "republic", level: 8
+                }];
 
-            L.polyline([
-                [startNode.lat, startNode.lng], [endNode.lat, endNode.lng]
-            ], {
-                color: sectionColor, weight: sectionThickness, opacity: 0.85,
-                dashArray: startNode.color_type === "qing" ? "5, 5" : null
-            }).addTo(map);
+                if (!finalRenderList || finalRenderList.length === 0) {
+                    finalRenderList = backupPois;
+                } else {
+                    finalRenderList.sort((a, b) => a.poi_id.localeCompare(b.poi_id));
+                }
+
+                renderMapElements(finalRenderList);
+            });
         }
 
-        const rankListContainer = document.getElementById('rank-list');
-        const mobileTagsContainer = document.getElementById('mobile-tags');
+        function renderMapElements(list) {
+            // 清理上一轮的旧图层
+            polylineLayerGroup.clearLayers();
+            for(let key in markerMap) map.removeLayer(markerMap[key]);
+            markerMap = {};
+            document.getElementById('rank-list').innerHTML = '';
+            document.getElementById('mobile-tags').innerHTML = '';
 
-        // 循环打点和渲染 UI
-        finalRenderList.forEach((poi, index) => {
-            const rankNum = index + 1;
+            // 动态居中首个点
+            map.setView([list[0].lat, list[0].lng], 7);
 
-            // 🌟 终极解决方案：使用无偏移占位的空 class，彻底剥离底层的各种宽高约束
-            const customRadarIcon = L.divIcon({
-                className: 'radar-icon-holder', 
-                html: `<div class="radar-box">${poi.id}</div>`,
-                iconSize: [0, 0] // 👈 设为 0，防止 Leaflet 自己在后台计算偏移量
+            // 绘制米纳德渐变轨迹
+            const colorMap = { "qing": "#8B4513", "republic": "#4682B4", "modern": "#2ECC71" };
+            for (let i = 0; i < list.length - 1; i++) {
+                const startNode = list[i]; const endNode = list[i+1];
+                L.polyline([[startNode.lat, startNode.lng], [endNode.lat, endNode.lng]], {
+                    color: colorMap[startNode.color_type] || "#A0522D", weight: startNode.level || 5, opacity: 0.85,
+                    dashArray: startNode.color_type === "qing" ? "5, 5" : null
+                }).addTo(polylineLayerGroup);
+            }
+
+            // 循环生成打点锚点和侧边栏
+            list.forEach((poi, index) => {
+                const rankNum = index + 1;
+                const customRadarIcon = L.divIcon({
+                    className: 'radar-icon-holder', 
+                    html: `<div class="radar-box">${poi.poi_id}</div>`
+                });
+
+                const marker = L.marker([poi.lat, poi.lng], { icon: customRadarIcon }).addTo(map);
+                markerMap[poi.poi_id] = marker;
+
+                const openDetail = () => {
+                    document.getElementById('poi-audio').pause();
+                    document.getElementById('audio-play-btn').innerText = '▶';
+                    currentPoi = poi;
+                    map.setView([poi.lat, poi.lng], 14);
+                    
+                    const imgEl = document.getElementById('poi-cover');
+                    const videoEl = document.getElementById('poi-video');
+                    if (poi.video_url) {
+                        imgEl.style.display = 'none'; videoEl.style.display = 'block';
+                        videoEl.src = poi.video_url; videoEl.play().catch(()=>{});
+                    } else {
+                        videoEl.style.display = 'none'; imgEl.style.display = 'block'; imgEl.src = poi.cover;
+                    }
+
+                    const audioBox = document.getElementById('audio-box');
+                    if (poi.audio_url) { audioBox.style.display = 'flex'; document.getElementById('poi-audio').src = poi.audio_url; } 
+                    else { audioBox.style.display = 'none'; }
+
+                    document.getElementById('poi-title').innerText = poi.name;
+                    document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
+                    document.getElementById('poi-story').innerText = poi.story;
+                    
+                    if(poi.vr_url) { document.getElementById('btn-vr').style.display = 'block'; document.getElementById('btn-vr').href = poi.vr_url; } 
+                    else { document.getElementById('btn-vr').style.display = 'none'; }
+                    document.getElementById('drawer').classList.add('show');
+                };
+
+                marker.on('click', openDetail);
+
+                // 排行榜
+                const rankItem = document.createElement('div');
+                rankItem.className = 'rank-item';
+                rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank-era">${poi.era}</div></div>`;
+                rankItem.onclick = openDetail;
+                document.getElementById('rank-list').appendChild(rankItem);
+
+                // 手机端标签
+                const tagItem = document.createElement('div');
+                tagItem.className = 'tag-item';
+                tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
+                tagItem.onclick = openDetail;
+                document.getElementById('mobile-tags').appendChild(tagItem);
             });
+        }
 
-            const marker = L.marker([poi.lat, poi.lng], { icon: customRadarIcon }).addTo(map);
-            markerMap[poi.id] = marker;
+        // 🌟 3. 管理员鉴权通道
+        function triggerAdminAuth() {
+            const userEmail = prompt("请输入管理员登录邮箱：");
+            const userPassword = prompt("请输入管理登录密码：");
+            if(!userEmail || !userPassword) return;
 
-            const openDetail = () => {
-                const audioEl = document.getElementById('poi-audio');
-                audioEl.pause();
-                document.getElementById('audio-play-btn').innerText = '▶';
+            _supabase.auth.signInWithPassword({ email: userEmail, password: userPassword })
+            .then(res => {
+                if(res.error) { alert("验证失败: " + res.error.message); } 
+                else {
+                    alert("🎉 认证成功！主控芯片已激活。现在您可以直接在地图上随意点击，进行可视化空间插点发布了！");
+                    activateAdminControls();
+                }
+            });
+        }
 
-                currentPoi = poi;
-                map.setView([poi.lat, poi.lng], 14);
+        // 🌟 4. 激活高德地图直接交互式插点逻辑
+        function activateAdminControls() {
+            document.getElementById('login-btn').innerText = "⚡ 主控中";
+            document.getElementById('login-btn').style.background = "#2ecc71";
+            
+            map.on('click', (e) => {
+                const clickedLat = e.latlng.lat;
+                const clickedLng = e.latlng.lng;
                 
-                const imgEl = document.getElementById('poi-cover');
-                const videoEl = document.getElementById('poi-video');
-                if (poi.video_url) {
-                    imgEl.style.display = 'none';
-                    videoEl.style.display = 'block';
-                    videoEl.src = poi.video_url;
-                    videoEl.play().catch(()=>{});
-                } else {
-                    videoEl.style.display = 'none';
-                    imgEl.style.display = 'block';
-                    imgEl.src = poi.cover;
-                }
+                const isAdd = confirm(`触发地理打点机制！\n坐标捕捉成功：\n纬度: ${clickedLat}\n经度: ${clickedLng}\n\n是否立即将这个坐标录入到云端后台？`);
+                if(!isAdd) return;
 
-                const audioBox = document.getElementById('audio-box');
-                if (poi.audio_url) {
-                    audioBox.style.display = 'flex';
-                    audioEl.src = poi.audio_url;
-                } else {
-                    audioBox.style.display = 'none';
-                }
+                const poi_id = prompt("请输入点位编号（如 002）：");
+                const name = prompt("请输入历史建筑/码头遗迹名称：");
+                const era = prompt("请输入时期（晚清/民国/现代）：");
+                const story = prompt("请输入详细的背景考证故事（支持\\n换行）：");
+                const cover = prompt("请输入电影感封面图直链 URL：");
+                const video_url = prompt("请输入动态微缩 MP4 视频直链 URL（没有请留空）：");
+                const audio_url = prompt("请输入原声解说音频 MP3 直链 URL（没有请留空）：");
+                const vr_url = prompt("请输入 360° VR 空间 H5 链接（没有请留空）：");
+                const color_type = prompt("轨迹线颜色选择（qing-晚清深褐，republic-民国蓝，modern-活力绿）：", "republic");
+                const level = prompt("轨迹线粗细（3-细，5-中，8-粗）：", "5");
 
-                document.getElementById('poi-title').innerText = poi.name;
-                document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
-                document.getElementById('poi-story').innerText = poi.story;
-                
-                if(poi.vr_url) {
-                    document.getElementById('btn-vr').style.display = 'block';
-                    document.getElementById('btn-vr').href = poi.vr_url;
-                } else {
-                    document.getElementById('btn-vr').style.display = 'none';
-                }
-                document.getElementById('drawer').classList.add('show');
-            };
+                if(!poi_id || !name) { alert("编号和名称不能为空！"); return; }
 
-            marker.on('click', openDetail);
+                // 实时写入 Supabase 数据库
+                _supabase.from('pois').insert([{
+                    poi_id, name, lat: clickedLat, lng: clickedLng, era, story, cover, video_url, audio_url, vr_url, color_type, level: parseInt(level)
+                }])
+                .then(res => {
+                    if(res.error) { alert("同步失败: " + res.error.message); } 
+                    else { alert("🎉 成功同步至云端！全球线上网页地图已实时重新编译点亮！"); fetchPoisFromBackend(); }
+                });
+            });
+        }
 
-            // 侧边栏列表
-            const rankItem = document.createElement('div');
-            rankItem.className = 'rank-item';
-            rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank-era">${poi.era}</div></div>`;
-            rankItem.onclick = openDetail;
-            rankListContainer.appendChild(rankItem);
-
-            // 手机端滑动胶囊
-            const tagItem = document.createElement('div');
-            tagItem.className = 'tag-item';
-            tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
-            tagItem.onclick = openDetail;
-            mobileTagsContainer.appendChild(tagItem);
-        });
-
+        // 基础播放器控制
         function toggleAudio() {
             const audioEl = document.getElementById('poi-audio');
             const btn = document.getElementById('audio-play-btn');
-            if (audioEl.paused) { audioEl.play(); btn.innerText = '⏸'; } 
-            else { audioEl.pause(); btn.innerText = '▶'; }
+            if (audioEl.paused) { audioEl.play(); btn.innerText = '⏸'; } else { audioEl.pause(); btn.innerText = '▶'; }
         }
-
         function onAudioEnded() { document.getElementById('audio-play-btn').innerText = '▶'; }
-
-        function closeDrawer() {
-            document.getElementById('poi-audio').pause();
-            document.getElementById('poi-video').pause();
-            document.getElementById('drawer').classList.remove('show');
-        }
-
+        function closeDrawer() { document.getElementById('poi-audio').pause(); document.getElementById('poi-video').pause(); document.getElementById('drawer').classList.remove('show'); }
         function invokeNavigation() {
             if (!currentPoi) return;
-            const lat = currentPoi.lat; const lng = currentPoi.lng;
-            const name = encodeURIComponent(currentPoi.name);
-            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`; return;
-            }
+            const lat = currentPoi.lat; const lng = currentPoi.lng; const name = encodeURIComponent(currentPoi.name);
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) { window.location.href = `maps://?q=${name}&ll=${lat},${lng}`; return; }
             const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
             if (choice) { window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`; } 
             else { window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`; }
         }
+
+        // 初始化启动拉取
+        fetchPoisFromBackend();
     </script>
 </body>
 </html>

@@ -42,19 +42,40 @@
         .map-container { flex: 1; height: 100%; position: relative; }
         #map { width: 100%; height: 100%; z-index: 1; background: #e5ecef; }
 
-        /* 🌟 完美的常驻悬浮编号气泡样式 */
-        .custom-poi-tooltip {
-            background: #2ecc71 !important;
-            border: 2px solid white !important;
-            border-radius: 6px !important;
-            color: white !important;
+        /* 🌟 蛙色底图粒子：使用极致精简的纯CSS容器，完全抹平Leaflet内部偏置干扰 */
+        .leaflet-marker-icon.radar-icon-holder {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* 核心雷达绿圆点：保证绝对正圆、文字完美死锁在中央 */
+        .radar-box {
+            width: 36px; height: 36px;
+            background: #2ecc71;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #ffffff !important;
             font-weight: bold !important;
             font-size: 11px !important;
-            padding: 2px 6px !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: absolute;
+            top: -18px; left: -18px; /* 👈 精准的一半偏移，保证圆心和地理坐标严丝合缝 */
         }
-        /* 去掉 Leaflet Tooltip 默认自带的小尖角，保持极简感 */
-        .custom-poi-tooltip::before { display: none !important; }
+
+        /* 呼吸波纹扩散动效 */
+        .radar-box::after {
+            content: ''; position: absolute; top: -2px; left: -2px; width: 36px; height: 36px;
+            border-radius: 50%; border: 2px solid #2ecc71;
+            animation: radar-wave 1.6s infinite ease-out; pointer-events: none;
+        }
+        @keyframes radar-wave {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
 
         /* 手机端适配标签区 */
         .mobile-rank-tags { display: none; }
@@ -154,6 +175,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // 初始化高德高清底图，视角设置在合理的中间层级
         const map = L.map('map', { zoomControl: false }).setView([30.3, 116.5], 7);
         
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -195,7 +217,7 @@
             }
         ];
 
-        // 绘制轨迹连线
+        // 米纳德流线渲染
         const colorMap = { "qing": "#8B4513", "republic": "#4682B4", "modern": "#2ECC71" };
         for (let i = 0; i < finalRenderList.length - 1; i++) {
             const startNode = finalRenderList[i]; const endNode = finalRenderList[i+1];
@@ -217,25 +239,15 @@
         finalRenderList.forEach((poi, index) => {
             const rankNum = index + 1;
 
-            // 🌟 核心替代方案：换用金刚不坏的原生圆形标记（L.circleMarker）
-            // 它的半径（radius）直接锁定，永远饱满、圆润，绝对不随地图标注缩水
-            const marker = L.circleMarker([poi.lat, poi.lng], {
-                radius: 10,               // 👈 饱满优美的正圆半径尺寸
-                color: '#ffffff',         // 干净的高亮白边
-                weight: 2,                // 白边线条宽度
-                fillColor: '#2ecc71',     // 极其亮眼的蛙色绿底
-                fillOpacity: 0.95         // 绝佳的半透明质感
-            }).addTo(map);
-            
-            markerMap[poi.id] = marker;
+            // 🌟 终极解决方案：使用无偏移占位的空 class，彻底剥离底层的各种宽高约束
+            const customRadarIcon = L.divIcon({
+                className: 'radar-icon-holder', 
+                html: `<div class="radar-box">${poi.id}</div>`,
+                iconSize: [0, 0] // 👈 设为 0，防止 Leaflet 自己在后台计算偏移量
+            });
 
-            // 🌟 绑定常驻、永不缩水的迷你悬浮标签
-            marker.bindTooltip(poi.id, {
-                permanent: true,          // 👈 保持常驻显示，不需要用户用鼠标去指
-                direction: 'top',         // 稳稳漂浮在正圆点的正上方
-                className: 'custom-poi-tooltip', // 桥接上面的精美气泡样式
-                offset: [0, -5]           // 向上微调，不压住圆点
-            }).openTooltip();
+            const marker = L.marker([poi.lat, poi.lng], { icon: customRadarIcon }).addTo(map);
+            markerMap[poi.id] = marker;
 
             const openDetail = () => {
                 const audioEl = document.getElementById('poi-audio');
@@ -250,3 +262,78 @@
                 if (poi.video_url) {
                     imgEl.style.display = 'none';
                     videoEl.style.display = 'block';
+                    videoEl.src = poi.video_url;
+                    videoEl.play().catch(()=>{});
+                } else {
+                    videoEl.style.display = 'none';
+                    imgEl.style.display = 'block';
+                    imgEl.src = poi.cover;
+                }
+
+                const audioBox = document.getElementById('audio-box');
+                if (poi.audio_url) {
+                    audioBox.style.display = 'flex';
+                    audioEl.src = poi.audio_url;
+                } else {
+                    audioBox.style.display = 'none';
+                }
+
+                document.getElementById('poi-title').innerText = poi.name;
+                document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
+                document.getElementById('poi-story').innerText = poi.story;
+                
+                if(poi.vr_url) {
+                    document.getElementById('btn-vr').style.display = 'block';
+                    document.getElementById('btn-vr').href = poi.vr_url;
+                } else {
+                    document.getElementById('btn-vr').style.display = 'none';
+                }
+                document.getElementById('drawer').classList.add('show');
+            };
+
+            marker.on('click', openDetail);
+
+            // 侧边栏列表
+            const rankItem = document.createElement('div');
+            rankItem.className = 'rank-item';
+            rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank-era">${poi.era}</div></div>`;
+            rankItem.onclick = openDetail;
+            rankListContainer.appendChild(rankItem);
+
+            // 手机端滑动胶囊
+            const tagItem = document.createElement('div');
+            tagItem.className = 'tag-item';
+            tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
+            tagItem.onclick = openDetail;
+            mobileTagsContainer.appendChild(tagItem);
+        });
+
+        function toggleAudio() {
+            const audioEl = document.getElementById('poi-audio');
+            const btn = document.getElementById('audio-play-btn');
+            if (audioEl.paused) { audioEl.play(); btn.innerText = '⏸'; } 
+            else { audioEl.pause(); btn.innerText = '▶'; }
+        }
+
+        function onAudioEnded() { document.getElementById('audio-play-btn').innerText = '▶'; }
+
+        function closeDrawer() {
+            document.getElementById('poi-audio').pause();
+            document.getElementById('poi-video').pause();
+            document.getElementById('drawer').classList.remove('show');
+        }
+
+        function invokeNavigation() {
+            if (!currentPoi) return;
+            const lat = currentPoi.lat; const lng = currentPoi.lng;
+            const name = encodeURIComponent(currentPoi.name);
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                window.location.href = `maps://?q=${name}&ll=${lat},${lng}`; return;
+            }
+            const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
+            if (choice) { window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`; } 
+            else { window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`; }
+        }
+    </script>
+</body>
+</html>

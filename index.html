@@ -1,342 +1,738 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>拓荒者足迹 | 数字化智慧文旅地图</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; display: flex; }
-        
-        /* 电脑端左侧边栏 */
-        .sidebar {
-            width: 320px; height: 100%; background: #fdfaf6; border-right: 1px solid #e6dfd3;
-            display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-        }
-        .sidebar-header { padding: 25px 20px 15px 20px; background: #8B4513; color: white; position: relative; }
-        .sidebar-header h1 { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
-        .sidebar-header p { font-size: 12px; color: #f5f5f5; opacity: 0.8; margin-top: 5px; }
-        
-        /* 独立精美登录按钮 */
-        .admin-login-btn {
-            position: absolute; top: 22px; right: 20px; background: rgba(255,255,255,0.2);
-            color: white; border: 1px solid rgba(255,255,255,0.4); padding: 4px 10px;
-            border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s;
-        }
-        .admin-login-btn:hover { background: white; color: #8B4513; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>拓荒者足迹 · 数字化智慧文旅历史轨迹</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+  :root{
+    --ink:#2b2620;
+    --paper:#ece1c8;
+    --paper-deep:#d9c79f;
+    --paper-edge:#c4b186;
+    --jade:#3f7a5c;
+    --jade-deep:#2c5841;
+    --jade-soft:rgba(63,122,92,.16);
+    --seal:#9c3b2c;
+    --qing:#6b4423;
+    --republic:#335c82;
+    --modern:#3a7d5c;
+    --gold:#b8915a;
+    --gold-soft:rgba(184,145,90,.4);
+    --font-display:'Ma Shan Zheng', cursive;
+    --font-body:'Noto Serif SC', serif;
+    --font-mono:'Roboto Mono', monospace;
+    --sidebar-w:330px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;font-family:var(--font-body);color:var(--ink);}
+  body{overflow:hidden;}
+  #map{position:absolute;inset:0;z-index:1;background:#cfd6cf;}
 
-        /* 排行榜列表区域 */
-        .rank-list { flex: 1; overflow-y: auto; padding: 15px 10px; }
-        .rank-item {
-            display: flex; align-items: center; padding: 12px 15px; margin-bottom: 8px;
-            background: white; border: 1px solid #efeae1; border-radius: 10px;
-            cursor: pointer; transition: all 0.2s ease;
-        }
-        .rank-item:hover { background: #f9f6f0; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-        .rank-num {
-            width: 24px; height: 24px; border-radius: 50%; background: #d2c4b4; color: #6d5542;
-            font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-right: 12px;
-        }
-        .rank-item:nth-child(1) .rank-num { background: #FFD700; color: #5c4308; }
-        .rank-item:nth-child(2) .rank-num { background: #C0C0C0; color: #3d3d3d; }
-        .rank-item:nth-child(3) .rank-num { background: #CD7F32; color: white; }
-        
-        .rank-info { flex: 1; }
-        .rank-name { font-size: 15px; font-weight: bold; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-        .rank-era { font-size: 12px; color: #95a5a6; margin-top: 2px; }
+  /* ---------- 左侧常驻侧栏（电脑端） ---------- */
+  #sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
+    background:linear-gradient(180deg,var(--paper) 0%, var(--paper-deep) 100%);
+    border-right:1px solid var(--paper-edge);
+    box-shadow:6px 0 24px rgba(0,0,0,.18);
+    z-index:400;display:flex;flex-direction:column;
+    transform:translateX(0);transition:transform .5s cubic-bezier(.22,.61,.36,1);
+    animation:slideInLeft .6s cubic-bezier(.22,.61,.36,1);
+  }
+  @keyframes slideInLeft{from{transform:translateX(-100%);}to{transform:translateX(0);}}
+  #sidebar .sb-header{padding:26px 22px 16px;border-bottom:1px solid var(--gold-soft);position:relative;}
+  #sidebar .sb-header::after{content:"";position:absolute;left:22px;right:22px;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
+  #sidebar h1{font-family:var(--font-display);font-size:34px;line-height:1;margin:0 0 6px;color:var(--ink);letter-spacing:1px;}
+  #sidebar .sb-sub{font-size:12px;letter-spacing:3px;color:#6b6048;margin:0 0 16px;display:flex;align-items:center;gap:6px;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:#b4a276;flex-shrink:0;}
+  .sync-dot.live{background:var(--jade);animation:pulseGlow 1.8s ease-in-out infinite;}
+  .login-btn{
+    font-family:var(--font-body);font-size:13px;font-weight:600;letter-spacing:1px;
+    border:1px solid var(--jade-deep);background:var(--jade-soft);color:var(--jade-deep);
+    padding:9px 16px;border-radius:20px;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:6px;
+  }
+  .login-btn:hover{background:var(--jade);color:#fff;}
+  .login-btn.admin-on{
+    background:var(--jade-deep);color:#eaffef;border-color:var(--jade-deep);
+    animation:pulseGlow 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(63,122,92,.55);}50%{box-shadow:0 0 0 8px rgba(63,122,92,0);}}
 
-        /* 地图主容器 */
-        .map-container { flex: 1; height: 100%; position: relative; }
-        #map { width: 100%; height: 100%; z-index: 1; background: #e5ecef; }
+  #ranking-wrap{flex:1;overflow-y:auto;padding:10px 0 16px;}
+  #ranking-wrap::-webkit-scrollbar{width:5px;}
+  #ranking-wrap::-webkit-scrollbar-thumb{background:var(--gold-soft);border-radius:3px;}
+  #ranking-list{list-style:none;margin:0;padding:0;}
+  #ranking-list li{
+    display:flex;align-items:center;gap:12px;padding:13px 22px;cursor:pointer;
+    border-bottom:1px solid rgba(184,145,90,.18);transition:background .2s;
+  }
+  #ranking-list li:hover, #ranking-list li.active{background:rgba(63,122,92,.1);}
+  #ranking-list li.dragging{opacity:.35;}
+  #ranking-list li.drag-over{box-shadow:inset 0 2px 0 0 var(--jade);}
+  #ranking-list li[draggable="true"]{cursor:grab;}
+  #ranking-list .drag-handle{color:#9c8a63;font-size:13px;cursor:grab;flex-shrink:0;}
+  #ranking-list .num{font-family:var(--font-mono);font-size:12px;color:#8a7a5c;min-width:30px;}
+  #ranking-list .name{flex:1;font-size:15px;font-weight:600;}
+  #ranking-list .era-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .era-qing{background:var(--qing);} .era-republic{background:var(--republic);} .era-modern{background:var(--modern);} .era-other{background:#8a7a5c;}
+  #sidebar .demo-banner{margin:0 22px 14px;padding:8px 12px;background:rgba(156,59,44,.1);border:1px dashed var(--seal);border-radius:8px;font-size:11px;color:var(--seal);line-height:1.5;}
 
-        /* 蛙色粒子标记样式修正：消除偏置，完美对齐 */
-        .leaflet-marker-icon.radar-icon-holder { background: none !important; border: none !important; box-shadow: none !important; }
-        .radar-box {
-            width: 36px; height: 36px; background: #2ecc71; border: 2px solid #ffffff; border-radius: 50%;
-            display: flex !important; align-items: center !important; justify-content: center !important;
-            color: #ffffff !important; font-weight: bold !important; font-size: 11px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: absolute; top: -18px; left: -18px;
-        }
-        .radar-box::after {
-            content: ''; position: absolute; top: -2px; left: -2px; width: 36px; height: 36px;
-            border-radius: 50%; border: 2px solid #2ecc71; animation: radar-wave 1.6s infinite ease-out; pointer-events: none;
-        }
-        @keyframes radar-wave { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+  /* ---------- 手机端胶囊标签 ---------- */
+  #mobile-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:400;padding:10px 10px 10px 56px;gap:8px;align-items:center;}
+  #mobile-bar .login-btn-m{position:absolute;left:8px;top:8px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;font-size:16px;}
+  #capsule-track{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;}
+  #capsule-track::-webkit-scrollbar{display:none;}
+  .capsule{
+    flex-shrink:0;font-family:var(--font-body);font-size:12.5px;font-weight:600;white-space:nowrap;
+    background:rgba(236,225,200,.95);color:var(--ink);border:1px solid var(--paper-edge);
+    padding:8px 14px;border-radius:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);
+  }
+  .capsule.active{background:var(--jade);color:#fff;border-color:var(--jade-deep);}
 
-        /* 半屏多媒体抽屉 */
-        .drawer {
-            position: fixed; bottom: 0; left: 0; width: 100%; max-height: 60%;
-            background: white; z-index: 999; border-radius: 20px 20px 0 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.15); transform: translateY(100%); transition: transform 0.3s ease-out;
-            display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom);
-        }
-        .drawer.show { transform: translateY(0); }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: white; cursor: pointer; z-index: 1002; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        
-        .media-box { width: 100%; height: 210px; position: relative; background: #000; border-radius: 20px 20px 0 0; overflow: hidden; }
-        .poi-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .poi-video { width: 100%; height: 100%; object-fit: cover; display: none; }
+  /* ---------- Leaflet 点位标记 ---------- */
+  .leaflet-div-icon{background:transparent;border:none;}
+  .poi-marker{position:relative;width:36px;height:36px;cursor:pointer;}
+  .poi-marker .ripple{position:absolute;inset:0;border-radius:50%;border:2px solid var(--jade);opacity:0;animation:radarPulse 2.6s ease-out infinite;}
+  @keyframes radarPulse{0%{transform:scale(.55);opacity:.85;}70%{opacity:.12;}100%{transform:scale(2.7);opacity:0;}}
+  .poi-marker .dot{
+    position:absolute;inset:0;width:36px;height:36px;border-radius:50%;
+    background:rgba(63,122,92,.62);border:2px solid #fff;z-index:2;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:11px;font-weight:700;color:#fff;
+    text-shadow:0 1px 3px rgba(0,0,0,.65);
+  }
 
-        .poi-content { padding: 20px; overflow-y: auto; flex: 1; }
-        .poi-title { font-size: 22px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
-        .poi-meta { font-size: 13px; color: #95a5a6; margin-bottom: 15px; }
-        
-        .audio-player-box { 
-            display: none; align-items: center; gap: 15px; padding: 12px 18px; 
-            background: #fdf6ec; border: 1px solid #f5dab1; border-radius: 12px; margin-bottom: 15px; 
-        }
-        .play-audio-btn { 
-            width: 36px; height: 36px; border-radius: 50%; background: #e6a23c; border: none; 
-            color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-        }
-        .audio-info-text { font-size: 13px; color: #b88230; font-weight: 500; }
-        .poi-audio { display: none; }
-        .poi-story { font-size: 15px; color: #34495e; line-height: 1.6; white-space: pre-line; }
-        
-        .poi-actions { display: flex; padding: 15px 20px; background: #f8f9fa; gap: 10px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 25px; color: white; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
-        .btn-vr { background: #2ecc71; }
-        .btn-nav { background: #3498db; }
+  /* ---------- 底部多媒体抽屉（拓本卷轴风格） ---------- */
+  #drawer{
+    position:fixed;left:0;right:0;bottom:0;max-height:60vh;z-index:500;
+    background:var(--paper);border-radius:18px 18px 0 0;
+    box-shadow:0 -12px 36px rgba(0,0,0,.4);
+    transform:translateY(102%);transition:transform .48s cubic-bezier(.22,.61,.36,1);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  #drawer.open{transform:translateY(0);}
+  #drawer .rod{height:18px;background:linear-gradient(180deg,var(--gold),var(--paper-edge));position:relative;flex-shrink:0;cursor:pointer;}
+  #drawer .rod::before,#drawer .rod::after{content:"";position:absolute;top:1px;bottom:1px;width:9px;border-radius:5px;background:var(--gold);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);}
+  #drawer .rod::before{left:10px;} #drawer .rod::after{right:10px;}
+  #drawer .rod .grip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46px;height:5px;border-radius:3px;background:rgba(43,38,32,.35);}
+  #drawer-close{position:absolute;top:24px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(43,38,32,.65);color:#fff;font-size:15px;cursor:pointer;z-index:6;}
+  #drawer-scroll{overflow-y:auto;flex:1;}
+  .media-box{width:100%;height:42vh;max-height:280px;background:#11140f;position:relative;overflow:hidden;}
+  .media-box video,.media-box img{width:100%;height:100%;object-fit:cover;display:block;}
+  .drawer-body{padding:18px 22px 26px;}
+  .drawer-body .num-era{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .drawer-body .era-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;padding:3px 9px;border-radius:10px;color:#fff;}
+  .drawer-body h2{font-size:21px;margin:2px 0 12px;font-weight:700;}
+  .drawer-body .story{font-size:14.5px;line-height:1.85;color:#3a342b;margin:0 0 18px;white-space:pre-wrap;}
+  .audio-block{display:flex;align-items:center;gap:10px;background:var(--jade-soft);border-radius:12px;padding:10px 14px;margin-bottom:18px;}
+  .audio-block audio{flex:1;height:32px;}
+  .audio-block .audio-label{font-size:12px;color:var(--jade-deep);font-weight:600;white-space:nowrap;}
+  .btn-row{display:flex;gap:12px;}
+  .act-btn{flex:1;border:none;border-radius:12px;padding:13px 10px;font-family:var(--font-body);font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s;}
+  .act-btn.vr{background:var(--ink);color:#f1e8cf;}
+  .act-btn.vr:hover{background:#13110e;}
+  .act-btn.nav{background:var(--jade);color:#fff;}
+  .act-btn.nav:hover{background:var(--jade-deep);}
+  .act-btn[disabled]{opacity:.35;cursor:not-allowed;}
 
-        /* 手机端适配 */
-        .mobile-rank-tags { display: none; }
-        @media (max-width: 768px) {
-            body, html { flex-direction: column; } .sidebar { display: none; }
-            .mobile-rank-tags {
-                display: flex; gap: 8px; padding: 10px; background: rgba(255, 255, 255, 0.95);
-                overflow-x: auto; white-space: nowrap; position: absolute; top: 0; left: 0; width: 100%;
-                z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.08); scrollbar-width: none;
-            }
-            .mobile-rank-tags::-webkit-scrollbar { display: none; }
-            .tag-item { display: inline-flex; align-items: center; padding: 8px 14px; background: white; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 13px; font-weight: 500; color: #4a4a4a; cursor: pointer; }
-            .tag-num { font-weight: bold; color: #8B4513; margin-right: 4px; }
-        }
-    </style>
+  /* ---------- 蒙层 + 表单弹窗（登录 / 打点） ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,18,14,.55);z-index:700;display:none;align-items:center;justify-content:center;padding:20px;}
+  .overlay.show{display:flex;}
+  .modal-card{background:var(--paper);border-radius:16px;width:100%;max-width:380px;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.45);max-height:88vh;overflow-y:auto;}
+  .modal-card h3{font-family:var(--font-display);font-size:24px;margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:#6b6048;margin-bottom:5px;letter-spacing:.5px;}
+  .field input,.field textarea,.field select{
+    width:100%;padding:10px 12px;border:1px solid var(--paper-edge);border-radius:8px;
+    font-family:var(--font-body);font-size:13.5px;background:#fbf6ea;color:var(--ink);
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--jade);outline-offset:1px;}
+  .field textarea{resize:vertical;min-height:70px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-actions{display:flex;gap:10px;margin-top:6px;}
+  .btn-primary,.btn-secondary{flex:1;padding:11px;border-radius:9px;border:none;font-weight:700;font-size:13.5px;cursor:pointer;font-family:var(--font-body);}
+  .btn-primary{background:var(--jade);color:#fff;} .btn-primary:hover{background:var(--jade-deep);}
+  .btn-secondary{background:transparent;color:#6b6048;border:1px solid var(--paper-edge);}
+  .form-err{color:var(--seal);font-size:12px;margin:-4px 0 10px;min-height:14px;}
+  .coords-readout{font-family:var(--font-mono);font-size:11.5px;color:var(--jade-deep);background:var(--jade-soft);padding:6px 10px;border-radius:7px;margin-bottom:14px;}
+
+  /* ---------- 提示条 ---------- */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#f1e8cf;
+    padding:11px 20px;border-radius:24px;font-size:13px;z-index:900;opacity:0;transition:.3s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width:768px){
+    #sidebar{display:none;}
+    #mobile-bar{display:flex;}
+    .media-box{height:36vh;}
+  }
+  :focus-visible{outline:2px solid var(--jade);outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){
+    .poi-marker .ripple{animation:none;opacity:.35;}
+    #sidebar{animation:none;}
+    .login-btn.admin-on{animation:none;}
+  }
+</style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h1>拓荒者足迹</h1>
-            <p>数字化全景历史轨迹图</p>
-            <button id="login-btn" class="admin-login-btn" onclick="triggerAdminAuth()">后台管理</button>
-        </div>
-        <div id="rank-list" class="rank-list"></div>
+<div id="map"></div>
+
+<!-- 桌面侧栏 -->
+<aside id="sidebar">
+  <div class="sb-header">
+    <h1>拓荒者足迹</h1>
+    <p class="sb-sub">数字化智慧文旅历史轨迹 <span id="sync-dot" class="sync-dot" title="实时同步未连接"></span></p>
+    <button class="login-btn" data-login>⚿ 后台管理</button>
+  </div>
+  <div id="demo-banner-slot"></div>
+  <div id="ranking-wrap"><ul id="ranking-list"></ul></div>
+</aside>
+
+<!-- 移动端顶部条 -->
+<div id="mobile-bar">
+  <button class="login-btn login-btn-m" data-login>⚿</button>
+  <div id="capsule-track"></div>
+</div>
+
+<!-- 底部多媒体抽屉 -->
+<div id="drawer" aria-hidden="true">
+  <div class="rod" id="drawer-handle"><div class="grip"></div></div>
+  <button id="drawer-close" aria-label="关闭">✕</button>
+  <div id="drawer-scroll">
+    <div class="media-box" id="media-box"></div>
+    <div class="drawer-body">
+      <div class="num-era">
+        <span id="drawer-num" style="font-family:var(--font-mono);font-size:12px;color:#8a7a5c;"></span>
+        <span id="drawer-era" class="era-tag"></span>
+      </div>
+      <h2 id="drawer-name"></h2>
+      <div class="audio-block" id="audio-block" style="display:none;">
+        <span class="audio-label">原声解说</span>
+        <audio id="drawer-audio" controls></audio>
+      </div>
+      <p class="story" id="drawer-story"></p>
+      <div class="btn-row">
+        <button class="act-btn vr" id="btn-vr">☉ 云游 360° VR</button>
+        <button class="act-btn nav" id="btn-nav">➤ 唤醒地图导航</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="map-container">
-        <div id="mobile-tags" class="mobile-rank-tags"></div>
-        <div id="map"></div>
-    </div>
+<!-- 登录弹窗 -->
+<div class="overlay" id="login-overlay">
+  <div class="modal-card">
+    <h3>主控登录</h3>
+    <form id="login-form">
+      <div class="field"><label>管理员邮箱</label><input type="email" id="login-email" required autocomplete="username"></div>
+      <div class="field"><label>密码</label><input type="password" id="login-pass" required autocomplete="current-password"></div>
+      <p class="form-err" id="login-err"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" data-close-login>取消</button>
+        <button type="submit" class="btn-primary">登录</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-    <div id="drawer" class="drawer">
-        <div class="close-btn" onclick="closeDrawer()">×</div>
-        <div class="media-box">
-            <img id="poi-cover" class="poi-cover" src="" alt="封面">
-            <video id="poi-video" class="poi-video" autoplay loop muted playsinline></video>
+<!-- 打点表单弹窗 -->
+<div class="overlay" id="point-overlay">
+  <div class="modal-card">
+    <h3>新增点位</h3>
+    <div class="coords-readout" id="point-coords"></div>
+    <form id="point-form">
+      <div class="field"><label>地名</label><input type="text" id="p-name" required></div>
+      <div class="field-row">
+        <div class="field"><label>历史时期</label>
+          <select id="p-era">
+            <option value="晚清">晚清</option>
+            <option value="民国">民国</option>
+            <option value="现代">现代</option>
+          </select>
         </div>
-        <div class="poi-content">
-            <div id="poi-title" class="poi-title"></div>
-            <div id="poi-meta" class="poi-meta"></div>
-            <div id="audio-box" class="audio-player-box">
-                <button id="audio-play-btn" class="play-audio-btn" onclick="toggleAudio()">▶</button>
-                <span class="audio-info-text">🔊 听听看：现场原声考证解说录音</span>
-                <audio id="poi-audio" class="poi-audio" onended="onAudioEnded()"></audio>
-            </div>
-            <div id="poi-story" class="poi-story"></div>
-        </div>
-        <div class="poi-actions">
-            <a id="btn-vr" class="btn btn-vr" href="" target="_blank">🌐 云游 360° VR 空间</a>
-            <button id="btn-nav" class="btn btn-nav" onclick="invokeNavigation()">🚗 唤醒地图导航</button>
-        </div>
-    </div>
+        <div class="field"><label>流线粗细等级 (1-5)</label><input type="number" id="p-level" min="1" max="5" value="2"></div>
+      </div>
+      <div class="field"><label>考证故事</label><textarea id="p-story" required></textarea></div>
+      <div class="field"><label>封面图 URL</label><input type="url" id="p-cover"></div>
+      <div class="field"><label>短视频 URL（可选，留空则显示封面图）</label><input type="url" id="p-video"></div>
+      <div class="field"><label>原声解说音频 URL（可选）</label><input type="url" id="p-audio"></div>
+      <div class="field"><label>360° VR 链接（可选）</label><input type="url" id="p-vr"></div>
+      <p class="form-err" id="point-err"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" data-close-point>取消</button>
+        <button type="submit" class="btn-primary">一键发布</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script>
-        // 🌟【前後端專案統統校準】徹底接通全新雲端後台
-        const SUPABASE_URL = "https://zjtofadvudkfijlpptmb.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqdG9mYWR2dWRrZmlqbHBwdG1iIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTY2MTIwNywiZXhwIjoyMDk3MjM3MjA3fQ.97xhS5QVFt3LuzbVUc9ckea-tSGO2zaJdPvrWm0E3D8"; 
-        
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<div id="toast"></div>
 
-        const map = L.map('map', { zoomControl: false }).setView([30.3, 116.5], 7);
-        L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-            subdomains: ["1", "2", "3", "4"], attribution: '© 高德地图'
-        }).addTo(map);
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =========================================================================
+   1. 配置区 —— 部署前请替换为你自己的 Supabase 项目地址与 anon key
+   在 Supabase SQL Editor 中建表 SQL 见本文件末尾注释，或参见对话中的说明。
+   ========================================================================= */
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-        let currentPoi = null;
-        let markerMap = {};
-        let polylineLayerGroup = L.layerGroup().addTo(map);
+const isConfigured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
+let sb = null;
+try{
+  if(isConfigured && window.supabase){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){ console.warn("Supabase 初始化失败，进入演示模式", e); }
 
-        function fetchPoisFromBackend() {
-            _supabase.from('pois').select('*')
-            .then(res => {
-                if (res.error) {
-                    loadBackupData();
-                    return;
-                }
-                let finalRenderList = res.data;
-                if (!finalRenderList || finalRenderList.length === 0) {
-                    loadBackupData();
-                } else {
-                    finalRenderList.sort((a, b) => a.poi_id.localeCompare(b.poi_id));
-                    renderMapElements(finalRenderList);
-                }
-            }).catch(() => {
-                loadBackupData();
-            });
-        }
+/* 未配置 Supabase 时的演示数据：以汕头开埠史为例，方便预览整体视觉效果 */
+const DEMO_POIS = [
+  {poi_id:1, sort_order:1, name:"老妈宫", lat:23.3535, lng:116.6822, era:"晚清", story:"汕头开埠初期的妈祖庙，曾是下南洋华工出海前祭拜祈福之地，见证了第一代拓荒者告别故土的瞬间。", cover:"https://images.unsplash.com/photo-1545987796-200677ee1011?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"晚清", level:2},
+  {poi_id:2, sort_order:2, name:"西堤码头", lat:23.3601, lng:116.6889, era:"晚清", story:"昔日商船云集的西堤码头，是潮汕侨胞远渡重洋的起点，也是侨批往来的重要枢纽。", cover:"https://images.unsplash.com/photo-1505761671935-60b3a7427bad?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"晚清", level:3},
+  {poi_id:3, sort_order:3, name:"小公园开埠区", lat:23.3642, lng:116.6925, era:"民国", story:"骑楼林立的小公园街区，是民国时期潮汕商贸文化的缩影，至今仍保留着南洋风格的建筑立面。", cover:"https://images.unsplash.com/photo-1528127269322-539801943592?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"民国", level:4},
+  {poi_id:4, sort_order:4, name:"海关钟楼", lat:23.3668, lng:116.6958, era:"民国", story:"曾经掌控潮汕进出口贸易命脉的海关大楼，钟声曾是码头工人作息的信号。", cover:"https://images.unsplash.com/photo-1473177104440-ffee2f376098?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"民国", level:2},
+  {poi_id:5, sort_order:5, name:"礐石灯塔", lat:23.3590, lng:116.6790, era:"现代", story:"如今的礐石灯塔已成为城市新地标，向每一位归乡的潮汕后人指引方向。", cover:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"现代", level:2},
+];
 
-        function loadBackupData() {
-            const backupPois = [{
-                poi_id: "001", name: "鸡公山美文学效（美国大楼）", lat: 31.80, lng: 114.08,
-                era: "民国时期", story: "真金鑰匙已百分之百完美縫合！\n現在紅色報錯已徹底消失。請點擊左上角【后台管理】登入你的管理員郵箱密碼，立刻開啟地圖交互打點功能！",
-                cover: "https://picsum.photos/800/400?random=1", vr_url: "https://photo-sphere-viewer.js.org/demos/sphere.html",
-                color_type: "republic", level: 8
-            }];
-            renderMapElements(backupPois);
-        }
+/* 缺图/视频加载失败时的兜底占位图（墨纸风格 SVG，避免浏览器默认的裂图图标） */
+function placeholderDataUri(label){
+  const text = escapeHtml(label || "封面缺失");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+    <rect width="100%" height="100%" fill="#ece1c8"/>
+    <rect x="20" y="20" width="760" height="410" fill="none" stroke="#b8915a" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="50%" y="47%" font-family="serif" font-size="30" fill="#6b6048" text-anchor="middle">封面图片缺失</text>
+    <text x="50%" y="58%" font-family="serif" font-size="17" fill="#9c8a63" text-anchor="middle">${text}</text>
+  </svg>`;
+  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+}
 
-        function renderMapElements(list) {
-            polylineLayerGroup.clearLayers();
-            for(let key in markerMap) map.removeLayer(markerMap[key]);
-            markerMap = {};
-            document.getElementById('rank-list').innerHTML = '';
-            document.getElementById('mobile-tags').innerHTML = '';
+/* =========================================================================
+   2. 地图初始化（高德清爽路网底图，XYZ 直连，免官方 Key）
+   注意：这是社区常用的非官方直连方式，免去 Key 申请流程，
+   但稳定性不受高德官方保障，正式商用建议改用官方 JS API + Key。
+   ========================================================================= */
+const map = L.map("map", { zoomControl:false, attributionControl:false }).setView([23.36, 116.68], 13);
+L.control.zoom({ position:"bottomright" }).addTo(map);
+L.tileLayer("https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}", {
+  subdomains:["1","2","3","4"], maxZoom:18, minZoom:3
+}).addTo(map);
 
-            map.setView([list[0].lat, list[0].lng], 7);
+const markerLayer = L.layerGroup().addTo(map);
+const lineLayer = L.layerGroup().addTo(map);
 
-            const colorMap = { "qing": "#8B4513", "republic": "#4682B4", "modern": "#2ECC71" };
-            for (let i = 0; i < list.length - 1; i++) {
-                const startNode = list[i]; const endNode = list[i+1];
-                L.polyline([[startNode.lat, startNode.lng], [endNode.lat, endNode.lng]], {
-                    color: colorMap[startNode.color_type] || "#A0522D", weight: startNode.level || 5, opacity: 0.85,
-                    dashArray: startNode.color_type === "qing" ? "5, 5" : null
-                }).addTo(polylineLayerGroup);
-            }
+/* =========================================================================
+   3. 状态
+   ========================================================================= */
+let pois = [];
+let adminMode = false;
+let pendingLatLng = null;
+/* 自己发起的写操作（打点/拖拽排序）可能在短时间内触发多条 Realtime 回执
+   （比如一次排序会更新好几行），用时间窗口而非一次性标记来抑制提示，
+   避免给操作者本人弹出一连串"已实时更新"的提示。 */
+let suppressRealtimeToastUntil = 0;
+function markSelfUpdate(windowMs = 3000){ suppressRealtimeToastUntil = Date.now() + windowMs; }
 
-            list.forEach((poi, index) => {
-                const rankNum = index + 1;
-                const customRadarIcon = L.divIcon({
-                    className: 'radar-icon-holder', 
-                    html: `<div class="radar-box">${poi.poi_id}</div>`
-                });
+/* =========================================================================
+   4. 工具函数
+   ========================================================================= */
+function pad(n){ return String(n).padStart(3,"0"); }
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+function eraStyle(era){
+  switch(era){
+    case "晚清": return { color:"var(--qing)", hex:"#6b4423", dash:"6,8", cls:"era-qing" };
+    case "民国": return { color:"var(--republic)", hex:"#335c82", dash:null, cls:"era-republic" };
+    case "现代": return { color:"var(--modern)", hex:"#3a7d5c", dash:null, cls:"era-modern" };
+    default:    return { color:"#8a7a5c", hex:"#8a7a5c", dash:"2,4", cls:"era-other" };
+  }
+}
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
 
-                const marker = L.marker([poi.lat, poi.lng], { icon: customRadarIcon }).addTo(map);
-                markerMap[poi.poi_id] = marker;
+/* =========================================================================
+   5. 数据获取 + 渲染
+   ========================================================================= */
+async function fetchPois(){
+  if(sb){
+    try{
+      const { data, error } = await sb.from("pois").select("*").order("sort_order", { ascending:true });
+      if(error) throw error;
+      return data || [];
+    }catch(e){
+      console.warn("读取 Supabase 失败，回退演示数据", e);
+      toast("数据库读取失败，已显示演示数据");
+      return DEMO_POIS;
+    }
+  }
+  showDemoBanner();
+  return DEMO_POIS;
+}
+function showDemoBanner(){
+  document.getElementById("demo-banner-slot").innerHTML =
+    '<div class="demo-banner">⚠ 尚未配置 Supabase，当前显示示例数据。请在脚本顶部填入 SUPABASE_URL 与 SUPABASE_ANON_KEY。</div>';
+}
 
-                const openDetail = () => {
-                    document.getElementById('poi-audio').pause();
-                    document.getElementById('audio-play-btn').innerText = '▶';
-                    currentPoi = poi;
-                    map.setView([poi.lat, poi.lng], 14);
-                    
-                    const imgEl = document.getElementById('poi-cover');
-                    const videoEl = document.getElementById('poi-video');
-                    if (poi.video_url) {
-                        imgEl.style.display = 'none'; videoEl.style.display = 'block';
-                        videoEl.src = poi.video_url; videoEl.play().catch(()=>{});
-                    } else {
-                        videoEl.style.display = 'none'; imgEl.style.display = 'block'; imgEl.src = poi.cover;
-                    }
+function renderAll(){
+  markerLayer.clearLayers();
+  lineLayer.clearLayers();
+  renderMarkers();
+  renderLines();
+  renderSidebarList();
+  renderCapsules();
+}
 
-                    const audioBox = document.getElementById('audio-box');
-                    if (poi.audio_url) { audioBox.style.display = 'flex'; document.getElementById('poi-audio').src = poi.audio_url; } 
-                    else { audioBox.style.display = 'none'; }
+function renderMarkers(){
+  pois.forEach(p => {
+    const icon = L.divIcon({
+      className: "",
+      html: `<div class="poi-marker">
+               <div class="ripple"></div>
+               <div class="ripple" style="animation-delay:.85s"></div>
+               <div class="ripple" style="animation-delay:1.7s"></div>
+               <div class="dot">${pad(p.poi_id)}</div>
+             </div>`,
+      iconSize: [36,36],
+      iconAnchor: [18,18]
+    });
+    const m = L.marker([p.lat, p.lng], { icon }).addTo(markerLayer);
+    m.on("click", () => focusPoi(p.poi_id));
+  });
+}
 
-                    document.getElementById('poi-title').innerText = poi.name;
-                    document.getElementById('poi-meta').innerText = `历史时期：${poi.era}`;
-                    document.getElementById('poi-story').innerText = poi.story;
-                    
-                    if(poi.vr_url) { document.getElementById('btn-vr').style.display = 'block'; document.getElementById('btn-vr').href = poi.vr_url; } 
-                    else { document.getElementById('btn-vr').style.display = 'none'; }
-                    document.getElementById('drawer').classList.add('show');
-                };
+function renderLines(){
+  // pois 数组本身已按 sort_order（讲解/动线顺序）排列，直接顺序连线即可，
+  // 这样管理员拖拽调整顺序后无需改动 poi_id 编号也能改变流线走向。
+  for(let i=1;i<pois.length;i++){
+    const prev = pois[i-1], cur = pois[i];
+    const st = eraStyle(cur.era);
+    L.polyline([[prev.lat,prev.lng],[cur.lat,cur.lng]], {
+      color: st.hex,
+      weight: 3 + Number(cur.level||1),
+      opacity: 0.85,
+      dashArray: st.dash,
+      lineJoin: "round"
+    }).addTo(lineLayer);
+  }
+}
 
-                marker.on('click', openDetail);
+function renderSidebarList(){
+  const ul = document.getElementById("ranking-list");
+  ul.innerHTML = pois.map(p => {
+    const st = eraStyle(p.era);
+    return `<li data-id="${p.poi_id}">
+      ${adminMode ? '<span class="drag-handle">⠿</span>' : ""}
+      <span class="num">${pad(p.poi_id)}</span>
+      <span class="name">${escapeHtml(p.name)}</span>
+      <span class="era-dot ${st.cls}"></span>
+    </li>`;
+  }).join("");
+  ul.querySelectorAll("li").forEach(li => {
+    const id = Number(li.dataset.id);
+    li.addEventListener("click", (e) => {
+      if(e.target.classList.contains("drag-handle")) return;
+      focusPoi(id);
+    });
+    attachDragReorder(li, id);
+  });
+}
 
-                const rankItem = document.createElement('div');
-                rankItem.className = 'rank-item';
-                rankItem.innerHTML = `<div class="rank-num">${rankNum}</div><div class="rank-info"><div class="rank-name">${poi.name}</div><div class="rank-era">${poi.era}</div></div>`;
-                rankItem.onclick = openDetail;
-                document.getElementById('rank-list').appendChild(rankItem);
+/* 主控模式下，侧栏列表支持拖拽调整"讲解/动线顺序"（sort_order），
+   与点位编号（poi_id，固定不变的档案编号）解耦，调整顺序不会打乱编号体系。 */
+let dragSrcId = null;
+function attachDragReorder(li, id){
+  if(!adminMode) return;
+  li.draggable = true;
+  li.addEventListener("dragstart", () => { dragSrcId = id; li.classList.add("dragging"); });
+  li.addEventListener("dragend", () => li.classList.remove("dragging"));
+  li.addEventListener("dragover", (e) => { e.preventDefault(); li.classList.add("drag-over"); });
+  li.addEventListener("dragleave", () => li.classList.remove("drag-over"));
+  li.addEventListener("drop", (e) => {
+    e.preventDefault();
+    li.classList.remove("drag-over");
+    if(dragSrcId === null || dragSrcId === id) return;
+    reorderPois(dragSrcId, id);
+    dragSrcId = null;
+  });
+}
 
-                const tagItem = document.createElement('div');
-                tagItem.className = 'tag-item';
-                tagItem.innerHTML = `<span class="tag-num">#${rankNum}</span> ${poi.name}`;
-                tagItem.onclick = openDetail;
-                document.getElementById('mobile-tags').appendChild(tagItem);
-            });
-        }
+function reorderPois(srcId, targetId){
+  const fromIdx = pois.findIndex(p => p.poi_id === srcId);
+  const toIdx = pois.findIndex(p => p.poi_id === targetId);
+  if(fromIdx < 0 || toIdx < 0) return;
+  const [moved] = pois.splice(fromIdx, 1);
+  pois.splice(toIdx, 0, moved);
+  pois.forEach((p, i) => { p.sort_order = i + 1; });
+  renderAll();
+  persistOrder();
+}
 
-        function triggerAdminAuth() {
-            const userEmail = prompt("请输入管理员登录邮箱：");
-            const userPassword = prompt("请输入管理登录密码：");
-            if(!userEmail || !userPassword) return;
+async function persistOrder(){
+  if(!sb){ toast("演示模式下排序仅本地生效，未保存到数据库"); return; }
+  try{
+    markSelfUpdate();
+    await Promise.all(pois.map(p => sb.from("pois").update({ sort_order:p.sort_order }).eq("poi_id", p.poi_id)));
+    toast("讲解顺序已更新并同步给所有访客");
+  }catch(e){
+    console.warn(e);
+    toast("排序同步失败：" + (e.message || ""));
+  }
+}
 
-            _supabase.auth.signInWithPassword({ email: userEmail, password: userPassword })
-            .then(res => {
-                if(res.error) { alert("验证失败: " + res.error.message); } 
-                else {
-                    alert("🎉 认证成功！主控芯片已激活。现在您可以直接在地图上随意点击，进行可视化空间插点发布了！");
-                    activateAdminControls();
-                }
-            });
-        }
+function renderCapsules(){
+  const track = document.getElementById("capsule-track");
+  track.innerHTML = pois.map(p => `<button class="capsule" data-id="${p.poi_id}">#${pad(p.poi_id)} ${escapeHtml(p.name)}</button>`).join("");
+  track.querySelectorAll(".capsule").forEach(b => b.addEventListener("click", () => focusPoi(Number(b.dataset.id))));
+}
 
-        function activateAdminControls() {
-            document.getElementById('login-btn').innerText = "⚡ 主控中";
-            document.getElementById('login-btn').style.background = "#2ecc71";
-            
-            map.on('click', (e) => {
-                const clickedLat = e.latlng.lat;
-                const clickedLng = e.latlng.lng;
-                
-                const isAdd = confirm(`触发地理打点机制！\n坐标捕捉成功：\n纬度: ${clickedLat}\n经度: ${clickedLng}\n\n是否立即将这个坐标录入到新云端项目？`);
-                if(!isAdd) return;
+function focusPoi(id){
+  const p = pois.find(x => x.poi_id === id);
+  if(!p) return;
+  map.flyTo([p.lat,p.lng], Math.max(map.getZoom(),15), { duration:0.9 });
+  document.querySelectorAll("#ranking-list li").forEach(li => li.classList.toggle("active", Number(li.dataset.id)===id));
+  document.querySelectorAll(".capsule").forEach(c => c.classList.toggle("active", Number(c.dataset.id)===id));
+  openDrawer(p);
+}
 
-                const poi_id = prompt("请输入点位编号（如 002）：");
-                const name = prompt("请输入历史建筑/码头遗迹名称：");
-                const era = prompt("请输入时期（晚清/民国/现代）：");
-                const story = prompt("请输入详细的背景考证故事（支持\\n换行）：");
-                const cover = prompt("请输入电影感封面图直链 URL：");
-                const video_url = prompt("请输入动态微缩 MP4 视频直链 URL（没有请留空）：");
-                const audio_url = prompt("请输入原声解说音频 MP3 直链 URL（没有请留空）：");
-                const vr_url = prompt("请输入 360° VR 空间 H5 链接（没有请留空）：");
-                const color_type = prompt("轨迹线颜色选择（qing-晚清深褐，republic-民国蓝，modern-活力绿）：", "republic");
-                const level = prompt("轨迹线粗细（3-细，5-中，8-粗）：", "5");
+/* =========================================================================
+   6. 抽屉（半屏多媒体联动）
+   ========================================================================= */
+function setMediaBox(p){
+  const box = document.getElementById("media-box");
+  box.innerHTML = "";
+  if(p.video_url){
+    const v = document.createElement("video");
+    v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true;
+    v.src = p.video_url;
+    v.onerror = () => { box.innerHTML = ""; appendImageOrPlaceholder(box, p); };
+    box.appendChild(v);
+  }else{
+    appendImageOrPlaceholder(box, p);
+  }
+}
+function appendImageOrPlaceholder(box, p){
+  const img = document.createElement("img");
+  img.alt = p.name || "";
+  img.src = p.cover || placeholderDataUri(p.name);
+  img.onerror = () => { img.onerror = null; img.src = placeholderDataUri(p.name); };
+  box.appendChild(img);
+}
 
-                if(!poi_id || !name) { alert("编号和名称不能为空！"); return; }
+const drawer = document.getElementById("drawer");
+function openDrawer(p){
+  const st = eraStyle(p.era);
+  document.getElementById("drawer-num").textContent = "NO. " + pad(p.poi_id);
+  const eraTag = document.getElementById("drawer-era");
+  eraTag.textContent = p.era || "未分类";
+  eraTag.style.background = st.hex;
+  document.getElementById("drawer-name").textContent = p.name;
+  document.getElementById("drawer-story").textContent = p.story || "";
 
-                _supabase.from('pois').insert([{
-                    poi_id, name, lat: clickedLat, lng: clickedLng, era, story, cover, video_url, audio_url, vr_url, color_type, level: parseInt(level)
-                }])
-                .then(res => {
-                    if(res.error) { alert("同步失败，请确保新项目已创建 pois 表且已在 SQL Editor 运行了解锁策略: " + res.error.message); } 
-                    else { alert("🎉 成功同步至新云端！网页地图已实时更新！"); fetchPoisFromBackend(); }
-                });
-            });
-        }
+  setMediaBox(p);
 
-        function toggleAudio() {
-            const audioEl = document.getElementById('poi-audio');
-            const btn = document.getElementById('audio-play-btn');
-            if (audioEl.paused) { audioEl.play(); btn.innerText = '⏸'; } else { audioEl.pause(); btn.innerText = '▶'; }
-        }
-        function onAudioEnded() { document.getElementById('audio-play-btn').innerText = '▶'; }
-        function closeDrawer() { document.getElementById('poi-audio').pause(); document.getElementById('poi-video').pause(); document.getElementById('drawer').classList.remove('show'); }
-        function invokeNavigation() {
-            if (!currentPoi) return;
-            const lat = currentPoi.lat; const lng = currentPoi.lng; const name = encodeURIComponent(currentPoi.name);
-            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) { window.location.href = `maps://?q=${name}&ll=${lat},${lng}`; return; }
-            const choice = confirm("点击【确定】唤醒手机高德地图导航，点击【取消】唤醒百度地图");
-            if (choice) { window.location.href = `amapuri://route/plan/?did=&dlat=${lat}&dlon=${lng}&dname=${name}&dev=0&t=0`; } 
-            else { window.location.href = `baidumap://map/direction?destination=latlng:${lat},${lng}|name:${name}&mode=driving`; }
-        }
+  const audioBlock = document.getElementById("audio-block");
+  const audioEl = document.getElementById("drawer-audio");
+  if(p.audio_url){ audioBlock.style.display="flex"; audioEl.src = p.audio_url; }
+  else { audioBlock.style.display="none"; audioEl.removeAttribute("src"); }
 
-        fetchPoisFromBackend();
-    </script>
+  const vrBtn = document.getElementById("btn-vr");
+  vrBtn.disabled = !p.vr_url;
+  vrBtn.onclick = () => { if(p.vr_url) window.open(p.vr_url, "_blank"); };
+
+  document.getElementById("btn-nav").onclick = () => navigateTo(p);
+
+  drawer.classList.add("open");
+  drawer.setAttribute("aria-hidden","false");
+}
+function closeDrawer(){
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden","true");
+  const v = document.querySelector("#media-box video");
+  if(v){ v.pause(); v.removeAttribute("src"); }
+  const a = document.getElementById("drawer-audio");
+  a.pause(); a.removeAttribute("src");
+}
+document.getElementById("drawer-close").addEventListener("click", closeDrawer);
+document.getElementById("drawer-handle").addEventListener("click", closeDrawer);
+
+function navigateTo(p){
+  const name = encodeURIComponent(p.name);
+  if(isIOS()){
+    window.location.href = `https://maps.apple.com/?daddr=${p.lat},${p.lng}&dirflg=d`;
+  }else{
+    // 安卓 / 其他：使用高德官方通用唤起链接，未安装 App 时引导网页/下载
+    window.location.href = `https://uri.amap.com/navigation?to=${p.lng},${p.lat},${name}&mode=car&policy=1&src=pioneer-trail&coordinate=gaode&callnative=1`;
+  }
+}
+
+/* =========================================================================
+   7. 登录 / 主控模式
+   ========================================================================= */
+const loginOverlay = document.getElementById("login-overlay");
+document.querySelectorAll("[data-login]").forEach(b => b.addEventListener("click", () => {
+  if(adminMode){ doLogout(); return; }
+  document.getElementById("login-err").textContent = "";
+  loginOverlay.classList.add("show");
+}));
+document.querySelectorAll("[data-close-login]").forEach(b => b.addEventListener("click", () => loginOverlay.classList.remove("show")));
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("login-email").value.trim();
+  const pass = document.getElementById("login-pass").value;
+  const errEl = document.getElementById("login-err");
+  if(!sb){ errEl.textContent = "尚未配置 Supabase，无法登录（当前为演示模式）。"; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error){ errEl.textContent = "登录失败：" + error.message; return; }
+  loginOverlay.classList.remove("show");
+  setAdminMode(true);
+  toast("已进入主控模式 ⚡");
+});
+
+async function doLogout(){
+  if(sb) await sb.auth.signOut();
+  setAdminMode(false);
+  toast("已退出主控模式");
+}
+
+function setAdminMode(on){
+  adminMode = on;
+  document.querySelectorAll(".login-btn").forEach(b => {
+    b.classList.toggle("admin-on", on);
+    if(b.classList.contains("login-btn-m")){ b.textContent = on ? "⚡" : "⚿"; }
+    else { b.textContent = on ? "⚡ 主控中" : "⚿ 后台管理"; }
+  });
+  if(on){ map.on("click", onMapClickAdmin); }
+  else { map.off("click", onMapClickAdmin); }
+  renderSidebarList();
+}
+
+/* =========================================================================
+   8. 主控打点（空白处点击 → 表单 → 写入 Supabase）
+   ========================================================================= */
+const pointOverlay = document.getElementById("point-overlay");
+function onMapClickAdmin(e){
+  pendingLatLng = e.latlng;
+  document.getElementById("point-coords").textContent = `纬度 ${e.latlng.lat.toFixed(6)} · 经度 ${e.latlng.lng.toFixed(6)}`;
+  document.getElementById("point-form").reset();
+  document.getElementById("p-level").value = 2;
+  document.getElementById("point-err").textContent = "";
+  pointOverlay.classList.add("show");
+}
+document.querySelectorAll("[data-close-point]").forEach(b => b.addEventListener("click", () => pointOverlay.classList.remove("show")));
+
+document.getElementById("point-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById("point-err");
+  if(!sb){ errEl.textContent = "尚未配置 Supabase，无法发布。"; return; }
+  if(!pendingLatLng){ errEl.textContent = "缺少地图坐标，请重新在地图上点击取点。"; return; }
+
+  const era = document.getElementById("p-era").value;
+  const nextId = pois.length ? Math.max(...pois.map(p=>p.poi_id)) + 1 : 1;
+  const nextOrder = pois.length ? Math.max(...pois.map(p=>p.sort_order||p.poi_id)) + 1 : 1;
+  const payload = {
+    poi_id: nextId,
+    sort_order: nextOrder,
+    name: document.getElementById("p-name").value.trim(),
+    lat: pendingLatLng.lat,
+    lng: pendingLatLng.lng,
+    era,
+    story: document.getElementById("p-story").value.trim(),
+    cover: document.getElementById("p-cover").value.trim(),
+    video_url: document.getElementById("p-video").value.trim(),
+    audio_url: document.getElementById("p-audio").value.trim(),
+    vr_url: document.getElementById("p-vr").value.trim(),
+    color_type: era,
+    level: Number(document.getElementById("p-level").value) || 1
+  };
+
+  markSelfUpdate();
+  const { error } = await sb.from("pois").insert(payload);
+  if(error){ errEl.textContent = "写入失败：" + error.message; return; }
+
+  pointOverlay.classList.remove("show");
+  toast("已发布到全球 🌍");
+  pois = await fetchPois();
+  renderAll();
+});
+
+/* =========================================================================
+   8b. 实时同步（Supabase Realtime）—— 任意客户端的增删改，
+   所有在线访客（包括其他管理员）都会立即看到，无需手动刷新页面。
+   注意：需要在 Supabase 控制台「Database → Replication」中为 pois 表开启 Realtime。
+   ========================================================================= */
+function subscribeRealtime(){
+  if(!sb) return;
+  const dot = document.getElementById("sync-dot");
+  sb.channel("pois-realtime")
+    .on("postgres_changes", { event:"*", schema:"public", table:"pois" }, async () => {
+      pois = await fetchPois();
+      renderAll();
+      if(Date.now() > suppressRealtimeToastUntil){ toast("点位数据已实时更新"); }
+    })
+    .subscribe((status) => {
+      if(!dot) return;
+      const live = status === "SUBSCRIBED";
+      dot.classList.toggle("live", live);
+      dot.title = live ? "实时同步中" : "实时同步未连接";
+    });
+}
+
+/* =========================================================================
+   9. 启动
+   ========================================================================= */
+(async function init(){
+  pois = await fetchPois();
+  renderAll();
+  subscribeRealtime();
+  if(sb){
+    const { data } = await sb.auth.getSession();
+    if(data && data.session){ setAdminMode(true); }
+  }
+})();
+</script>
 </body>
 </html>
+
+<!--
+=================================================================================
+Supabase 建表与权限策略 SQL（部署前在 Supabase SQL Editor 中执行一次）：
+
+create table pois (
+  poi_id     integer primary key,
+  sort_order integer not null,
+  name       text not null,
+  lat        double precision not null,
+  lng        double precision not null,
+  era        text,
+  story      text,
+  cover      text,
+  video_url  text,
+  audio_url  text,
+  vr_url     text,
+  color_type text,
+  level      integer default 1
+);
+
+alter table pois enable row level security;
+
+create policy "公开可读" on pois for select using (true);
+create policy "管理员可写" on pois for insert  to authenticated with check (true);
+create policy "管理员可改" on pois for update  to authenticated using (true);
+create policy "管理员可删" on pois for delete  to authenticated using (true);
+
+-- 管理员账号：在 Supabase 控制台 Authentication → Users 中手动添加，并确认（Confirm）邮箱即可。
+-- 实时推送：在 Supabase 控制台 Database → Replication 中为 pois 表开启 Realtime，
+-- 否则新增/排序操作只有操作者本人能看到，其他访客需要手动刷新页面。
+=================================================================================
+-->

@@ -1,0 +1,37 @@
+{
+  "name": "拓荒者足迹",
+  "short_name": "拓荒者足迹",
+  "description": "数字化智慧文旅历史轨迹——发现身边的历史故事",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#2b2620",
+  "theme_color": "#3f7a5c",
+  "lang": "zh-CN",
+  "categories": ["travel", "education", "lifestyle"],
+  "icons": [
+    { "src": "/pwa-icons/icon-72.png",  "sizes": "72x72",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "/pwa-icons/icon-96.png",  "sizes": "96x96",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "/pwa-icons/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/pwa-icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/pwa-icons/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/pwa-icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/pwa-icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/pwa-icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "地图探索",
+      "short_name": "地图",
+      "url": "/#map",
+      "icons": [{ "src": "/pwa-icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "环视台 VR",
+      "short_name": "环视台",
+      "url": "/vr.html",
+      "icons": [{ "src": "/pwa-icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

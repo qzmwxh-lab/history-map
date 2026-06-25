@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>环视台 · VR全景托管平台</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3f7a5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="环视台">
+<link rel="apple-touch-icon" href="/pwa-icons/icon-152.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/pwa-icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.font.im">
 <link href="https://fonts.font.im/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -1348,6 +1355,9 @@ function subscribeRealtime() {
   await handleRoute();
 })();
 
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js"); });
+}
 </script>
 </body>
 </html>

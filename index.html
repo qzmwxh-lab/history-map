@@ -497,6 +497,9 @@
   <div class="sb-header">
     <h1>拓荒者足迹</h1>
     <p class="sb-sub">数字化智慧文旅历史轨迹 <span id="sync-dot" class="sync-dot" title="实时同步未连接"></span></p>
+    <!-- 未登录时显示会员入口 -->
+    <button id="sb-member-btn" class="mb-btn ghost" onclick="openMemberLogin()"
+      style="font-size:12px;padding:6px 13px;margin-top:4px;">👤 会员中心</button>
     <div id="admin-controls" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;">
       <button class="login-btn" data-login>⚿ 后台管理</button>
       <a href="/vr.html" style="font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--jade-deep);background:transparent;border:1px solid var(--jade-deep);padding:8px 13px;border-radius:20px;text-decoration:none;letter-spacing:.5px;">☉ 进入环视台</a>
@@ -538,6 +541,10 @@
 <!-- 移动端顶部条 -->
 <div id="mobile-bar">
   <button class="login-btn login-btn-m" data-login id="mobile-login-btn" style="display:none;">⚿</button>
+  <button id="mobile-member-btn" onclick="openMemberLogin()"
+    style="position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;
+    background:var(--paper);border:1px solid var(--paper-edge);font-size:15px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;">👤</button>
   <div id="capsule-track"></div>
 </div>
 
@@ -693,6 +700,16 @@
       <div class="field">
         <label>附件文档（可选；支持 PDF / Word .docx；上传后抽屉内显示文档阅读器）</label>
         <input type="text" id="p-doc-title" placeholder="文档标题（如：建筑考证报告）">
+        <!-- 已有文档预览 + 删除 -->
+        <div id="p-doc-current" style="display:none;align-items:center;gap:8px;margin-top:7px;
+          background:rgba(63,122,92,.1);border-radius:8px;padding:7px 10px;">
+          <span style="font-size:13px;">📄</span>
+          <a id="p-doc-current-link" href="#" target="_blank" rel="noopener"
+            style="font-size:12px;color:var(--jade-deep);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline;">当前文档</a>
+          <button type="button" id="p-doc-delete-btn" onclick="clearDocField()"
+            style="font-size:11px;color:var(--seal);background:none;border:1px solid var(--seal);
+            border-radius:6px;padding:3px 8px;cursor:pointer;flex-shrink:0;font-family:var(--font-body);">✕ 删除</button>
+        </div>
         <div class="upload-row" style="margin-top:7px;">
           <label class="upload-btn" for="p-doc-file">上传文档</label>
           <input type="file" id="p-doc-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
@@ -880,7 +897,7 @@ function placeholderDataUri(label){
    注意：这是社区常用的非官方直连方式，免去 Key 申请流程，
    但稳定性不受高德官方保障，正式商用建议改用官方 JS API + Key。
    ========================================================================= */
-const map = L.map("map", { zoomControl:false, attributionControl:false }).setView([23.36, 116.68], 13);
+const map = L.map("map", { zoomControl:false, attributionControl:false }).setView([35.5, 105], 4);
 L.control.zoom({ position:"bottomright" }).addTo(map);
 L.tileLayer("https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}", {
   subdomains:["1","2","3","4"], maxZoom:18, minZoom:3
@@ -1487,6 +1504,11 @@ function updateAdminVisibility(on){
   // 审核面板只在主控模式下显示
   const reviewSection = document.getElementById("review-section");
   if(reviewSection){ reviewSection.style.display = on ? "block" : "none"; }
+  // 主控登录后隐藏会员入口按钮
+  const sbMemberBtn = document.getElementById("sb-member-btn");
+  if(sbMemberBtn) sbMemberBtn.style.display = on ? "none" : "block";
+  const mobileMemberBtn = document.getElementById("mobile-member-btn");
+  if(mobileMemberBtn) mobileMemberBtn.style.display = on ? "none" : "flex";
   if(on){ loadPendingSubmissions(); }
 }
 
@@ -1932,6 +1954,29 @@ wireUpload({ fileId:"p-audio-file", urlId:"p-audio", statusId:"p-audio-status", 
 
 /* #8 文档上传 */
 const UPLOAD_LIMITS_DOC_MB = 30;
+
+/* #15 删除已上传文档 */
+function clearDocField(){
+  document.getElementById("p-doc-url").value = "";
+  document.getElementById("p-doc-title").value = "";
+  document.getElementById("p-doc-status").textContent = "";
+  const docFile = document.getElementById("p-doc-file");
+  docFile.dataset.doctype = ""; docFile.value = "";
+  updateDocCurrentRow("", "");
+  toast("文档已清除，保存修改后生效");
+}
+function updateDocCurrentRow(url, title){
+  const row = document.getElementById("p-doc-current");
+  const link = document.getElementById("p-doc-current-link");
+  if(!row) return;
+  if(url){
+    row.style.display = "flex";
+    link.href = url;
+    link.textContent = title || url.split("/").pop().split("?")[0] || "查看文档";
+  }else{
+    row.style.display = "none";
+  }
+}
 document.getElementById("p-doc-file").addEventListener("change", async () => {
   const input = document.getElementById("p-doc-file");
   const file = input.files[0];
@@ -1947,11 +1992,10 @@ document.getElementById("p-doc-file").addEventListener("change", async () => {
   if(error){ status.textContent = "上传失败：" + error; status.className = "upload-status err"; }
   else{
     document.getElementById("p-doc-url").value = url;
-    // 自动推断类型
     if(!document.getElementById("p-doc-title").value) document.getElementById("p-doc-title").value = file.name.replace(/\.[^.]+$/, "");
     status.textContent = "已上传 ✓ " + file.name; status.className = "upload-status ok";
-    // 写入隐藏字段记录类型（word/pdf）
     input.dataset.doctype = isWord ? "word" : "pdf";
+    updateDocCurrentRow(url, document.getElementById("p-doc-title").value || file.name);
   }
   input.value = "";
 });
@@ -2011,6 +2055,7 @@ function resetUploadWidgets(){
   if(docTitle) docTitle.value = "";
   const docFile = document.getElementById("p-doc-file");
   if(docFile) docFile.dataset.doctype = "";
+  updateDocCurrentRow("", "");
   pendingGallery = [];
   renderGalleryStrip();
 }
@@ -2060,6 +2105,7 @@ function fillPointForm(p){
   // #8 文档
   document.getElementById("p-doc-title").value = p.doc_title || "";
   document.getElementById("p-doc-url").value = p.doc_url || "";
+  updateDocCurrentRow(p.doc_url, p.doc_title);
   if(p.cover){
     const preview = document.getElementById("p-cover-preview");
     preview.src = p.cover; preview.classList.add("show");
@@ -2281,13 +2327,18 @@ document.getElementById("member-register-form").addEventListener("submit", async
 function setMemberMode(on, user){
   memberMode = on;
   memberUser = on ? user : null;
-  // 更新侧栏
+  // 侧栏会员状态条
   const bar = document.getElementById("member-bar");
   bar.classList.toggle("show", on);
   if(on && user) document.getElementById("member-email-label").textContent = "👤 " + user.email;
-  // 更新首页按钮
+  // 首页按钮
   const hpBtn = document.getElementById("hp-member-btn");
   if(hpBtn){ hpBtn.textContent = on ? "👤 " + (user?.email.split("@")[0]||"会员") : "👤 会员中心"; hpBtn.classList.toggle("logged-in", on); }
+  // 地图侧栏/移动端会员按钮：登录后隐藏
+  const sbMemberBtn = document.getElementById("sb-member-btn");
+  if(sbMemberBtn) sbMemberBtn.style.display = on ? "none" : "block";
+  const mobileMemberBtn = document.getElementById("mobile-member-btn");
+  if(mobileMemberBtn) mobileMemberBtn.style.display = on ? "none" : "flex";
   if(!on){ cancelSubmitMode(); }
 }
 

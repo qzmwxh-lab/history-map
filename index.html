@@ -474,6 +474,16 @@
         ☉ 进入环视台
       </a>
       <button class="member-btn" id="hp-member-btn" onclick="openMemberLogin()">👤 会员中心</button>
+      <!-- PWA 安装按钮：Android/PC 自动触发后显示；iOS 始终显示引导 -->
+      <button class="member-btn" id="hp-install-btn" onclick="installApp()" style="display:none;">
+        ⬇ 安装 App
+      </button>
+    </div>
+    <!-- iOS 安装引导（Safari 不支持自动弹出，只能手动操作） -->
+    <div id="ios-install-hint" style="display:none;margin:-30px 0 30px;
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;
+      padding:12px 18px;font-size:13px;color:rgba(241,232,207,.75);text-align:left;max-width:360px;margin-left:auto;margin-right:auto;">
+      📲 在 Safari 底部点 <strong style="color:#f1e8cf;">分享</strong>（□↑）→ <strong style="color:#f1e8cf;">添加到主屏幕</strong>，即可安装为 App
     </div>
     <div id="homepage-pois" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;text-align:left;"></div>
   </div>
@@ -2515,32 +2525,69 @@ let deferredInstallPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  showInstallBanner();
+  showInstallUI();
 });
+
+function showInstallUI(){
+  // 主页按钮
+  const hpBtn = document.getElementById("hp-install-btn");
+  if(hpBtn) hpBtn.style.display = "inline-flex";
+  // 底部横幅（已安装则不再显示）
+  if(!sessionStorage.getItem("pwa-banner-dismissed")) showInstallBanner();
+}
 
 function showInstallBanner(){
   const banner = document.getElementById("pwa-install-banner");
   if(banner) banner.style.display = "flex";
 }
+
 function installApp(){
-  if(!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  deferredInstallPrompt.userChoice.then(choice => {
-    if(choice.outcome === "accepted") toast("App 安装成功！可在桌面找到图标 🎉");
-    deferredInstallPrompt = null;
-    const banner = document.getElementById("pwa-install-banner");
-    if(banner) banner.style.display = "none";
-  });
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(choice => {
+      if(choice.outcome === "accepted") toast("App 安装成功！可在桌面找到图标 🎉");
+      deferredInstallPrompt = null;
+      const hpBtn = document.getElementById("hp-install-btn");
+      if(hpBtn) hpBtn.style.display = "none";
+      const banner = document.getElementById("pwa-install-banner");
+      if(banner) banner.style.display = "none";
+    });
+  }else{
+    // 已安装或不支持，提示用户
+    toast("请在浏览器菜单中选择「添加到主屏幕」");
+  }
 }
+
 function dismissInstallBanner(){
   const banner = document.getElementById("pwa-install-banner");
   if(banner) banner.style.display = "none";
   sessionStorage.setItem("pwa-banner-dismissed", "1");
 }
+
+/* 检测 iOS Safari，显示手动安装引导 */
+(function detectIosInstall(){
+  const isIosDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isInStandaloneMode = window.matchMedia("(display-mode: standalone)").matches
+    || window.navigator.standalone === true;
+  if(isIosDevice && !isInStandaloneMode){
+    // iOS Safari 无法自动弹出安装提示，显示手动引导
+    const hint = document.getElementById("ios-install-hint");
+    if(hint) hint.style.display = "block";
+    const hpBtn = document.getElementById("hp-install-btn");
+    if(hpBtn){ hpBtn.style.display = "inline-flex"; hpBtn.textContent = "📲 安装到桌面"; hpBtn.onclick = () => {
+      hint.scrollIntoView({ behavior:"smooth" });
+    };}
+  }
+})();
+
 window.addEventListener("appinstalled", () => {
   toast("已安装为 App！");
+  const hpBtn = document.getElementById("hp-install-btn");
+  if(hpBtn) hpBtn.style.display = "none";
   const banner = document.getElementById("pwa-install-banner");
   if(banner) banner.style.display = "none";
+  const hint = document.getElementById("ios-install-hint");
+  if(hint) hint.style.display = "none";
 });
 </script>
 </body>

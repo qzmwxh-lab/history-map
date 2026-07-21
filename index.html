@@ -1,2680 +1,454 @@
+The user is showing me a screenshot of their GitHub repository (历史地图 - "History Map" under qzmwxh-lab). They're editing index.html directly on GitHub and complaining that I gave them code in segments. They want ONE complete index.html file they can paste into the GitHub editor in one go.
+
+Looking at the conversation history, it appears the previous assistant response got cut off mid-code (the response ended in the middle of the INITIAL_POINTS data). So the user received an incomplete code block. They're frustrated and want the complete single index.html file.
+
+The repo structure shows:
+- pwa图标 (PWA icons folder)
+- README.md
+- index.html (currently being edited, empty)
+- manifest.json
+- sw.js (service worker - they have PWA set up)
+- vr.html
+
+Interesting - they already have a PWA setup with manifest.json and sw.js. So my index.html should ideally reference the manifest for PWA support, but the main thing is to give them ONE complete file.
+
+Key challenge: The code is very long. I need to give the COMPLETE file in one message. Last time it apparently got truncated (either by me or by output limits). I need to write the complete, working single-file HTML app, but I should be mindful of length and make it complete this time.
+
+To ensure completeness, I should:
+1. Trim where possible without losing core features
+2. Keep data more compact (fewer points, shorter summaries)
+3. Write efficient code
+
+Let me write the complete index.html now. I must ensure it's COMPLETE - from <!DOCTYPE html> to </html>.
+
+Features to include (from their original prompt):
+1. Dark elegant map (Leaflet + CARTO dark tiles)
+2. Country hover highlight with golden glow + tooltip (world-atlas topojson)
+3. Glowing cross markers with ripple, flyTo on click
+4. Routes with flowing animated lines
+5. Bottom collapsible timeline with periods + playback
+6. Media drawer: bio + verse, Pannellum VR, image gallery, video, audio
+7. Admin modal with map coordinate picking + localStorage
+8. Three.js splash screen intro
+9. Mobile responsive
+10. PWA manifest link (they have manifest.json already!)
+
+I should add `<link rel="manifest" href="manifest.json">` since they have PWA set up. And maybe register sw.js. Let me add that - small touch that shows I noticed their setup.
+
+To keep the code manageable in one message, I'll:
+- Compact data (8 points instead of 11, shorter summaries)
+- Keep CSS lean
+- Avoid excessive comments but keep key ones
+- Single letter/short variable names where readable
+
+Let me write the entire file carefully. I need to make sure every function closes properly, all JSX is valid for Babel standalone.
+
+Let me draft mentally the structure:
+
+```
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>拓荒者足迹 · 数字化智慧文旅历史轨迹</title>
-
-<!-- PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#3f7a5c">
-<meta name="mobile-web-app-capable" content="yes">
-<!-- iOS 专项配置 -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="拓荒者足迹">
-<link rel="apple-touch-icon" href="/pwa-icons/icon-152.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/pwa-icons/icon-192.png">
-<!-- PC 端图标 -->
-<link rel="icon" type="image/png" sizes="32x32" href="/pwa-icons/icon-96.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/pwa-icons/icon-192.png">
-<!-- SEO -->
-<meta name="description" content="数字化智慧文旅历史轨迹——在地图上发现身边的历史故事、360°全景探索">
-<meta name="keywords" content="文旅,历史,地图,360全景,VR,拓荒者">
-<link rel="preconnect" href="https://fonts.font.im">
-<link href="https://fonts.font.im/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<style>
-  :root{
-    --ink:#2b2620;
-    --paper:#ece1c8;
-    --paper-deep:#d9c79f;
-    --paper-edge:#c4b186;
-    --jade:#3f7a5c;
-    --jade-deep:#2c5841;
-    --jade-soft:rgba(63,122,92,.16);
-    --seal:#9c3b2c;
-    --qing:#6b4423;
-    --republic:#335c82;
-    --modern:#3a7d5c;
-    --gold:#b8915a;
-    --gold-soft:rgba(184,145,90,.4);
-    --font-display:'Ma Shan Zheng', cursive;
-    --font-body:'Noto Serif SC', serif;
-    --font-mono:'Roboto Mono', monospace;
-    --sidebar-w:330px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;height:100%;font-family:var(--font-body);color:var(--ink);}
-  body{overflow:hidden;}
-  #map{position:absolute;inset:0;z-index:1;background:#cfd6cf;}
-
-  /* ---------- 左侧常驻侧栏（电脑端） ---------- */
-  #sidebar{
-    position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
-    background:linear-gradient(180deg,var(--paper) 0%, var(--paper-deep) 100%);
-    border-right:1px solid var(--paper-edge);
-    box-shadow:6px 0 24px rgba(0,0,0,.18);
-    z-index:400;display:flex;flex-direction:column;
-    transform:translateX(0);transition:transform .5s cubic-bezier(.22,.61,.36,1);
-    animation:slideInLeft .6s cubic-bezier(.22,.61,.36,1);
-  }
-  @keyframes slideInLeft{from{transform:translateX(-100%);}to{transform:translateX(0);}}
-  #sidebar .sb-header{padding:26px 22px 16px;border-bottom:1px solid var(--gold-soft);position:relative;}
-  #sidebar .sb-header::after{content:"";position:absolute;left:22px;right:22px;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
-  #sidebar h1{font-family:var(--font-display);font-size:34px;line-height:1;margin:0 0 6px;color:var(--ink);letter-spacing:1px;}
-  #sidebar .sb-sub{font-size:12px;letter-spacing:3px;color:#6b6048;margin:0 0 16px;display:flex;align-items:center;gap:6px;}
-  .sync-dot{width:7px;height:7px;border-radius:50%;background:#b4a276;flex-shrink:0;}
-  .sync-dot.live{background:var(--jade);animation:pulseGlow 1.8s ease-in-out infinite;}
-  .login-btn{
-    font-family:var(--font-body);font-size:13px;font-weight:600;letter-spacing:1px;
-    border:1px solid var(--jade-deep);background:var(--jade-soft);color:var(--jade-deep);
-    padding:9px 16px;border-radius:20px;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:6px;
-  }
-  .login-btn:hover{background:var(--jade);color:#fff;}
-  .login-btn.admin-on{
-    background:var(--jade-deep);color:#eaffef;border-color:var(--jade-deep);
-    animation:pulseGlow 1.6s ease-in-out infinite;
-  }
-  @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(63,122,92,.55);}50%{box-shadow:0 0 0 8px rgba(63,122,92,0);}}
-
-  #ranking-wrap{flex:1;overflow-y:auto;padding:10px 0 16px;}
-  #ranking-wrap::-webkit-scrollbar{width:5px;}
-  #ranking-wrap::-webkit-scrollbar-thumb{background:var(--gold-soft);border-radius:3px;}
-  #ranking-list{list-style:none;margin:0;padding:0;}
-  #ranking-list li{
-    display:flex;align-items:center;gap:12px;padding:13px 22px;cursor:pointer;
-    border-bottom:1px solid rgba(184,145,90,.18);transition:background .2s;
-  }
-  #ranking-list li:hover, #ranking-list li.active{background:rgba(63,122,92,.1);}
-  #ranking-list li.dragging{opacity:.35;}
-  #ranking-list li.drag-over{box-shadow:inset 0 2px 0 0 var(--jade);}
-  #ranking-list li[draggable="true"]{cursor:grab;}
-  #ranking-list .drag-handle{color:#9c8a63;font-size:13px;cursor:grab;flex-shrink:0;}
-  #ranking-list .num{font-family:var(--font-mono);font-size:12px;color:#8a7a5c;min-width:30px;}
-  #ranking-list .name{flex:1;font-size:15px;font-weight:600;}
-  #ranking-list .era-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-  #ranking-list .li-actions{display:flex;align-items:center;gap:2px;flex-shrink:0;opacity:0;transition:opacity .15s;}
-  #ranking-list li:hover .li-actions{opacity:1;}
-  #ranking-list .li-edit,#ranking-list .li-del{
-    width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;
-    font-size:12.5px;cursor:pointer;flex-shrink:0;
-  }
-  #ranking-list .li-edit{color:var(--jade-deep);} #ranking-list .li-edit:hover{background:var(--jade-soft);}
-  #ranking-list .li-del{color:var(--seal);} #ranking-list .li-del:hover{background:rgba(156,59,44,.14);}
-  .relocate-hint{font-size:11.5px;color:var(--jade-deep);background:var(--jade-soft);padding:7px 10px;border-radius:7px;margin:-4px 0 12px;}
-  .era-qing{background:var(--qing);} .era-republic{background:var(--republic);} .era-modern{background:var(--modern);} .era-other{background:#8a7a5c;}
-  #sidebar .demo-banner{margin:0 22px 14px;padding:8px 12px;background:rgba(156,59,44,.1);border:1px dashed var(--seal);border-radius:8px;font-size:11px;color:var(--seal);line-height:1.5;}
-
-  /* ---------- 手机端胶囊标签 ---------- */
-  #mobile-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:400;padding:10px 10px 10px 56px;gap:8px;align-items:center;}
-  #mobile-bar .login-btn-m{position:absolute;left:8px;top:8px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;font-size:16px;}
-  #capsule-track{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;}
-  #capsule-track::-webkit-scrollbar{display:none;}
-  .capsule{
-    flex-shrink:0;font-family:var(--font-body);font-size:12.5px;font-weight:600;white-space:nowrap;
-    background:rgba(236,225,200,.95);color:var(--ink);border:1px solid var(--paper-edge);
-    padding:8px 14px;border-radius:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);
-  }
-  .capsule.active{background:var(--jade);color:#fff;border-color:var(--jade-deep);}
-
-  /* ---------- Leaflet 点位标记 ---------- */
-  .leaflet-div-icon{background:transparent;border:none;}
-  .poi-marker{position:relative;width:36px;height:36px;cursor:pointer;}
-  .poi-marker .ripple{position:absolute;inset:0;border-radius:50%;border:2px solid var(--jade);opacity:0;animation:radarPulse 2.6s ease-out infinite;}
-  @keyframes radarPulse{0%{transform:scale(.55);opacity:.85;}70%{opacity:.12;}100%{transform:scale(2.7);opacity:0;}}
-  .poi-marker .dot{
-    position:absolute;inset:0;width:36px;height:36px;border-radius:50%;
-    background:rgba(63,122,92,.62);border:2px solid #fff;z-index:2;
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-mono);font-size:11px;font-weight:700;color:#fff;
-    text-shadow:0 1px 3px rgba(0,0,0,.65);
-  }
-
-  /* ---------- 底部多媒体抽屉（拓本卷轴风格） ---------- */
-  #drawer{
-    position:fixed;left:0;right:0;bottom:0;max-height:60vh;z-index:500;
-    background:var(--paper);border-radius:18px 18px 0 0;
-    box-shadow:0 -12px 36px rgba(0,0,0,.4);
-    transform:translateY(102%);transition:transform .48s cubic-bezier(.22,.61,.36,1);
-    display:flex;flex-direction:column;overflow:hidden;
-  }
-  #drawer.open{transform:translateY(0);}
-  #drawer .rod{height:18px;background:linear-gradient(180deg,var(--gold),var(--paper-edge));position:relative;flex-shrink:0;cursor:pointer;}
-  #drawer .rod::before,#drawer .rod::after{content:"";position:absolute;top:1px;bottom:1px;width:9px;border-radius:5px;background:var(--gold);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);}
-  #drawer .rod::before{left:10px;} #drawer .rod::after{right:10px;}
-  #drawer .rod .grip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46px;height:5px;border-radius:3px;background:rgba(43,38,32,.35);}
-  #drawer-close{position:absolute;top:24px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(43,38,32,.65);color:#fff;font-size:15px;cursor:pointer;z-index:6;}
-  #drawer-scroll{overflow-y:auto;flex:1;}
-  .media-box{width:100%;background:#11140f;position:relative;overflow:hidden;}
-  .media-box video,.media-box img{width:100%;height:100%;object-fit:cover;display:block;}
-  .media-box video{outline:none;}
-
-  /* ---------- 媒体 tab 条（只有同时有视频+图片时才出现） ---------- */
-  .media-tabs{display:flex;background:rgba(20,18,14,.85);position:relative;z-index:4;flex-shrink:0;}
-  .media-tab{flex:1;padding:9px 0;font-size:12.5px;font-weight:700;text-align:center;cursor:pointer;
-    color:rgba(255,255,255,.5);border:none;background:none;transition:.2s;letter-spacing:.5px;font-family:var(--font-body);}
-  .media-tab.active{color:#fff;}
-  .media-tab-ink{position:absolute;bottom:0;height:2px;background:var(--jade);transition:left .25s,width .25s;}
-  .media-content{flex:1;height:42vh;max-height:280px;position:relative;overflow:hidden;}
-  .media-panel{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .3s;}
-  .media-panel.active{opacity:1;pointer-events:auto;}
-  /* 无 tab 时直接撑高内容区 */
-  .media-box.no-tabs .media-content{height:42vh;max-height:280px;}
-
-  /* ---------- 图片滚动播放（多图轮播） ---------- */
-  .media-carousel{position:relative;width:100%;height:100%;}
-  .media-carousel .c-slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;}
-  .media-carousel .c-slide.active{opacity:1;}
-  .media-carousel .c-slide img{width:100%;height:100%;object-fit:cover;display:block;}
-  .c-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:6px;z-index:3;}
-  .c-dots .c-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:.2s;border:none;padding:0;}
-  .c-dots .c-dot.active{background:#fff;width:18px;border-radius:4px;}
-  .c-arrow{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;
-    background:rgba(20,18,14,.45);color:#fff;border:none;font-size:13px;cursor:pointer;z-index:3;
-    display:flex;align-items:center;justify-content:center;}
-  .c-arrow:hover{background:rgba(20,18,14,.72);}
-  .c-arrow.c-prev{left:10px;} .c-arrow.c-next{right:10px;}
-  .c-fullscreen{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:7px;z-index:4;
-    background:rgba(20,18,14,.55);color:#fff;border:none;font-size:13px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;}
-  .c-fullscreen:hover{background:rgba(20,18,14,.85);}
-
-  /* ---------- 全屏灯箱 ---------- */
-  #lightbox{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.96);
-    display:none;align-items:center;justify-content:center;flex-direction:column;}
-  #lightbox.show{display:flex;}
-  #lightbox-img{max-width:100vw;max-height:85vh;object-fit:contain;user-select:none;}
-  #lightbox-close{position:absolute;top:16px;right:18px;background:rgba(255,255,255,.12);border:none;
-    color:#fff;font-size:20px;width:38px;height:38px;border-radius:50%;cursor:pointer;z-index:2;}
-  #lightbox-close:hover{background:rgba(255,255,255,.25);}
-  #lightbox-prev,#lightbox-next{position:absolute;top:50%;transform:translateY(-50%);
-    background:rgba(255,255,255,.12);border:none;color:#fff;font-size:24px;
-    width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  #lightbox-prev:hover,#lightbox-next:hover{background:rgba(255,255,255,.25);}
-  #lightbox-prev{left:14px;} #lightbox-next{right:14px;}
-  #lightbox-counter{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
-    color:rgba(255,255,255,.6);font-family:var(--font-mono);font-size:12px;}
-  #lightbox-dots{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);
-    display:flex;gap:6px;}
-  #lightbox-dots .ld{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);
-    cursor:pointer;border:none;padding:0;transition:.2s;}
-  #lightbox-dots .ld.active{background:#fff;width:18px;border-radius:4px;}
-
-  /* ---------- 后台表单：图片集上传 ---------- */
-  .gallery-strip{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;}
-  .gallery-thumb{position:relative;width:54px;height:54px;border-radius:8px;overflow:hidden;border:1px solid var(--paper-edge);flex-shrink:0;}
-  .gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-  .gallery-thumb .g-remove{position:absolute;top:1px;right:1px;width:17px;height:17px;border-radius:50%;
-    background:rgba(20,18,14,.72);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-
-  /* ---------- 抽屉内嵌全景模式（VR） ---------- */
-  #drawer.vr-mode{max-height:92vh;}
-  #vr-pane{display:none;position:relative;width:100%;height:62vh;background:#000;overflow:hidden;}
-  #drawer.vr-mode #vr-pane{display:block;}
-  #drawer.vr-mode #drawer-scroll > .media-box,
-  #drawer.vr-mode #drawer-scroll > .drawer-body{display:none;}
-  #vr-canvas-wrap{position:absolute;inset:0;}
-  #vr-canvas-wrap canvas{display:block;width:100%;height:100%;}
-  #vr-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    color:#9498a3;font-family:var(--font-mono);font-size:12.5px;background:#000;z-index:3;}
-  #vr-loading.hide{display:none;}
-  #vr-back-btn{position:absolute;top:14px;left:14px;z-index:6;background:rgba(20,18,14,.65);color:#fff;border:none;
-    border-radius:18px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:var(--font-body);
-    display:flex;align-items:center;gap:5px;}
-  #vr-scene-strip{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;gap:7px;overflow-x:auto;
-    padding:10px 14px;background:linear-gradient(0deg,rgba(0,0,0,.65),transparent);scrollbar-width:none;}
-  #vr-scene-strip::-webkit-scrollbar{display:none;}
-  #vr-scene-strip .vchip{flex-shrink:0;font-size:11.5px;font-weight:600;color:#fff;background:rgba(255,255,255,.12);
-    border:1px solid rgba(255,255,255,.25);padding:6px 12px;border-radius:14px;cursor:pointer;white-space:nowrap;}
-  #vr-scene-strip .vchip.active{background:var(--jade);border-color:var(--jade-deep);}
-  #vr-hint{position:absolute;top:14px;right:14px;z-index:6;color:rgba(255,255,255,.55);font-size:11px;font-family:var(--font-mono);}
-  #vr-fullscreen-btn{position:absolute;top:14px;right:90px;z-index:6;background:rgba(20,18,14,.55);color:#fff;
-    border:none;border-radius:7px;width:30px;height:30px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  #vr-fullscreen-btn:hover{background:rgba(20,18,14,.85);}
-
-  /* flow line toggle */
-  .toggle-pill{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:14px;border:none;cursor:pointer;transition:.2s;font-family:var(--font-body);}
-  .toggle-pill.on{background:var(--jade-soft);color:var(--jade-deep);}
-  .toggle-pill.off{background:rgba(156,59,44,.12);color:var(--seal);}
-
-  /* homepage poi cards */
-  .hp-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;
-    overflow:hidden;cursor:pointer;transition:.2s;}
-  .hp-card:hover{border-color:var(--jade);transform:translateY(-2px);}
-  .hp-card img{width:100%;height:110px;object-fit:cover;display:block;}
-  .hp-card .hpc-body{padding:10px 12px;}
-  .hp-card .hpc-name{font-size:14px;font-weight:700;color:#f1e8cf;margin-bottom:3px;}
-  .hp-card .hpc-era{font-size:11px;color:rgba(241,232,207,.5);}
-
-  /* ---------- 会员中心入口（首页可见） ---------- */
-  .member-btn{font-family:var(--font-body);font-size:14px;font-weight:600;padding:13px 28px;
-    border-radius:50px;border:1.5px solid rgba(184,145,90,.6);color:rgba(241,232,207,.8);
-    background:rgba(184,145,90,.12);cursor:pointer;letter-spacing:.5px;display:inline-flex;align-items:center;gap:7px;}
-  .member-btn:hover{background:rgba(184,145,90,.22);color:#f1e8cf;}
-  .member-btn.logged-in{border-color:var(--jade);color:#b5f5d8;background:rgba(63,122,92,.2);}
-  #member-bar{padding:8px 16px 4px;border-bottom:1px solid var(--gold-soft);display:none;}
-  #member-bar.show{display:block;}
-  #member-bar .mb-email{font-size:11px;color:#6b6048;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  #member-bar .mb-actions{display:flex;gap:7px;flex-wrap:wrap;}
-  .mb-btn{font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:14px;border:none;cursor:pointer;font-family:var(--font-body);}
-  .mb-btn.primary{background:var(--jade-soft);color:var(--jade-deep);}
-  .mb-btn.primary:hover{background:var(--jade);color:#fff;}
-  .mb-btn.ghost{background:transparent;color:#8a7a5c;border:1px solid var(--paper-edge);}
-  .mb-btn.ghost:hover{background:var(--paper-deep);}
-  #submit-mode-bar{position:fixed;top:0;left:0;right:0;z-index:450;
-    background:var(--jade);color:#fff;font-family:var(--font-body);font-size:13px;font-weight:600;
-    display:none;align-items:center;justify-content:center;gap:12px;padding:10px 16px;text-align:center;}
-  #submit-mode-bar.show{display:flex;}
-  #submit-mode-bar button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);
-    color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:12px;cursor:pointer;font-family:var(--font-body);}
-  #review-badge{position:absolute;top:-4px;right:-4px;background:var(--seal);color:#fff;
-    border-radius:8px;font-size:10px;font-weight:700;padding:1px 5px;min-width:14px;text-align:center;display:none;}
-  #review-btn-wrap{position:relative;display:inline-block;}
-  #review-panel{border-top:1px solid var(--gold-soft);padding:10px 14px;display:none;max-height:340px;overflow-y:auto;}
-  #review-panel.show{display:block;}
-  #review-panel h5{margin:0 0 8px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#6b6048;}
-  .sub-card{background:var(--paper-deep);border-radius:9px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--paper-edge);}
-  .sub-card .sc-name{font-weight:700;font-size:14px;margin-bottom:2px;}
-  .sub-card .sc-meta{font-size:11px;color:#6b6048;margin-bottom:6px;}
-  .sub-card .sc-story{font-size:12px;color:#3a342b;margin-bottom:8px;max-height:54px;overflow:hidden;
-    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
-  .sub-card .sc-actions{display:flex;gap:7px;}
-  .sc-btn{font-size:12px;font-weight:700;padding:6px 13px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font-body);}
-  .sc-btn.approve{background:var(--jade);color:#fff;} .sc-btn.approve:hover{background:var(--jade-deep);}
-  .sc-btn.reject{background:transparent;color:var(--seal);border:1px solid var(--seal);}
-  .sc-btn.reject:hover{background:rgba(156,59,44,.1);}
-  .sc-btn.locate{background:var(--jade-soft);color:var(--jade-deep);}
-  .my-sub-item{padding:10px 0;border-bottom:1px solid var(--gold-soft);}
-  .my-sub-item:last-child{border-bottom:none;}
-  .my-sub-item .ms-name{font-weight:700;font-size:13.5px;margin-bottom:3px;}
-  .my-sub-item .ms-status{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;}
-  .ms-status.pending{background:rgba(224,162,60,.18);color:#b87d1a;}
-  .ms-status.approved{background:rgba(63,122,92,.16);color:var(--jade-deep);}
-  .ms-status.rejected{background:rgba(156,59,44,.12);color:var(--seal);}
-  .my-sub-item .ms-note{font-size:11.5px;color:#6b6048;margin-top:3px;}
-  #vr-tooltip{position:fixed;z-index:560;background:rgba(20,18,14,.9);color:#fff;border-radius:9px;padding:8px 12px;
-    font-size:12px;max-width:220px;pointer-events:none;display:none;}
-  #vr-tooltip.show{display:block;}
-  #vr-tooltip .vt-title{font-weight:700;margin-bottom:2px;}
-  .drawer-body{padding:18px 22px 26px;}
-  .drawer-body .num-era{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-  .drawer-body .era-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;padding:3px 9px;border-radius:10px;color:#fff;}
-  .drawer-body h2{font-size:21px;margin:2px 0 12px;font-weight:700;}
-  .drawer-body .story{font-size:14.5px;line-height:1.85;color:#3a342b;margin:0 0 18px;white-space:pre-wrap;}
-  .audio-block{display:flex;align-items:center;gap:10px;background:var(--jade-soft);border-radius:12px;padding:10px 14px;margin-bottom:18px;}
-  .audio-block audio{flex:1;height:32px;}
-  .audio-block .audio-label{font-size:12px;color:var(--jade-deep);font-weight:600;white-space:nowrap;}
-  .btn-row{display:flex;gap:12px;}
-  .act-btn{flex:1;border:none;border-radius:12px;padding:13px 10px;font-family:var(--font-body);font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s;}
-  .act-btn.vr{background:var(--ink);color:#f1e8cf;}
-  .act-btn.vr:hover{background:#13110e;}
-  .act-btn.nav{background:var(--jade);color:#fff;}
-  .act-btn.nav:hover{background:var(--jade-deep);}
-  .act-btn[disabled]{opacity:.35;cursor:not-allowed;}
-
-  /* ---------- 蒙层 + 表单弹窗（登录 / 打点） ---------- */
-  .overlay{position:fixed;inset:0;background:rgba(20,18,14,.55);z-index:700;display:none;align-items:center;justify-content:center;padding:20px;}
-  .overlay.show{display:flex;}
-  .modal-card{background:var(--paper);border-radius:16px;width:100%;max-width:380px;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.45);max-height:88vh;overflow-y:auto;}
-  .modal-card h3{font-family:var(--font-display);font-size:24px;margin:0 0 18px;}
-  .field{margin-bottom:14px;}
-  .field label{display:block;font-size:12px;font-weight:600;color:#6b6048;margin-bottom:5px;letter-spacing:.5px;}
-  .field input,.field textarea,.field select{
-    width:100%;padding:10px 12px;border:1px solid var(--paper-edge);border-radius:8px;
-    font-family:var(--font-body);font-size:13.5px;background:#fbf6ea;color:var(--ink);
-  }
-  .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--jade);outline-offset:1px;}
-  .field textarea{resize:vertical;min-height:70px;}
-  .field-row{display:flex;gap:10px;}
-  .field-row .field{flex:1;}
-  .modal-actions{display:flex;gap:10px;margin-top:6px;}
-  .btn-primary,.btn-secondary{flex:1;padding:11px;border-radius:9px;border:none;font-weight:700;font-size:13.5px;cursor:pointer;font-family:var(--font-body);}
-  .btn-primary{background:var(--jade);color:#fff;} .btn-primary:hover{background:var(--jade-deep);}
-  .btn-secondary{background:transparent;color:#6b6048;border:1px solid var(--paper-edge);}
-  .form-err{color:var(--seal);font-size:12px;margin:-4px 0 10px;min-height:14px;}
-  .coords-readout{font-family:var(--font-mono);font-size:11.5px;color:var(--jade-deep);background:var(--jade-soft);padding:6px 10px;border-radius:7px;margin-bottom:14px;}
-  .upload-row{display:flex;align-items:center;gap:9px;margin-top:7px;}
-  .upload-btn{font-family:var(--font-body);font-size:12px;font-weight:600;padding:7px 13px;border-radius:16px;background:var(--jade-soft);color:var(--jade-deep);border:1px solid var(--jade-deep);cursor:pointer;white-space:nowrap;flex-shrink:0;}
-  .upload-btn:hover{background:var(--jade);color:#fff;}
-  .field input[type="file"]{display:none;}
-  .upload-status{font-size:11px;color:#6b6048;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .upload-status.ok{color:var(--jade-deep);font-weight:600;}
-  .upload-status.err{color:var(--seal);font-weight:600;}
-  .cover-preview{width:40px;height:40px;border-radius:7px;object-fit:cover;flex-shrink:0;border:1px solid var(--paper-edge);display:none;}
-  .cover-preview.show{display:block;}
-
-  /* ---------- 提示条 ---------- */
-  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#f1e8cf;
-    padding:11px 20px;border-radius:24px;font-size:13px;z-index:900;opacity:0;transition:.3s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.3);}
-  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-  /* ---------- 响应式 ---------- */
-  /* ==========================================================
-     响应式布局 —— 三档设备自动适配
-     desktop  > 1024px : 左侧常驻侧栏
-     tablet   768-1024 : 侧栏可折叠，汉堡按钮开关
-     phone    < 768px  : 侧栏隐藏，顶部胶囊，抽屉全宽
-  ========================================================== */
-
-  /* ---- 平板：折叠侧栏 ---- */
-  #sidebar-toggle{display:none;position:fixed;top:14px;left:14px;z-index:450;
-    width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
-    background:var(--paper);box-shadow:0 2px 10px rgba(0,0,0,.2);
-    font-size:17px;color:var(--ink);align-items:center;justify-content:center;}
-  #sidebar.collapsed{transform:translateX(-100%);}
-
-  @media (max-width:1024px) and (min-width:769px){
-    :root{ --sidebar-w:290px; }
-    #sidebar-toggle{display:flex;}
-    #sidebar{transform:translateX(-100%);transition:transform .38s cubic-bezier(.22,.61,.36,1);}
-    #sidebar.open{transform:translateX(0);}
-    #map{ left:0; }
-    /* 侧栏打开时地图加遮罩 */
-    #sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:390;display:none;}
-    #sidebar.open ~ #sidebar-overlay,
-    body.sidebar-open #sidebar-overlay{display:block;}
-  }
-
-  /* ---- 手机 ---- */
-  @media (max-width:768px){
-    :root{ --sidebar-w:85vw; }
-    #sidebar{display:none;}
-    #mobile-bar{display:flex;}
-
-    /* 抽屉：手机全宽，更高，支持触摸拖拽 */
-    #drawer{
-      max-height:82vh;
-      border-radius:20px 20px 0 0;
-      left:0;right:0;
-    }
-    #drawer.open{ touch-action:none; }
-    #drawer .rod{ height:22px; }
-    #drawer .rod .grip{ width:40px;height:6px;border-radius:3px; }
-    #drawer-close{top:26px;right:12px;width:32px;height:32px;font-size:14px;}
-
-    /* 媒体区在手机上更高 */
-    .media-content{height:44vw;max-height:260px;}
-
-    /* 抽屉正文 */
-    .drawer-body{padding:14px 16px 100px;}
-    .drawer-body h2{font-size:18px;}
-    .drawer-body .story{font-size:13.5px;}
-
-    /* 底部按钮组固定在屏幕底部（safe-area 兼容） */
-    .btn-row{
-      position:fixed;bottom:0;left:0;right:0;
-      padding:10px 14px calc(10px + env(safe-area-inset-bottom));
-      background:var(--paper);
-      border-top:1px solid var(--paper-edge);
-      z-index:510;
-      display:none;
-    }
-    #drawer.open .btn-row{display:flex;}
-    .act-btn{padding:14px 10px;font-size:14px;border-radius:14px;}
-
-    /* 胶囊条加高，safe-area 顶部留空 */
-    #mobile-bar{
-      padding:calc(10px + env(safe-area-inset-top)) 10px 10px 56px;
-      background:rgba(236,225,200,.92);
-      backdrop-filter:blur(10px);
-    }
-    #mobile-bar .login-btn-m{
-      top:calc(8px + env(safe-area-inset-top));
-    }
-
-    /* 胶囊字号微调 */
-    .capsule{font-size:12px;padding:7px 12px;}
-
-    /* 全屏灯箱在手机上更沉浸 */
-    #lightbox-img{max-width:100vw;max-height:75vh;}
-    #lightbox-prev{left:4px;} #lightbox-next{right:4px;}
-
-    /* 地图控件右移，避开 safe area */
-    .leaflet-control-zoom{margin-bottom:calc(16px + env(safe-area-inset-bottom))!important;}
-  }
-
-  /* ---- 极小屏（iPhone SE 等 375px 以下） ---- */
-  @media (max-width:375px){
-    .capsule{font-size:11px;padding:6px 10px;}
-    .drawer-body h2{font-size:16px;}
-    .act-btn{font-size:12.5px;}
-  }
-
-  :focus-visible{outline:2px solid var(--jade);outline-offset:2px;}
-  @media (prefers-reduced-motion:reduce){
-    .poi-marker .ripple{animation:none;opacity:.35;}
-    #sidebar{animation:none;}
-    .login-btn.admin-on{animation:none;}
-  }
-</style>
+  meta tags
+  title
+  manifest link
+  CDN links: tailwind, leaflet css, pannellum css, fonts
+  CDN scripts: leaflet, pannellum, topojson, three, react, react-dom, babel
+  <style> custom css </style>
 </head>
 <body>
-
-<div id="map"></div>
-<button id="sidebar-toggle" aria-label="展开侧栏">☰</button>
-<div id="sidebar-overlay"></div>
-
-<!-- #12 首页主页（landing page，可随时切换回地图） -->
-<div id="homepage" style="display:none;position:fixed;inset:0;z-index:600;overflow-y:auto;
-  background:linear-gradient(160deg,#2b2620 0%,#3a3226 40%,#1e3028 100%);">
-  <div style="max-width:720px;margin:0 auto;padding:60px 28px 80px;text-align:center;">
-    <div style="width:64px;height:64px;border-radius:50%;background:var(--jade-soft);border:2px solid var(--jade);
-      display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:28px;">🗺</div>
-    <h1 style="font-family:var(--font-display);font-size:clamp(36px,8vw,64px);color:#f1e8cf;margin:0 0 16px;line-height:1.1;">拓荒者足迹</h1>
-    <p style="font-size:16px;color:rgba(241,232,207,.65);letter-spacing:2px;margin:0 0 48px;">数字化智慧文旅历史轨迹</p>
-    <div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-bottom:56px;">
-      <button onclick="showMapView()" style="font-family:var(--font-body);font-size:15px;font-weight:700;padding:15px 32px;
-        border-radius:50px;border:none;background:var(--jade);color:#fff;cursor:pointer;letter-spacing:1px;">
-        ▶ 进入地图探索
-      </button>
-      <a href="/vr.html" style="font-family:var(--font-body);font-size:15px;font-weight:700;padding:15px 32px;
-        border-radius:50px;border:1.5px solid rgba(241,232,207,.35);color:rgba(241,232,207,.85);
-        text-decoration:none;letter-spacing:1px;display:inline-flex;align-items:center;gap:8px;">
-        ☉ 进入环视台
-      </a>
-      <button class="member-btn" id="hp-member-btn" onclick="openMemberLogin()">👤 会员中心</button>
-      <!-- PWA 安装按钮：Android/PC 自动触发后显示；iOS 始终显示引导 -->
-      <button class="member-btn" id="hp-install-btn" onclick="installApp()" style="display:none;">
-        ⬇ 安装 App
-      </button>
-    </div>
-    <!-- iOS 安装引导（Safari 不支持自动弹出，只能手动操作） -->
-    <div id="ios-install-hint" style="display:none;margin:-30px 0 30px;
-      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;
-      padding:12px 18px;font-size:13px;color:rgba(241,232,207,.75);text-align:left;max-width:360px;margin-left:auto;margin-right:auto;">
-      📲 在 Safari 底部点 <strong style="color:#f1e8cf;">分享</strong>（□↑）→ <strong style="color:#f1e8cf;">添加到主屏幕</strong>，即可安装为 App
-    </div>
-    <div id="homepage-pois" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;text-align:left;"></div>
-  </div>
-  <button id="hp-admin-trigger" ondblclick="openAdminLogin()" title="管理员入口（双击）"
-    style="position:fixed;top:14px;right:14px;background:transparent;border:none;color:rgba(255,255,255,.1);
-    font-size:18px;cursor:pointer;width:36px;height:36px;">⚙</button>
-</div>
-
-<!-- 桌面侧栏 -->
-<aside id="sidebar">
-  <div class="sb-header">
-    <h1>拓荒者足迹</h1>
-    <p class="sb-sub">数字化智慧文旅历史轨迹 <span id="sync-dot" class="sync-dot" title="实时同步未连接"></span></p>
-    <!-- 未登录时显示会员入口 -->
-    <button id="sb-member-btn" class="mb-btn ghost" onclick="openMemberLogin()"
-      style="font-size:12px;padding:6px 13px;margin-top:4px;">👤 会员中心</button>
-    <div id="admin-controls" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button class="login-btn" data-login>⚿ 后台管理</button>
-      <a href="/vr.html" style="font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--jade-deep);background:transparent;border:1px solid var(--jade-deep);padding:8px 13px;border-radius:20px;text-decoration:none;letter-spacing:.5px;">☉ 进入环视台</a>
-    </div>
-  </div>
-  <div id="demo-banner-slot"></div>
-  <!-- 会员登录状态条 -->
-  <div id="member-bar">
-    <div class="mb-email" id="member-email-label"></div>
-    <div class="mb-actions">
-      <button class="mb-btn primary" onclick="startSubmitMode()">📍 提交新地址</button>
-      <button class="mb-btn ghost" onclick="openMySubmissions()">我的投稿</button>
-      <button class="mb-btn ghost" onclick="memberLogout()">退出</button>
-    </div>
-  </div>
-  <!-- 管理员审核面板 -->
-  <div id="review-section" style="display:none;">
-    <div style="padding:8px 16px 4px;display:flex;align-items:center;gap:8px;">
-      <span style="font-size:12px;color:#6b6048;font-weight:600;">待审核投稿</span>
-      <span id="review-badge" style="position:static;display:none;"></span>
-      <button class="mb-btn ghost" style="margin-left:auto;font-size:11px;" onclick="toggleReviewPanel()">展开</button>
-    </div>
-    <div id="review-panel"></div>
-  </div>
-  <!-- #2 流线开关 + #3 地图搜索（主控模式才显示） -->
-  <div id="sb-tools" style="display:none;padding:8px 16px 4px;display:none;gap:8px;flex-direction:column;">
-    <div style="display:flex;gap:8px;align-items:center;">
-      <span style="font-size:12px;color:#6b6048;flex:1;">流线显示</span>
-      <button id="line-toggle" class="toggle-pill on" title="点击开关流线">● 已开</button>
-    </div>
-    <div id="map-search-wrap" style="display:flex;gap:6px;">
-      <input id="map-search-input" type="text" placeholder="搜索地址定位…" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--paper-edge);background:#fbf6ea;font-size:12.5px;font-family:var(--font-body);">
-      <button id="map-search-btn" class="upload-btn" style="padding:7px 12px;border-radius:8px;">搜</button>
-    </div>
-  </div>
-  <div id="ranking-wrap"><ul id="ranking-list"></ul></div>
-</aside>
-
-<!-- 移动端顶部条 -->
-<div id="mobile-bar">
-  <button class="login-btn login-btn-m" data-login id="mobile-login-btn" style="display:none;">⚿</button>
-  <button id="mobile-member-btn" onclick="openMemberLogin()"
-    style="position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;
-    background:var(--paper);border:1px solid var(--paper-edge);font-size:15px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;">👤</button>
-  <div id="capsule-track"></div>
-</div>
-
-<!-- 底部多媒体抽屉 -->
-<div id="drawer" aria-hidden="true">
-  <div class="rod" id="drawer-handle"><div class="grip"></div></div>
-  <button id="drawer-close" aria-label="关闭">✕</button>
-  <div id="drawer-scroll">
-    <div class="media-box" id="media-box"></div>
-    <div id="vr-pane">
-      <div id="vr-canvas-wrap"></div>
-      <div id="vr-loading">加载全景中…</div>
-      <button id="vr-back-btn">← 返回介绍</button>
-      <button id="vr-fullscreen-btn" title="全屏">⛶</button>
-      <span id="vr-hint">拖拽环视 · 滚轮缩放</span>
-      <div id="vr-scene-strip"></div>
-    </div>
-    <div class="drawer-body">
-      <div class="num-era">
-        <span id="drawer-num" style="font-family:var(--font-mono);font-size:12px;color:#8a7a5c;"></span>
-        <span id="drawer-era" class="era-tag"></span>
-      </div>
-      <h2 id="drawer-name"></h2>
-      <div class="audio-block" id="audio-block" style="display:none;">
-        <span class="audio-label">原声解说</span>
-        <audio id="drawer-audio" controls></audio>
-      </div>
-      <p class="story" id="drawer-story"></p>
-      <!-- #8 文档阅读器 -->
-      <div id="doc-block" style="display:none;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:13px;font-weight:700;color:var(--ink);">📄</span>
-          <span id="doc-title-label" style="font-size:13px;font-weight:700;flex:1;"></span>
-          <a id="doc-open-link" href="#" target="_blank" rel="noopener"
-             style="font-size:11.5px;color:var(--jade-deep);text-decoration:underline;">新窗口打开</a>
-        </div>
-        <div id="doc-viewer-wrap" style="width:100%;height:420px;border-radius:10px;overflow:hidden;border:1px solid var(--paper-edge);">
-          <iframe id="doc-iframe" style="width:100%;height:100%;border:none;" title="文档预览"></iframe>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="act-btn vr" id="btn-vr">☉ 云游 360° VR</button>
-        <button class="act-btn nav" id="btn-nav">➤ 唤醒地图导航</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 登录弹窗 -->
-<div class="overlay" id="login-overlay">
-  <div class="modal-card">
-    <h3>主控登录</h3>
-    <form id="login-form">
-      <div class="field"><label>管理员邮箱</label><input type="email" id="login-email" required autocomplete="username"></div>
-      <div class="field"><label>密码</label><input type="password" id="login-pass" required autocomplete="current-password"></div>
-      <p class="form-err" id="login-err"></p>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" data-close-login>取消</button>
-        <button type="submit" class="btn-primary">登录</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- 打点表单弹窗 -->
-<div class="overlay" id="point-overlay">
-  <div class="modal-card">
-    <h3 id="point-modal-title">新增点位</h3>
-    <div class="coords-readout" id="point-coords"></div>
-    <div class="relocate-hint" id="relocate-hint" style="display:none;">📍 如需更改此点位的地图位置，<span id="relocate-btn" style="text-decoration:underline;cursor:pointer;">点此后在地图上重新点击</span></div>
-    <form id="point-form">
-      <div class="field-row">
-        <div class="field"><label>地名</label><input type="text" id="p-name" required></div>
-        <div class="field" style="max-width:90px;"><label>显示编号</label><input type="number" id="p-display-num" min="1" max="9999" placeholder="自动"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>历史时期</label>
-          <select id="p-era">
-            <optgroup label="古代">
-              <option value="唐朝">唐朝</option>
-              <option value="五代十国">五代十国</option>
-              <option value="宋朝">宋朝</option>
-              <option value="元朝">元朝</option>
-              <option value="明朝">明朝</option>
-              <option value="清朝">清朝</option>
-              <option value="晚清">晚清</option>
-            </optgroup>
-            <optgroup label="近现代">
-              <option value="民国">民国</option>
-              <option value="抗战时期">抗战时期</option>
-              <option value="解放战争">解放战争</option>
-              <option value="建国初期">建国初期</option>
-              <option value="改革开放">改革开放</option>
-              <option value="现代">现代</option>
-            </optgroup>
-            <option value="自定义">✏ 自定义…</option>
-          </select>
-        </div>
-        <div class="field"><label>流线粗细等级 (1-5)</label><input type="number" id="p-level" min="1" max="5" value="2"></div>
-      </div>
-      <div class="field" id="p-era-custom-wrap" style="display:none;">
-        <label>自定义历史时期名称</label>
-        <input type="text" id="p-era-custom" placeholder="例如：清末民初">
-      </div>
-      <div class="field"><label>考证故事</label><textarea id="p-story" required></textarea></div>
-      <div class="field">
-        <label>封面图片（可上传，或粘贴已有链接）</label>
-        <input type="url" id="p-cover" placeholder="https://...">
-        <div class="upload-row">
-          <img id="p-cover-preview" class="cover-preview" alt="预览">
-          <label class="upload-btn" for="p-cover-file">上传图片</label>
-          <input type="file" id="p-cover-file" accept="image/*">
-          <span class="upload-status" id="p-cover-status"></span>
-        </div>
-      </div>
-      <div class="field">
-        <label>图片集（可选，2张及以上将在抽屉里自动轮播；仅在未设置短视频时显示）</label>
-        <div class="upload-row">
-          <label class="upload-btn" for="p-gallery-file">+ 添加图片（可多选）</label>
-          <input type="file" id="p-gallery-file" accept="image/*" multiple>
-          <span class="upload-status" id="p-gallery-status"></span>
-        </div>
-        <div class="gallery-strip" id="p-gallery-strip"></div>
-      </div>
-      <div class="field">
-        <label>短视频（可选，留空则显示封面图；可上传或粘贴链接）</label>
-        <input type="url" id="p-video" placeholder="https://...">
-        <div class="upload-row">
-          <label class="upload-btn" for="p-video-file">上传视频</label>
-          <input type="file" id="p-video-file" accept="video/*">
-          <span class="upload-status" id="p-video-status"></span>
-        </div>
-      </div>
-      <div class="field">
-        <label>原声解说音频（可选；可上传或粘贴链接）</label>
-        <input type="url" id="p-audio" placeholder="https://...">
-        <div class="upload-row">
-          <label class="upload-btn" for="p-audio-file">上传音频</label>
-          <input type="file" id="p-audio-file" accept="audio/*">
-          <span class="upload-status" id="p-audio-status"></span>
-        </div>
-      </div>
-      <div class="field">
-        <label>关联环视台作品（可选，选择后"云游360°VR"将直接在本站抽屉内嵌入查看）</label>
-        <select id="p-vr-work">
-          <option value="">— 不关联，使用下方外部链接 —</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>外部VR链接（仅当未关联环视台作品时使用，点击后在新标签页打开）</label>
-        <input type="url" id="p-vr" placeholder="https://...">
-      </div>
-      <div class="field">
-        <label>附件文档（可选；支持 PDF / Word .docx；上传后抽屉内显示文档阅读器）</label>
-        <input type="text" id="p-doc-title" placeholder="文档标题（如：建筑考证报告）">
-        <!-- 已有文档预览 + 删除 -->
-        <div id="p-doc-current" style="display:none;align-items:center;gap:8px;margin-top:7px;
-          background:rgba(63,122,92,.1);border-radius:8px;padding:7px 10px;">
-          <span style="font-size:13px;">📄</span>
-          <a id="p-doc-current-link" href="#" target="_blank" rel="noopener"
-            style="font-size:12px;color:var(--jade-deep);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline;">当前文档</a>
-          <button type="button" id="p-doc-delete-btn" onclick="clearDocField()"
-            style="font-size:11px;color:var(--seal);background:none;border:1px solid var(--seal);
-            border-radius:6px;padding:3px 8px;cursor:pointer;flex-shrink:0;font-family:var(--font-body);">✕ 删除</button>
-        </div>
-        <div class="upload-row" style="margin-top:7px;">
-          <label class="upload-btn" for="p-doc-file">上传文档</label>
-          <input type="file" id="p-doc-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-          <span class="upload-status" id="p-doc-status"></span>
-        </div>
-        <input type="url" id="p-doc-url" placeholder="或粘贴已有文档链接" style="margin-top:7px;">
-      </div>
-      <p class="form-err" id="point-err"></p>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" data-close-point>取消</button>
-        <button type="submit" class="btn-primary" id="point-submit-btn">一键发布</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="lightbox">
-  <button id="lightbox-close">✕</button>
-  <button id="lightbox-prev">‹</button>
-  <img id="lightbox-img" alt="">
-  <button id="lightbox-next">›</button>
-  <div id="lightbox-dots"></div>
-  <div id="lightbox-counter"></div>
-</div>
-
-<!-- 投稿模式提示条 -->
-<div id="submit-mode-bar">
-  📍 请在地图上点击要投稿的位置
-  <button onclick="cancelSubmitMode()">✕ 取消</button>
-</div>
-
-<!-- 会员注册/登录弹窗 -->
-<div class="overlay" id="member-overlay">
-  <div class="modal-card" style="max-width:400px;">
-    <h3 id="member-modal-title">会员中心</h3>
-    <div id="member-login-view">
-      <form id="member-login-form">
-        <div class="field"><label>邮箱</label><input type="email" id="m-email" required autocomplete="username"></div>
-        <div class="field"><label>密码</label><input type="password" id="m-pass" required autocomplete="current-password"></div>
-        <p class="form-err" id="m-login-err"></p>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="closeMemberModal()">取消</button>
-          <button type="submit" class="btn-primary">登录</button>
-        </div>
-        <p style="text-align:center;margin-top:14px;font-size:12.5px;color:#6b6048;">
-          没有账号？<button type="button" class="btn-secondary" style="display:inline;padding:2px 8px;border-radius:8px;" onclick="showMemberRegister()">免费注册</button>
-        </p>
-      </form>
-    </div>
-    <div id="member-register-view" style="display:none;">
-      <form id="member-register-form">
-        <div class="field"><label>邮箱</label><input type="email" id="r-email" required autocomplete="username"></div>
-        <div class="field"><label>密码（至少6位）</label><input type="password" id="r-pass" required minlength="6" autocomplete="new-password"></div>
-        <div class="field"><label>确认密码</label><input type="password" id="r-pass2" required autocomplete="new-password"></div>
-        <p class="form-err" id="m-reg-err"></p>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="showMemberLogin()">返回登录</button>
-          <button type="submit" class="btn-primary">注册</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- 投稿表单弹窗 -->
-<div class="overlay" id="submit-overlay">
-  <div class="modal-card" style="max-width:420px;">
-    <h3>提交新地址</h3>
-    <div class="coords-readout" id="submit-coords"></div>
-    <form id="submit-form">
-      <div class="field"><label>地名 *</label><input type="text" id="s-name" required></div>
-      <div class="field"><label>历史时期</label>
-        <select id="s-era">
-          <option value="唐朝">唐朝</option><option value="五代十国">五代十国</option>
-          <option value="宋朝">宋朝</option><option value="元朝">元朝</option>
-          <option value="明朝">明朝</option><option value="清朝">清朝</option>
-          <option value="晚清">晚清</option><option value="民国">民国</option>
-          <option value="抗战时期">抗战时期</option><option value="解放战争">解放战争</option>
-          <option value="建国初期">建国初期</option><option value="改革开放">改革开放</option>
-          <option value="现代" selected>现代</option>
-        </select>
-      </div>
-      <div class="field"><label>地址简介 *</label><textarea id="s-story" required rows="3" style="resize:vertical;"></textarea></div>
-      <div class="field">
-        <label>封面图片（可选）</label>
-        <input type="url" id="s-cover" placeholder="https://...">
-        <div class="upload-row" style="margin-top:7px;">
-          <label class="upload-btn" for="s-cover-file">上传图片</label>
-          <input type="file" id="s-cover-file" accept="image/*">
-          <span class="upload-status" id="s-cover-status"></span>
-        </div>
-      </div>
-      <p style="font-size:11.5px;color:#6b6048;margin:0 0 12px;padding:8px;background:rgba(63,122,92,.1);border-radius:7px;">
-        ℹ 提交后将由管理员审核，通过后才会在主页地图上显示。
-      </p>
-      <p class="form-err" id="s-err"></p>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" onclick="closeSubmitForm()">取消</button>
-        <button type="submit" class="btn-primary">提交审核</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- 我的投稿弹窗 -->
-<div class="overlay" id="my-submissions-overlay">
-  <div class="modal-card" style="max-width:400px;max-height:80vh;overflow-y:auto;">
-    <div style="display:flex;align-items:center;margin-bottom:16px;">
-      <h3 style="margin:0;flex:1;">我的投稿</h3>
-      <button onclick="document.getElementById('my-submissions-overlay').classList.remove('show')" class="btn-secondary" style="padding:6px 12px;">关闭</button>
-    </div>
-    <div id="my-submissions-list"></div>
-  </div>
-</div>
-
-<!-- PWA 安装引导横幅（Android/PC Chrome 自动触发；iOS 需手动） -->
-<div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:800;
-  background:var(--paper);border-top:1px solid var(--paper-edge);
-  box-shadow:0 -4px 20px rgba(0,0,0,.15);
-  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-  align-items:center;gap:12px;flex-wrap:wrap;">
-  <img src="/pwa-icons/icon-72.png" width="40" height="40" style="border-radius:10px;flex-shrink:0;" alt="icon">
-  <div style="flex:1;min-width:140px;">
-    <div style="font-weight:700;font-size:14px;">安装拓荒者足迹</div>
-    <div style="font-size:12px;color:#6b6048;">添加到桌面，像 App 一样使用</div>
-  </div>
-  <button onclick="installApp()" style="font-family:var(--font-body);font-size:13px;font-weight:700;
-    padding:10px 18px;border-radius:20px;border:none;background:var(--jade);color:#fff;cursor:pointer;">
-    安装
-  </button>
-  <button onclick="dismissInstallBanner()" style="background:none;border:none;font-size:18px;color:#9c8a63;cursor:pointer;padding:4px;">✕</button>
-</div>
-
-<div id="toast"></div>
-<div id="vr-tooltip"><div class="vt-title" id="vr-tooltip-title"></div><div id="vr-tooltip-text"></div></div>
-
-<script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://npm.elemecdn.com/@supabase/supabase-js@2/dist/umd/supabase.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=function(){window.__sbFallback=true;};document.head.appendChild(s);this._fallback=true;"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-/* =========================================================================
-   1. 配置区 —— 部署前请替换为你自己的 Supabase 项目地址与 anon key
-   在 Supabase SQL Editor 中建表 SQL 见本文件末尾注释，或参见对话中的说明。
-   ========================================================================= */
-const SUPABASE_URL = "https://zjtofadvudkfijlpptmb.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb";
-
-const isConfigured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
-let sb = null;
-
-/* Supabase SDK 可能从备用 CDN 异步加载，这里等待最多 5 秒 */
-async function waitForSupabase(maxMs = 5000){
-  if(window.supabase) return true;
-  const start = Date.now();
-  while(Date.now() - start < maxMs){
-    await new Promise(r => setTimeout(r, 100));
-    if(window.supabase) return true;
-  }
-  return false;
-}
-
-/* 未配置 Supabase 时的演示数据：以汕头开埠史为例，方便预览整体视觉效果 */
-const DEMO_POIS = [
-  {poi_id:1, sort_order:1, name:"老妈宫", lat:23.3535, lng:116.6822, era:"晚清", story:"汕头开埠初期的妈祖庙，曾是下南洋华工出海前祭拜祈福之地，见证了第一代拓荒者告别故土的瞬间。", cover:"https://images.unsplash.com/photo-1545987796-200677ee1011?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"晚清", level:2},
-  {poi_id:2, sort_order:2, name:"西堤码头", lat:23.3601, lng:116.6889, era:"晚清", story:"昔日商船云集的西堤码头，是潮汕侨胞远渡重洋的起点，也是侨批往来的重要枢纽。", cover:"https://images.unsplash.com/photo-1505761671935-60b3a7427bad?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"晚清", level:3},
-  {poi_id:3, sort_order:3, name:"小公园开埠区", lat:23.3642, lng:116.6925, era:"民国", story:"骑楼林立的小公园街区，是民国时期潮汕商贸文化的缩影，至今仍保留着南洋风格的建筑立面。", cover:"https://images.unsplash.com/photo-1528127269322-539801943592?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"民国", level:4},
-  {poi_id:4, sort_order:4, name:"海关钟楼", lat:23.3668, lng:116.6958, era:"民国", story:"曾经掌控潮汕进出口贸易命脉的海关大楼，钟声曾是码头工人作息的信号。", cover:"https://images.unsplash.com/photo-1473177104440-ffee2f376098?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"民国", level:2},
-  {poi_id:5, sort_order:5, name:"礐石灯塔", lat:23.3590, lng:116.6790, era:"现代", story:"如今的礐石灯塔已成为城市新地标，向每一位归乡的潮汕后人指引方向。", cover:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800", video_url:"", audio_url:"", vr_url:"", color_type:"现代", level:2},
-];
-
-/* 缺图/视频加载失败时的兜底占位图（墨纸风格 SVG，避免浏览器默认的裂图图标） */
-function placeholderDataUri(label){
-  const text = escapeHtml(label || "封面缺失");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
-    <rect width="100%" height="100%" fill="#ece1c8"/>
-    <rect x="20" y="20" width="760" height="410" fill="none" stroke="#b8915a" stroke-width="2" stroke-dasharray="8 6"/>
-    <text x="50%" y="47%" font-family="serif" font-size="30" fill="#6b6048" text-anchor="middle">封面图片缺失</text>
-    <text x="50%" y="58%" font-family="serif" font-size="17" fill="#9c8a63" text-anchor="middle">${text}</text>
-  </svg>`;
-  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
-}
-
-/* =========================================================================
-   2. 地图初始化（高德清爽路网底图，XYZ 直连，免官方 Key）
-   注意：这是社区常用的非官方直连方式，免去 Key 申请流程，
-   但稳定性不受高德官方保障，正式商用建议改用官方 JS API + Key。
-   ========================================================================= */
-const map = L.map("map", { zoomControl:false, attributionControl:false }).setView([35.5, 105], 4);
-L.control.zoom({ position:"bottomright" }).addTo(map);
-L.tileLayer("https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}", {
-  subdomains:["1","2","3","4"], maxZoom:18, minZoom:3
-}).addTo(map);
-
-const markerLayer = L.layerGroup().addTo(map);
-const lineLayer = L.layerGroup().addTo(map);
-
-/* =========================================================================
-   3. 状态
-   ========================================================================= */
-let pois = [];
-let adminMode = false;
-let memberMode = false;     // 普通会员登录状态
-let memberUser = null;      // { id, email }
-let pendingLatLng = null;
-let currentDrawerPoiId = null;
-
-/* 管理员邮箱：此邮箱登录后进入主控模式；其他邮箱登录后进入会员模式 */
-const ADMIN_EMAIL = "qzmwxh@gmail.com";
-/* 自己发起的写操作（打点/拖拽排序）可能在短时间内触发多条 Realtime 回执
-   （比如一次排序会更新好几行），用时间窗口而非一次性标记来抑制提示，
-   避免给操作者本人弹出一连串"已实时更新"的提示。 */
-let suppressRealtimeToastUntil = 0;
-function markSelfUpdate(windowMs = 3000){ suppressRealtimeToastUntil = Date.now() + windowMs; }
-
-/* =========================================================================
-   4. 工具函数
-   ========================================================================= */
-function pad(n){ return String(n).padStart(3,"0"); }
-function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-function eraStyle(era){
-  const map = {
-    "唐朝":       { hex:"#7b4f2a", dash:"4,6",  cls:"era-other" },
-    "五代十国":   { hex:"#8a5c2e", dash:"4,6",  cls:"era-other" },
-    "宋朝":       { hex:"#5c6b2e", dash:"4,4",  cls:"era-other" },
-    "元朝":       { hex:"#4a5c6b", dash:"4,4",  cls:"era-other" },
-    "明朝":       { hex:"#7a3b2e", dash:"6,6",  cls:"era-other" },
-    "清朝":       { hex:"#6b4423", dash:"6,8",  cls:"era-qing"  },
-    "晚清":       { hex:"#6b4423", dash:"6,8",  cls:"era-qing"  },
-    "民国":       { hex:"#335c82", dash:null,   cls:"era-republic" },
-    "抗战时期":   { hex:"#6b2c2c", dash:"2,4",  cls:"era-other" },
-    "解放战争":   { hex:"#8a3030", dash:null,   cls:"era-other" },
-    "建国初期":   { hex:"#3a5c82", dash:null,   cls:"era-other" },
-    "改革开放":   { hex:"#2e6b5c", dash:null,   cls:"era-modern" },
-    "现代":       { hex:"#3a7d5c", dash:null,   cls:"era-modern" },
-  };
-  const s = map[era];
-  if(s) return { color:s.hex, ...s };
-  return { color:"#8a7a5c", hex:"#8a7a5c", dash:"2,4", cls:"era-other" };
-}
-function toast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._timer);
-  t._timer = setTimeout(()=>t.classList.remove("show"), 2600);
-}
-function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
-
-/* #4: 显示编号辅助 —— 用 display_num（可自定义），回退到 poi_id */
-function getDisplayNum(p){ return p.display_num != null ? p.display_num : p.poi_id; }
-function padDisplay(p){ return String(getDisplayNum(p)).padStart(3,"0"); }
-
-/* =========================================================================
-   5. 数据获取 + 渲染
-   ========================================================================= */
-async function fetchPois(){
-  if(sb){
-    try{
-      const { data, error } = await sb.from("pois").select("*").order("display_num", { ascending:true, nullsFirst:false });
-      if(error) throw error;
-      // 兜底：没有 display_num 的行，用 poi_id 补
-      (data||[]).forEach(p => { if(p.display_num == null) p.display_num = p.poi_id; });
-      return data || [];
-    }catch(e){
-      console.warn("读取 Supabase 失败，回退演示数据", e);
-      toast("数据库读取失败，已显示演示数据");
-      return DEMO_POIS;
-    }
-  }
-  showDemoBanner();
-  return DEMO_POIS;
-}
-function showDemoBanner(){
-  document.getElementById("demo-banner-slot").innerHTML =
-    '<div class="demo-banner">⚠ 尚未配置 Supabase，当前显示示例数据。请在脚本顶部填入 SUPABASE_URL 与 SUPABASE_ANON_KEY。</div>';
-}
-
-/* #2 流线开关状态 */
-let linesVisible = true;
-function setLinesVisible(v){
-  linesVisible = v;
-  lineLayer[v ? "addTo" : "remove"](map);
-  const btn = document.getElementById("line-toggle");
-  if(btn){ btn.textContent = v ? "● 已开" : "○ 已关"; btn.className = "toggle-pill " + (v?"on":"off"); }
-}
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("line-toggle");
-  if(btn) btn.addEventListener("click", () => setLinesVisible(!linesVisible));
-});
-
-function renderAll(){
-  markerLayer.clearLayers();
-  lineLayer.clearLayers();
-  renderMarkers();
-  if(linesVisible) renderLines();
-  renderSidebarList();
-  renderCapsules();
-  renderHomepagePois();
-}
-
-function renderMarkers(){
-  pois.forEach(p => {
-    const icon = L.divIcon({
-      className: "",
-      html: `<div class="poi-marker">
-               <div class="ripple"></div>
-               <div class="ripple" style="animation-delay:.85s"></div>
-               <div class="ripple" style="animation-delay:1.7s"></div>
-               <div class="dot">${padDisplay(p)}</div>
-             </div>`,
-      iconSize: [36,36],
-      iconAnchor: [18,18]
-    });
-    const m = L.marker([p.lat, p.lng], { icon }).addTo(markerLayer);
-    m.on("click", () => focusPoi(p.poi_id));
-  });
-}
-
-function renderLines(){
-  for(let i=1;i<pois.length;i++){
-    const prev = pois[i-1], cur = pois[i];
-    const st = eraStyle(cur.era);
-    L.polyline([[prev.lat,prev.lng],[cur.lat,cur.lng]], {
-      color: st.hex,
-      weight: 3 + Number(cur.level||1),
-      opacity: 0.85,
-      dashArray: st.dash,
-      lineJoin: "round"
-    }).addTo(lineLayer);
-  }
-}
-
-function renderSidebarList(){
-  const ul = document.getElementById("ranking-list");
-  ul.innerHTML = pois.map(p => {
-    const st = eraStyle(p.era);
-    return `<li data-id="${p.poi_id}">
-      ${adminMode ? '<span class="drag-handle">⠿</span>' : ""}
-      <span class="num">${padDisplay(p)}</span>
-      <span class="name">${escapeHtml(p.name)}</span>
-      <span class="era-dot ${st.cls}"></span>
-      ${adminMode ? `<span class="li-actions">
-        <span class="li-edit" data-edit="${p.poi_id}" title="修改">✎</span>
-        <span class="li-del" data-del="${p.poi_id}" title="删除">✕</span>
-      </span>` : ""}
-    </li>`;
-  }).join("");
-  ul.querySelectorAll("li").forEach(li => {
-    const id = Number(li.dataset.id);
-    li.addEventListener("click", (e) => {
-      if(e.target.closest(".drag-handle, .li-edit, .li-del")) return;
-      focusPoi(id);
-    });
-    attachDragReorder(li, id);
-  });
-  ul.querySelectorAll("[data-edit]").forEach(btn => btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const p = pois.find(x => x.poi_id === Number(btn.dataset.edit));
-    if(p) openEditPoiForm(p);
-  }));
-  ul.querySelectorAll("[data-del]").forEach(btn => btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    deletePoiById(Number(btn.dataset.del));
-  }));
-}
-
-async function deletePoiById(id){
-  const p = pois.find(x => x.poi_id === id);
-  if(!p) return;
-  if(!confirm(`确定删除点位「${p.name}」吗？此操作不可恢复。`)) return;
-  if(!sb){ toast("尚未配置 Supabase，无法删除"); return; }
-  markSelfUpdate();
-  const { error } = await sb.from("pois").delete().eq("poi_id", id);
-  if(error){ toast("删除失败：" + error.message); return; }
-  toast("点位已删除");
-  pois = await fetchPois();
-  renderAll();
-  if(currentDrawerPoiId === id){ closeDrawer(); }
-}
-
-/* 主控模式下，侧栏列表支持拖拽调整"讲解/动线顺序"（sort_order），
-   与点位编号（poi_id，固定不变的档案编号）解耦，调整顺序不会打乱编号体系。 */
-let dragSrcId = null;
-function attachDragReorder(li, id){
-  if(!adminMode) return;
-  li.draggable = true;
-  li.addEventListener("dragstart", () => { dragSrcId = id; li.classList.add("dragging"); });
-  li.addEventListener("dragend", () => li.classList.remove("dragging"));
-  li.addEventListener("dragover", (e) => { e.preventDefault(); li.classList.add("drag-over"); });
-  li.addEventListener("dragleave", () => li.classList.remove("drag-over"));
-  li.addEventListener("drop", (e) => {
-    e.preventDefault();
-    li.classList.remove("drag-over");
-    if(dragSrcId === null || dragSrcId === id) return;
-    reorderPois(dragSrcId, id);
-    dragSrcId = null;
-  });
-}
-
-function reorderPois(srcId, targetId){
-  const fromIdx = pois.findIndex(p => p.poi_id === srcId);
-  const toIdx = pois.findIndex(p => p.poi_id === targetId);
-  if(fromIdx < 0 || toIdx < 0) return;
-  const [moved] = pois.splice(fromIdx, 1);
-  pois.splice(toIdx, 0, moved);
-  pois.forEach((p, i) => { p.sort_order = i + 1; });
-  renderAll();
-  persistOrder();
-}
-
-async function persistOrder(){
-  if(!sb){ toast("演示模式下排序仅本地生效，未保存到数据库"); return; }
-  try{
-    markSelfUpdate();
-    await Promise.all(pois.map(p => sb.from("pois").update({ sort_order:p.sort_order }).eq("poi_id", p.poi_id)));
-    toast("讲解顺序已更新并同步给所有访客");
-  }catch(e){
-    console.warn(e);
-    toast("排序同步失败：" + (e.message || ""));
-  }
-}
-
-function renderCapsules(){
-  const track = document.getElementById("capsule-track");
-  track.innerHTML = pois.map(p => `<button class="capsule" data-id="${p.poi_id}">#${padDisplay(p)} ${escapeHtml(p.name)}</button>`).join("");
-  track.querySelectorAll(".capsule").forEach(b => b.addEventListener("click", () => focusPoi(Number(b.dataset.id))));
-}
-
-/* #12 首页：点位卡片展示 */
-function renderHomepagePois(){
-  const grid = document.getElementById("homepage-pois");
-  if(!grid) return;
-  const sample = pois.slice(0, 12); // 最多显示12张
-  grid.innerHTML = sample.map(p => `
-    <div class="hp-card" data-id="${p.poi_id}">
-      ${p.cover ? `<img src="${p.cover}" alt="${escapeHtml(p.name)}" loading="lazy">` : `<div style="height:110px;background:rgba(63,122,92,.15);display:flex;align-items:center;justify-content:center;font-size:24px;">🗺</div>`}
-      <div class="hpc-body">
-        <div class="hpc-name">${padDisplay(p)} · ${escapeHtml(p.name)}</div>
-        <div class="hpc-era">${escapeHtml(p.era||"")}</div>
-      </div>
-    </div>`).join("");
-  grid.querySelectorAll(".hp-card").forEach(c => c.addEventListener("click", () => {
-    showMapView();
-    setTimeout(() => focusPoi(Number(c.dataset.id)), 400);
-  }));
-}
-
-function focusPoi(id){
-  const p = pois.find(x => x.poi_id === id);
-  if(!p) return;
-  map.flyTo([p.lat,p.lng], Math.max(map.getZoom(),15), { duration:0.9 });
-  document.querySelectorAll("#ranking-list li").forEach(li => li.classList.toggle("active", Number(li.dataset.id)===id));
-  document.querySelectorAll(".capsule").forEach(c => c.classList.toggle("active", Number(c.dataset.id)===id));
-  openDrawer(p);
-}
-
-/* =========================================================================
-   6. 抽屉（半屏多媒体联动）
-   ========================================================================= */
-/* ---- 图片轮播（图片滚动播放）：2张及以上图片时自动启用 ---- */
-let carouselTimer = null;
-let carouselIndex = 0;
-let carouselTotal = 0;
-function stopCarouselTimer(){ clearInterval(carouselTimer); carouselTimer = null; }
-function startCarouselTimer(){
-  stopCarouselTimer();
-  if(carouselTotal < 2) return;
-  carouselTimer = setInterval(() => showCarouselSlide(carouselIndex + 1), 4500);
-}
-function showCarouselSlide(i){
-  const box = document.getElementById("media-box");
-  const slides = box.querySelectorAll(".c-slide");
-  const dots = box.querySelectorAll(".c-dot");
-  if(!slides.length) return;
-  carouselIndex = ((i % slides.length) + slides.length) % slides.length;
-  slides.forEach((s, idx) => s.classList.toggle("active", idx === carouselIndex));
-  dots.forEach((d, idx) => d.classList.toggle("active", idx === carouselIndex));
-}
-let lightboxImages = [];
-let lightboxIndex = 0;
-
-function openLightbox(images, startIndex){
-  lightboxImages = images;
-  lightboxIndex = startIndex;
-  showLightboxSlide(lightboxIndex);
-  document.getElementById("lightbox").classList.add("show");
-  document.body.style.overflow = "hidden";
-}
-function closeLightbox(){
-  document.getElementById("lightbox").classList.remove("show");
-  document.body.style.overflow = "";
-  startCarouselTimer();
-}
-function showLightboxSlide(i){
-  lightboxIndex = ((i % lightboxImages.length) + lightboxImages.length) % lightboxImages.length;
-  document.getElementById("lightbox-img").src = lightboxImages[lightboxIndex];
-  document.getElementById("lightbox-counter").textContent = `${lightboxIndex + 1} / ${lightboxImages.length}`;
-  const dotsEl = document.getElementById("lightbox-dots");
-  dotsEl.style.display = lightboxImages.length < 2 ? "none" : "flex";
-  dotsEl.innerHTML = lightboxImages.map((_, i) =>
-    `<button class="ld ${i===lightboxIndex?'active':''}" data-i="${i}"></button>`).join("");
-  dotsEl.querySelectorAll(".ld").forEach(d => d.addEventListener("click", () => showLightboxSlide(Number(d.dataset.i))));
-  document.getElementById("lightbox-prev").style.display = lightboxImages.length < 2 ? "none" : "flex";
-  document.getElementById("lightbox-next").style.display = lightboxImages.length < 2 ? "none" : "flex";
-}
-document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
-document.getElementById("lightbox-prev").addEventListener("click", () => showLightboxSlide(lightboxIndex - 1));
-document.getElementById("lightbox-next").addEventListener("click", () => showLightboxSlide(lightboxIndex + 1));
-document.getElementById("lightbox").addEventListener("click", (e) => {
-  if(e.target === document.getElementById("lightbox")) closeLightbox();
-});
-document.addEventListener("keydown", (e) => {
-  const lb = document.getElementById("lightbox");
-  if(!lb.classList.contains("show")) return;
-  if(e.key === "Escape"){ closeLightbox(); }
-  else if(e.key === "ArrowLeft"){ showLightboxSlide(lightboxIndex - 1); }
-  else if(e.key === "ArrowRight"){ showLightboxSlide(lightboxIndex + 1); }
-});
-
-function buildCarousel(box, images, label){
-  carouselTotal = images.length;
-  carouselIndex = 0;
-  const wrap = document.createElement("div");
-  wrap.className = "media-carousel";
-  wrap.innerHTML =
-    images.map((url, i) => `<div class="c-slide ${i===0?'active':''}"><img src="${url}" alt="${escapeHtml(label||'')} ${i+1}"></div>`).join("") +
-    `<button class="c-arrow c-prev" type="button">‹</button>
-     <button class="c-arrow c-next" type="button">›</button>
-     <button class="c-fullscreen" type="button" title="全屏查看">⛶</button>
-     <div class="c-dots">${images.map((_,i)=>`<button class="c-dot ${i===0?'active':''}" type="button" data-i="${i}"></button>`).join("")}</div>`;
-  box.appendChild(wrap);
-  wrap.querySelector(".c-prev").addEventListener("click", () => { showCarouselSlide(carouselIndex - 1); startCarouselTimer(); });
-  wrap.querySelector(".c-next").addEventListener("click", () => { showCarouselSlide(carouselIndex + 1); startCarouselTimer(); });
-  wrap.querySelectorAll(".c-dot").forEach(dot => dot.addEventListener("click", () => { showCarouselSlide(Number(dot.dataset.i)); startCarouselTimer(); }));
-  wrap.querySelector(".c-fullscreen").addEventListener("click", () => { stopCarouselTimer(); openLightbox(images, carouselIndex); });
-  wrap.querySelectorAll(".c-slide img").forEach((img, i) => img.addEventListener("click", () => { stopCarouselTimer(); openLightbox(images, i); }));
-  /* #10 触屏左右滑动翻页 */
-  let _tx = 0;
-  wrap.addEventListener("touchstart", e => { _tx = e.touches[0].clientX; }, { passive:true });
-  wrap.addEventListener("touchend", e => {
-    const dx = e.changedTouches[0].clientX - _tx;
-    if(Math.abs(dx) > 40){ showCarouselSlide(carouselIndex + (dx < 0 ? 1 : -1)); startCarouselTimer(); }
-  }, { passive:true });
-  startCarouselTimer();
-}
-
-let activeMediaTab = "photo"; // "photo" | "video"
-
-function setMediaBox(p){
-  const box = document.getElementById("media-box");
-  stopCarouselTimer();
-  carouselTotal = 0;
-  box.innerHTML = "";
-
-  const hasVideo = !!p.video_url;
-  const images = [p.cover, ...(Array.isArray(p.gallery) ? p.gallery : [])].filter(Boolean);
-  const hasPhotos = images.length > 0;
-
-  // 只有视频、只有图片 或 都没有 → 无 tab，单区域
-  if(!hasVideo || !hasPhotos){
-    box.classList.add("no-tabs");
-    const content = document.createElement("div");
-    content.className = "media-content";
-    box.appendChild(content);
-    if(hasVideo){
-      buildVideoPanel(content, p);
-    }else if(images.length > 1){
-      buildCarousel(content, images, p.name);
-    }else{
-      appendImageOrPlaceholder(content, p);
-    }
-    return;
-  }
-
-  // 视频 + 图片都有 → 显示 tab
-  box.classList.remove("no-tabs");
-  activeMediaTab = "photo"; // 默认显示图片
-
-  // tab 条
-  const tabBar = document.createElement("div");
-  tabBar.className = "media-tabs";
-  tabBar.innerHTML = `
-    <button class="media-tab active" data-tab="photo">🖼 图片</button>
-    <button class="media-tab" data-tab="video">▶ 视频</button>
-    <div class="media-tab-ink" id="tab-ink" style="left:0%;width:50%;"></div>`;
-  box.appendChild(tabBar);
-
-  // 内容区
-  const content = document.createElement("div");
-  content.className = "media-content";
-  box.appendChild(content);
-
-  // 图片面板
-  const photoPanel = document.createElement("div");
-  photoPanel.className = "media-panel active";
-  photoPanel.id = "media-panel-photo";
-  content.appendChild(photoPanel);
-  if(images.length > 1){ buildCarousel(photoPanel, images, p.name); }
-  else { appendImageOrPlaceholder(photoPanel, p); }
-
-  // 视频面板
-  const videoPanel = document.createElement("div");
-  videoPanel.className = "media-panel";
-  videoPanel.id = "media-panel-video";
-  content.appendChild(videoPanel);
-  buildVideoPanel(videoPanel, p);
-
-  // tab 点击切换
-  tabBar.querySelectorAll(".media-tab").forEach((btn, idx) => {
-    btn.addEventListener("click", () => {
-      const tab = btn.dataset.tab;
-      if(tab === activeMediaTab) return;
-      activeMediaTab = tab;
-      tabBar.querySelectorAll(".media-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
-      document.getElementById("tab-ink").style.left = idx === 0 ? "0%" : "50%";
-      document.getElementById("media-panel-photo").classList.toggle("active", tab === "photo");
-      document.getElementById("media-panel-video").classList.toggle("active", tab === "video");
-      if(tab === "photo"){
-        startCarouselTimer();
-        const v = document.querySelector("#media-panel-video video");
-        if(v){ v.pause(); }
-      }else{
-        stopCarouselTimer();
-        const v = document.querySelector("#media-panel-video video");
-        if(v){ v.play().catch(()=>{}); }
-      }
-    });
-  });
-
-  startCarouselTimer();
-}
-
-function buildVideoPanel(container, p){
-  const v = document.createElement("video");
-  v.autoplay = false; v.muted = false; v.loop = false; v.playsInline = true; v.controls = true;
-  v.controlsList = "nodownload";  /* #11 禁止下载按钮 */
-  v.oncontextmenu = e => e.preventDefault(); /* 禁止右键另存为 */
-  v.src = p.video_url;
-  v.style.cssText = "width:100%;height:100%;object-fit:contain;display:block;background:#000;";
-  v.onerror = () => { container.innerHTML = ""; appendImageOrPlaceholder(container, p); };
-  container.appendChild(v);
-}
-
-function appendImageOrPlaceholder(box, p){
-  const wrap = document.createElement("div");
-  wrap.style.cssText = "position:relative;width:100%;height:100%;";
-  const img = document.createElement("img");
-  img.alt = p.name || "";
-  img.src = p.cover || placeholderDataUri(p.name);
-  img.onerror = () => { img.onerror = null; img.src = placeholderDataUri(p.name); };
-  img.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;";
-  img.addEventListener("click", () => { if(p.cover) openLightbox([p.cover], 0); });
-  wrap.appendChild(img);
-  if(p.cover){
-    const fsBtn = document.createElement("button");
-    fsBtn.className = "c-fullscreen";
-    fsBtn.title = "全屏查看"; fsBtn.textContent = "⛶";
-    fsBtn.style.cssText = "position:absolute;top:10px;right:10px;z-index:4;";
-    fsBtn.addEventListener("click", () => openLightbox([p.cover], 0));
-    wrap.appendChild(fsBtn);
-  }
-  box.appendChild(wrap);
-}
-
-const drawer = document.getElementById("drawer");
-function openDrawer(p){
-  currentDrawerPoiId = p.poi_id;
-  if(drawer.classList.contains("vr-mode")){ exitDrawerVrMode(); }
-  const st = eraStyle(p.era);
-  document.getElementById("drawer-num").textContent = "NO. " + padDisplay(p);
-  const eraTag = document.getElementById("drawer-era");
-  eraTag.textContent = p.era || "未分类";
-  eraTag.style.background = st.hex;
-  document.getElementById("drawer-name").textContent = p.name;
-  document.getElementById("drawer-story").textContent = p.story || "";
-
-  setMediaBox(p);
-
-  const audioBlock = document.getElementById("audio-block");
-  const audioEl = document.getElementById("drawer-audio");
-  if(p.audio_url){ audioBlock.style.display="flex"; audioEl.src = p.audio_url; }
-  else { audioBlock.style.display="none"; audioEl.removeAttribute("src"); }
-
-  /* #8 文档阅读器 */
-  const docBlock = document.getElementById("doc-block");
-  const docIframe = document.getElementById("doc-iframe");
-  const docTitleLabel = document.getElementById("doc-title-label");
-  const docOpenLink = document.getElementById("doc-open-link");
-  if(p.doc_url){
-    docBlock.style.display = "block";
-    docTitleLabel.textContent = p.doc_title || "附件文档";
-    docOpenLink.href = p.doc_url;
-    // PDF 直接 iframe；Word 用 Google Docs 预览（可能需翻墙）或提示下载
-    if(p.doc_type === "word"){
-      docIframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(p.doc_url)}&embedded=true`;
-    }else{
-      docIframe.src = p.doc_url;
-    }
-  }else{
-    docBlock.style.display = "none";
-    docIframe.src = "";
-  }
-
-  const vrBtn = document.getElementById("btn-vr");
-  vrBtn.disabled = !p.vr_work_id && !p.vr_url;
-  vrBtn.onclick = () => {
-    if(p.vr_work_id){ enterDrawerVrMode(p.vr_work_id); }
-    else if(p.vr_url){ window.open(p.vr_url, "_blank"); }
-  };
-
-  document.getElementById("btn-nav").onclick = () => navigateTo(p);
-
-  drawer.classList.remove("vr-mode");
-  drawer.style.transform = "";
-  drawer.classList.add("open");
-  drawer.setAttribute("aria-hidden","false");
-}
-function closeDrawer(){
-  drawer.classList.remove("open");
-  drawer.style.transform = "";
-  drawer.setAttribute("aria-hidden","true");
-  currentDrawerPoiId = null;
-  exitDrawerVrMode();
-  stopCarouselTimer();
-  const v = document.querySelector("#media-box video");
-  if(v){ v.pause(); v.removeAttribute("src"); }
-  const a = document.getElementById("drawer-audio");
-  a.pause(); a.removeAttribute("src");
-}
-document.getElementById("drawer-close").addEventListener("click", closeDrawer);
-document.getElementById("drawer-handle").addEventListener("click", closeDrawer);
-
-/* ---- 平板：侧栏汉堡开关 ---- */
-const sidebarToggle = document.getElementById("sidebar-toggle");
-const sidebarOverlay = document.getElementById("sidebar-overlay");
-const sidebar = document.getElementById("sidebar");
-if(sidebarToggle){
-  sidebarToggle.addEventListener("click", () => {
-    const isOpen = sidebar.classList.toggle("open");
-    sidebarToggle.textContent = isOpen ? "✕" : "☰";
-    document.body.classList.toggle("sidebar-open", isOpen);
-  });
-  sidebarOverlay.addEventListener("click", () => {
-    sidebar.classList.remove("open");
-    sidebarToggle.textContent = "☰";
-    document.body.classList.remove("sidebar-open");
-  });
-}
-
-/* ---- 触摸滑动关闭抽屉（手机端向下滑动把手关闭） ---- */
-(function(){
-  const handle = document.getElementById("drawer-handle");
-  let touchStartY = 0, touchDeltaY = 0;
-  handle.addEventListener("touchstart", (e) => {
-    touchStartY = e.touches[0].clientY;
-    touchDeltaY = 0;
-  }, { passive:true });
-  handle.addEventListener("touchmove", (e) => {
-    touchDeltaY = e.touches[0].clientY - touchStartY;
-    if(touchDeltaY > 0){
-      drawer.style.transform = `translateY(${touchDeltaY}px)`;
-      e.preventDefault();
-    }
-  }, { passive:false });
-  handle.addEventListener("touchend", () => {
-    if(touchDeltaY > 80){ closeDrawer(); }
-    else { drawer.style.transform = ""; }
-  });
-})();
-
-/* #12 首页 / 地图视图切换 */
-function showMapView(){
-  document.getElementById("homepage").style.display = "none";
-  document.getElementById("map").style.display = "";
-}
-function showHomePage(){
-  closeDrawer();
-  document.getElementById("homepage").style.display = "block";
-}
-function openAdminLogin(){
-  document.getElementById("login-err").textContent = "";
-  document.getElementById("login-overlay").classList.add("show");
-}
-
-/* #9 管理员控件可见性（非主控模式下隐藏后台入口） */
-function updateAdminVisibility(on){
-  const ctrl = document.getElementById("admin-controls");
-  if(ctrl){ ctrl.style.display = on ? "flex" : "none"; }
-  const mobileBtn = document.getElementById("mobile-login-btn");
-  if(mobileBtn){ mobileBtn.style.display = on ? "flex" : "none"; }
-  const sbTools = document.getElementById("sb-tools");
-  if(sbTools){ sbTools.style.display = on ? "flex" : "none"; }
-  // 审核面板只在主控模式下显示
-  const reviewSection = document.getElementById("review-section");
-  if(reviewSection){ reviewSection.style.display = on ? "block" : "none"; }
-  // 主控登录后隐藏会员入口按钮
-  const sbMemberBtn = document.getElementById("sb-member-btn");
-  if(sbMemberBtn) sbMemberBtn.style.display = on ? "none" : "block";
-  const mobileMemberBtn = document.getElementById("mobile-member-btn");
-  if(mobileMemberBtn) mobileMemberBtn.style.display = on ? "none" : "flex";
-  if(on){ loadPendingSubmissions(); }
-}
-
-/* #3 地图搜索（仅主控模式，用 Nominatim 无需 key） */
-document.addEventListener("DOMContentLoaded", () => {
-  const searchBtn = document.getElementById("map-search-btn");
-  const searchInput = document.getElementById("map-search-input");
-  if(searchBtn && searchInput){
-    const doSearch = async () => {
-      const q = searchInput.value.trim();
-      if(!q) return;
-      searchBtn.textContent = "…";
-      try{
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&accept-language=zh`);
-        const data = await res.json();
-        if(data.length){
-          const { lat, lon, display_name } = data[0];
-          map.flyTo([parseFloat(lat), parseFloat(lon)], 15, { duration:1 });
-          toast("已定位到：" + display_name.split(",")[0]);
-        }else{
-          toast("未找到该地址，请换个关键词");
-        }
-      }catch(e){ toast("搜索失败，请检查网络"); }
-      finally{ searchBtn.textContent = "搜"; }
-    };
-    searchBtn.addEventListener("click", doSearch);
-    searchInput.addEventListener("keydown", e => { if(e.key === "Enter") doSearch(); });
-  }
-});
-
-/* #1 历史时期自定义 */
-document.addEventListener("DOMContentLoaded", () => {
-  const eraSel = document.getElementById("p-era");
-  const customWrap = document.getElementById("p-era-custom-wrap");
-  if(eraSel && customWrap){
-    eraSel.addEventListener("change", () => {
-      customWrap.style.display = eraSel.value === "自定义" ? "block" : "none";
-    });
-  }
-});
-
-/* #7 VR 全屏 */
-document.addEventListener("DOMContentLoaded", () => {
-  const vrFsBtn = document.getElementById("vr-fullscreen-btn");
-  if(vrFsBtn){
-    vrFsBtn.addEventListener("click", () => {
-      const pane = document.getElementById("vr-pane");
-      if(!document.fullscreenElement){
-        pane.requestFullscreen().catch(()=>{ toast("此设备不支持全屏"); });
-        vrFsBtn.textContent = "⊠";
-      }else{
-        document.exitFullscreen();
-        vrFsBtn.textContent = "⛶";
-      }
-    });
-    document.addEventListener("fullscreenchange", () => {
-      if(!document.fullscreenElement && vrFsBtn){ vrFsBtn.textContent = "⛶"; }
-      if(renderer) setTimeout(vrOnResize, 50);
-    });
-  }
-});
-
-function navigateTo(p){
-  const name = encodeURIComponent(p.name);
-  if(isIOS()){
-    window.location.href = `https://maps.apple.com/?daddr=${p.lat},${p.lng}&dirflg=d`;
-  }else{
-    // 安卓 / 其他：使用高德官方通用唤起链接，未安装 App 时引导网页/下载
-    window.location.href = `https://uri.amap.com/navigation?to=${p.lng},${p.lat},${name}&mode=car&policy=1&src=pioneer-trail&coordinate=gaode&callnative=1`;
-  }
-}
-
-/* =========================================================================
-   6b. 内嵌全景查看器（复用环视台同一套 vr_scenes / vr_hotspots 数据，
-       但本站只读查看，不提供编辑功能；编辑请前往环视台后台）
-   ========================================================================= */
-let vrRenderer = null, vrScene3d = null, vrCamera = null, vrSphereMesh = null;
-let vrTexture = null, vrVideoEl = null;
-let vrLon = 0, vrLat = 0;
-let vrDragging = false, vrDragStart = { x:0, y:0, lon:0, lat:0 }, vrDragMoved = 0;
-let vrLastInteraction = Date.now();
-let vrSprites = [];
-const vrRaycaster = new THREE.Raycaster();
-const vrHotspotTexCache = {};
-let vrAnimId = null;
-let vrScenes = [];
-let vrCurrentSceneId = null;
-let vrCurrentWorkId = null;
-
-function vrInitEngineOnce(){
-  if(vrRenderer) return;
-  const wrap = document.getElementById("vr-canvas-wrap");
-  vrScene3d = new THREE.Scene();
-  vrCamera = new THREE.PerspectiveCamera(90, wrap.clientWidth / Math.max(wrap.clientHeight,1), 0.1, 1200);
-  vrRenderer = new THREE.WebGLRenderer({ antialias:true });
-  vrRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  vrRenderer.setSize(wrap.clientWidth, wrap.clientHeight);
-  wrap.appendChild(vrRenderer.domElement);
-
-  const geo = new THREE.SphereGeometry(500,60,40);
-  geo.scale(-1,1,1);
-  vrSphereMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0x11140f }));
-  vrScene3d.add(vrSphereMesh);
-
-  const canvas = vrRenderer.domElement;
-  canvas.style.cursor = "grab";
-  canvas.addEventListener("pointerdown", vrOnPointerDown);
-  canvas.addEventListener("pointermove", vrOnPointerMove);
-  window.addEventListener("pointerup", vrOnPointerUp);
-  canvas.addEventListener("wheel", vrOnWheel, { passive:false });
-  window.addEventListener("resize", vrOnResize);
-}
-function vrOnResize(){
-  if(!vrRenderer) return;
-  const wrap = document.getElementById("vr-canvas-wrap");
-  if(!wrap || !wrap.clientWidth || !wrap.clientHeight) return;
-  vrCamera.aspect = wrap.clientWidth / wrap.clientHeight;
-  vrCamera.updateProjectionMatrix();
-  vrRenderer.setSize(wrap.clientWidth, wrap.clientHeight);
-}
-function vrDisposeMedia(){
-  if(vrVideoEl){ vrVideoEl.pause(); vrVideoEl.src=""; vrVideoEl.remove(); vrVideoEl=null; }
-  if(vrTexture){ vrTexture.dispose(); vrTexture=null; }
-}
-function vrSphericalToVec3(yawDeg, pitchDeg, radius){
-  const phi = THREE.MathUtils.degToRad(90 - pitchDeg);
-  const theta = THREE.MathUtils.degToRad(yawDeg);
-  return new THREE.Vector3(
-    radius*Math.sin(phi)*Math.cos(theta),
-    radius*Math.cos(phi),
-    radius*Math.sin(phi)*Math.sin(theta)
-  );
-}
-function vrMakeHotspotTexture(type){
-  if(vrHotspotTexCache[type]) return vrHotspotTexCache[type];
-  const c = document.createElement("canvas");
-  c.width=128; c.height=128;
-  const ctx = c.getContext("2d");
-  const color = type === "scene" ? "#3f7a5c" : "#b8915a";
-  ctx.beginPath(); ctx.arc(64,64,50,0,Math.PI*2);
-  ctx.fillStyle = "rgba(20,18,14,0.55)"; ctx.fill();
-  ctx.lineWidth = 6; ctx.strokeStyle = color; ctx.stroke();
-  ctx.fillStyle = color;
-  ctx.font = "bold 56px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.fillText(type === "scene" ? "\u279c" : "i", 64, 70);
-  const tex = new THREE.CanvasTexture(c);
-  vrHotspotTexCache[type] = tex;
-  return tex;
-}
-function vrClearSprites(){
-  vrSprites.forEach(s => vrScene3d.remove(s));
-  vrSprites = [];
-}
-function vrBuildSprites(hsList){
-  vrClearSprites();
-  hsList.forEach(h => {
-    const mat = new THREE.SpriteMaterial({ map:vrMakeHotspotTexture(h.type), depthTest:false, transparent:true });
-    const sprite = new THREE.Sprite(mat);
-    sprite.position.copy(vrSphericalToVec3(h.yaw, h.pitch, 480));
-    sprite.scale.set(26,26,1);
-    sprite.userData.hotspot = h;
-    vrScene3d.add(sprite);
-    vrSprites.push(sprite);
-  });
-}
-function vrAnimate(){
-  vrAnimId = requestAnimationFrame(vrAnimate);
-  if(!vrDragging && Date.now() - vrLastInteraction > 4000){ vrLon += 0.02; }
-  vrCamera.lookAt(vrSphericalToVec3(vrLon, vrLat, 100));
-  vrRenderer.render(vrScene3d, vrCamera);
-}
-function vrPointerToNdc(e){
-  const rect = vrRenderer.domElement.getBoundingClientRect();
-  return new THREE.Vector2(
-    ((e.clientX-rect.left)/rect.width)*2-1,
-    -((e.clientY-rect.top)/rect.height)*2+1
-  );
-}
-function vrOnPointerDown(e){
-  vrDragging = true; vrDragMoved = 0;
-  vrDragStart = { x:e.clientX, y:e.clientY, lon:vrLon, lat:vrLat };
-  vrLastInteraction = Date.now();
-  vrRenderer.domElement.style.cursor = "grabbing";
-}
-function vrOnPointerMove(e){
-  vrHoverCheck(e);
-  if(!vrDragging) return;
-  const dx = e.clientX - vrDragStart.x, dy = e.clientY - vrDragStart.y;
-  vrDragMoved = Math.max(vrDragMoved, Math.abs(dx)+Math.abs(dy));
-  vrLon = vrDragStart.lon - dx*0.15;
-  vrLat = THREE.MathUtils.clamp(vrDragStart.lat + dy*0.15, -85, 85);
-  vrLastInteraction = Date.now();
-}
-function vrOnPointerUp(e){
-  if(!vrDragging) return;
-  vrDragging = false;
-  if(vrRenderer) vrRenderer.domElement.style.cursor = "grab";
-  if(vrDragMoved < 6) vrHandleClick(e);
-}
-function vrOnWheel(e){
-  e.preventDefault();
-  vrCamera.fov = THREE.MathUtils.clamp(vrCamera.fov + e.deltaY*0.04, 30, 100);
-  vrCamera.updateProjectionMatrix();
-  vrLastInteraction = Date.now();
-}
-function vrHoverCheck(e){
-  const tip = document.getElementById("vr-tooltip");
-  if(!vrRenderer){ tip.classList.remove("show"); return; }
-  vrRaycaster.setFromCamera(vrPointerToNdc(e), vrCamera);
-  const hits = vrRaycaster.intersectObjects(vrSprites);
-  if(hits.length){
-    const h = hits[0].object.userData.hotspot;
-    document.getElementById("vr-tooltip-title").textContent = h.title || (h.type === "scene" ? "前往场景" : "");
-    document.getElementById("vr-tooltip-text").textContent = h.text || "";
-    tip.style.left = (e.clientX+16)+"px";
-    tip.style.top = (e.clientY+10)+"px";
-    tip.classList.add("show");
-    vrRenderer.domElement.style.cursor = "pointer";
-  }else{
-    tip.classList.remove("show");
-    vrRenderer.domElement.style.cursor = vrDragging ? "grabbing" : "grab";
-  }
-}
-function vrHandleClick(e){
-  vrRaycaster.setFromCamera(vrPointerToNdc(e), vrCamera);
-  const hits = vrRaycaster.intersectObjects(vrSprites);
-  if(!hits.length) return;
-  const h = hits[0].object.userData.hotspot;
-  if(h.type === "scene" && h.target_scene_id){
-    vrLoadScene(h.target_scene_id);
-  }else{
-    document.getElementById("vr-tooltip-title").textContent = h.title || "信息";
-    document.getElementById("vr-tooltip-text").textContent = h.text || "";
-    const tip = document.getElementById("vr-tooltip");
-    tip.style.left = (e.clientX+16)+"px";
-    tip.style.top = (e.clientY+10)+"px";
-    tip.classList.add("show");
-    setTimeout(()=>tip.classList.remove("show"), 3200);
-  }
-}
-
-async function vrFetchScenes(workId){
-  const { data, error } = await sb.from("vr_scenes").select("*").eq("work_id", workId).order("sort_order",{ascending:true});
-  if(error){ console.warn(error); return []; }
-  return data || [];
-}
-async function vrFetchHotspots(sceneId){
-  const { data, error } = await sb.from("vr_hotspots").select("*").eq("scene_id", sceneId);
-  if(error){ console.warn(error); return []; }
-  return data || [];
-}
-
-async function enterDrawerVrMode(workId){
-  if(!sb){ toast("尚未配置 Supabase，无法加载VR场景"); return; }
-  drawer.classList.add("vr-mode");
-  stopCarouselTimer();
-  vrInitEngineOnce();
-  setTimeout(vrOnResize, 60);
-  if(vrAnimId === null){ vrAnimate(); }
-  vrCurrentWorkId = workId;
-  document.getElementById("vr-loading").textContent = "加载全景中…";
-  document.getElementById("vr-loading").classList.remove("hide");
-  vrScenes = await vrFetchScenes(workId);
-  if(!vrScenes.length){
-    document.getElementById("vr-loading").textContent = "该环视台作品暂无场景内容";
-    vrClearSprites();
-    document.getElementById("vr-scene-strip").innerHTML = "";
-    return;
-  }
-  await vrLoadScene(vrScenes[0].id);
-}
-function exitDrawerVrMode(){
-  drawer.classList.remove("vr-mode");
-  if(vrAnimId){ cancelAnimationFrame(vrAnimId); vrAnimId = null; }
-  vrDisposeMedia();
-  vrClearSprites();
-  vrCurrentSceneId = null;
-  startCarouselTimer();
-}
-document.getElementById("vr-back-btn").addEventListener("click", exitDrawerVrMode);
-
-async function vrLoadScene(sceneId){
-  const rec = vrScenes.find(s => s.id === sceneId);
-  if(!rec) return;
-  vrCurrentSceneId = sceneId;
-  vrDisposeMedia();
-  document.getElementById("vr-loading").classList.remove("hide");
-  document.getElementById("vr-loading").textContent = "加载全景中…";
-  if(rec.media_type === "video"){
-    const video = document.createElement("video");
-    video.src = rec.media_url; video.crossOrigin = "anonymous";
-    video.loop = true; video.muted = true; video.playsInline = true; video.autoplay = true;
-    video.style.display = "none";
-    document.body.appendChild(video);
-    vrVideoEl = video;
-    const tex = new THREE.VideoTexture(video);
-    tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = false;
-    vrTexture = tex;
-    vrSphereMesh.material.map = tex;
-    vrSphereMesh.material.color.set(0xffffff);
-    vrSphereMesh.material.needsUpdate = true;
-    video.play().catch(()=>{});
-    document.getElementById("vr-loading").classList.add("hide");
-  }else{
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-    loader.load(rec.media_url, (tex) => {
-      vrTexture = tex;
-      vrSphereMesh.material.map = tex;
-      vrSphereMesh.material.color.set(0xffffff);
-      vrSphereMesh.material.needsUpdate = true;
-      document.getElementById("vr-loading").classList.add("hide");
-    }, undefined, () => {
-      document.getElementById("vr-loading").classList.add("hide");
-      toast("全景场景加载失败");
-    });
-  }
-  vrLon = rec.yaw || 0; vrLat = rec.pitch || 0;
-  vrCamera.fov = rec.fov || 90;
-  vrCamera.updateProjectionMatrix();
-  const hs = await vrFetchHotspots(sceneId);
-  vrBuildSprites(hs);
-  vrRenderSceneStrip();
-}
-function vrRenderSceneStrip(){
-  const strip = document.getElementById("vr-scene-strip");
-  if(vrScenes.length < 2){ strip.innerHTML = ""; return; }
-  strip.innerHTML = vrScenes.map(s =>
-    `<button class="vchip ${s.id===vrCurrentSceneId?'active':''}" data-sid="${s.id}">${escapeHtml(s.name)}</button>`
-  ).join("");
-  strip.querySelectorAll(".vchip").forEach(btn => btn.addEventListener("click", () => vrLoadScene(Number(btn.dataset.sid))));
-}
-
-
-/* =========================================================================
-   7. 登录 / 主控模式
-   ========================================================================= */
-const loginOverlay = document.getElementById("login-overlay");
-document.querySelectorAll("[data-login]").forEach(b => b.addEventListener("click", () => {
-  if(adminMode){ doLogout(); return; }
-  document.getElementById("login-err").textContent = "";
-  loginOverlay.classList.add("show");
-}));
-document.querySelectorAll("[data-close-login]").forEach(b => b.addEventListener("click", () => loginOverlay.classList.remove("show")));
-
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("login-email").value.trim();
-  const pass = document.getElementById("login-pass").value;
-  const errEl = document.getElementById("login-err");
-  if(!sb){ errEl.textContent = "尚未配置 Supabase，无法登录（当前为演示模式）。"; return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if(error){ errEl.textContent = "登录失败：" + error.message; return; }
-  loginOverlay.classList.remove("show");
-  if(email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
-    setAdminMode(true);
-    toast("已进入主控模式 ⚡");
-  }else{
-    // 非管理员账号走会员模式
-    setMemberMode(true, { id: data.user.id, email });
-    toast("已登录会员模式，如需主控请使用管理员账号");
-  }
-});
-
-async function doLogout(){
-  if(sb) await sb.auth.signOut();
-  setAdminMode(false);
-  setMemberMode(false, null);
-  toast("已退出登录");
-}
-
-function setAdminMode(on){
-  adminMode = on;
-  document.querySelectorAll(".login-btn").forEach(b => {
-    b.classList.toggle("admin-on", on);
-    if(b.classList.contains("login-btn-m")){ b.textContent = on ? "⚡" : "⚿"; }
-    else { b.textContent = on ? "⚡ 主控中" : "⚿ 后台管理"; }
-  });
-  if(on){ map.on("click", onMapClickAdmin); }
-  else {
-    map.off("click", onMapClickAdmin);
-    relocateTargetId = null;
-    editingPoiId = null;
-    pointOverlay.classList.remove("show");
-  }
-  updateAdminVisibility(on);
-  renderSidebarList();
-}
-
-/* =========================================================================
-   7b. 媒体文件上传（写入 Supabase Storage 的 poi-media 公开桶）
-   ========================================================================= */
-const UPLOAD_LIMITS_MB = { cover:10, video:150, audio:30 };
-/* 注意：Supabase 项目对单文件大小有一个全局上限（默认通常是 50MB），
-   如果 VR 视频比较大、上传失败，去 Dashboard → Storage → Settings 里调大这个全局限制。*/
-
-async function uploadToStorage(file, folder){
-  if(!sb){ return { error:"尚未配置 Supabase，无法上传" }; }
-  const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-  const path = `${folder}/${Date.now()}_${safeName}`;
-  const { error } = await sb.storage.from("poi-media").upload(path, file, { cacheControl:"3600", upsert:false });
-  if(error){ return { error: error.message }; }
-  const { data } = sb.storage.from("poi-media").getPublicUrl(path);
-  return { url: data.publicUrl };
-}
-
-function wireUpload({ fileId, urlId, statusId, folder, maxMB, previewId }){
-  const fileInput = document.getElementById(fileId);
-  const urlInput = document.getElementById(urlId);
-  const status = document.getElementById(statusId);
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files[0];
-    if(!file) return;
-    if(file.size > maxMB * 1024 * 1024){
-      status.textContent = `文件过大，上限 ${maxMB}MB`;
-      status.className = "upload-status err";
-      fileInput.value = "";
-      return;
-    }
-    status.textContent = "上传中…";
-    status.className = "upload-status";
-    const { url, error } = await uploadToStorage(file, folder);
-    if(error){
-      status.textContent = "上传失败：" + error;
-      status.className = "upload-status err";
-    }else{
-      urlInput.value = url;
-      status.textContent = "已上传 ✓ " + file.name;
-      status.className = "upload-status ok";
-      if(previewId){
-        const img = document.getElementById(previewId);
-        img.src = url;
-        img.classList.add("show");
-      }
-    }
-    fileInput.value = "";
-  });
-}
-
-wireUpload({ fileId:"p-cover-file", urlId:"p-cover", statusId:"p-cover-status", folder:"cover", maxMB:UPLOAD_LIMITS_MB.cover, previewId:"p-cover-preview" });
-wireUpload({ fileId:"p-video-file", urlId:"p-video", statusId:"p-video-status", folder:"video", maxMB:UPLOAD_LIMITS_MB.video });
-wireUpload({ fileId:"p-audio-file", urlId:"p-audio", statusId:"p-audio-status", folder:"audio", maxMB:UPLOAD_LIMITS_MB.audio });
-
-/* #8 文档上传 */
-const UPLOAD_LIMITS_DOC_MB = 30;
-
-/* #15 删除已上传文档 */
-function clearDocField(){
-  document.getElementById("p-doc-url").value = "";
-  document.getElementById("p-doc-title").value = "";
-  document.getElementById("p-doc-status").textContent = "";
-  const docFile = document.getElementById("p-doc-file");
-  docFile.dataset.doctype = ""; docFile.value = "";
-  updateDocCurrentRow("", "");
-  toast("文档已清除，保存修改后生效");
-}
-function updateDocCurrentRow(url, title){
-  const row = document.getElementById("p-doc-current");
-  const link = document.getElementById("p-doc-current-link");
-  if(!row) return;
-  if(url){
-    row.style.display = "flex";
-    link.href = url;
-    link.textContent = title || url.split("/").pop().split("?")[0] || "查看文档";
-  }else{
-    row.style.display = "none";
-  }
-}
-document.getElementById("p-doc-file").addEventListener("change", async () => {
-  const input = document.getElementById("p-doc-file");
-  const file = input.files[0];
-  if(!file) return;
-  const status = document.getElementById("p-doc-status");
-  if(file.size > UPLOAD_LIMITS_DOC_MB * 1024 * 1024){
-    status.textContent = `文件过大，上限 ${UPLOAD_LIMITS_DOC_MB}MB`; status.className = "upload-status err";
-    input.value = ""; return;
-  }
-  status.textContent = "上传中…"; status.className = "upload-status";
-  const isWord = file.name.match(/\.docx?$/i);
-  const { url, error } = await uploadToStorage(file, "docs");
-  if(error){ status.textContent = "上传失败：" + error; status.className = "upload-status err"; }
-  else{
-    document.getElementById("p-doc-url").value = url;
-    if(!document.getElementById("p-doc-title").value) document.getElementById("p-doc-title").value = file.name.replace(/\.[^.]+$/, "");
-    status.textContent = "已上传 ✓ " + file.name; status.className = "upload-status ok";
-    input.dataset.doctype = isWord ? "word" : "pdf";
-    updateDocCurrentRow(url, document.getElementById("p-doc-title").value || file.name);
-  }
-  input.value = "";
-});
-
-/* 图片集：支持一次选多张，逐张上传，成功的链接累积进 pendingGallery 数组，
-   2 张及以上时抽屉里会自动轮播播放（仅在该点位未设置短视频时生效）。 */
-let pendingGallery = [];
-function renderGalleryStrip(){
-  const strip = document.getElementById("p-gallery-strip");
-  strip.innerHTML = pendingGallery.map((url, i) => `
-    <div class="gallery-thumb" data-i="${i}">
-      <img src="${url}" alt="图片${i+1}">
-      <div class="g-remove" data-gremove="${i}">✕</div>
-    </div>`).join("");
-  strip.querySelectorAll("[data-gremove]").forEach(btn => btn.addEventListener("click", () => {
-    pendingGallery.splice(Number(btn.dataset.gremove), 1);
-    renderGalleryStrip();
-  }));
-}
-document.getElementById("p-gallery-file").addEventListener("change", async () => {
-  const input = document.getElementById("p-gallery-file");
-  const files = Array.from(input.files || []);
-  if(!files.length) return;
-  const status = document.getElementById("p-gallery-status");
-  for(const file of files){
-    if(file.size > UPLOAD_LIMITS_MB.cover * 1024 * 1024){
-      status.textContent = `「${file.name}」过大，已跳过（上限 ${UPLOAD_LIMITS_MB.cover}MB）`;
-      status.className = "upload-status err";
-      continue;
-    }
-    status.textContent = `上传中…（${file.name}）`;
-    status.className = "upload-status";
-    const { url, error } = await uploadToStorage(file, "gallery");
-    if(error){
-      status.textContent = `「${file.name}」上传失败：` + error;
-      status.className = "upload-status err";
-    }else{
-      pendingGallery.push(url);
-      renderGalleryStrip();
-      status.textContent = `已上传 ${pendingGallery.length} 张`;
-      status.className = "upload-status ok";
-    }
-  }
-  input.value = "";
-});
-
-function resetUploadWidgets(){
-  ["p-cover-status","p-video-status","p-audio-status","p-gallery-status","p-doc-status"].forEach(id => {
-    const el = document.getElementById(id);
-    if(el){ el.textContent = ""; el.className = "upload-status"; }
-  });
-  const preview = document.getElementById("p-cover-preview");
-  preview.classList.remove("show"); preview.src = "";
-  const docUrl = document.getElementById("p-doc-url");
-  if(docUrl) docUrl.value = "";
-  const docTitle = document.getElementById("p-doc-title");
-  if(docTitle) docTitle.value = "";
-  const docFile = document.getElementById("p-doc-file");
-  if(docFile) docFile.dataset.doctype = "";
-  updateDocCurrentRow("", "");
-  pendingGallery = [];
-  renderGalleryStrip();
-}
-
-/* =========================================================================
-   8. 主控打点（空白处点击 → 表单 → 写入 Supabase）/ 编辑已有点位
-   ========================================================================= */
-const pointOverlay = document.getElementById("point-overlay");
-let editingPoiId = null;       // null = 新增模式；否则为正在编辑的 poi_id
-let relocateTargetId = null;   // 非空时，下一次地图点击用于更新该点位的坐标，而不是新建点位
-
-async function populateVrWorkDropdown(selectedId){
-  const sel = document.getElementById("p-vr-work");
-  if(!sb){ return; }
-  try{
-    const { data, error } = await sb.from("vr_works").select("id,title").order("created_at", { ascending:false });
-    if(error) throw error;
-    sel.innerHTML = '<option value="">— 不关联，使用下方外部链接 —</option>' +
-      (data||[]).map(w => `<option value="${w.id}">${escapeHtml(w.title)}</option>`).join("");
-    sel.value = selectedId ? String(selectedId) : "";
-  }catch(e){
-    console.warn("读取环视台作品列表失败", e);
-  }
-}
-
-function fillPointForm(p){
-  document.getElementById("p-name").value = p.name || "";
-  // #4 显示编号
-  document.getElementById("p-display-num").value = p.display_num || p.poi_id || "";
-  // #1 历史时期（自定义兼容）
-  const eraSel = document.getElementById("p-era");
-  const knownEras = Array.from(eraSel.options).map(o => o.value);
-  if(knownEras.includes(p.era)){
-    eraSel.value = p.era;
-    document.getElementById("p-era-custom-wrap").style.display = "none";
-  }else if(p.era){
-    eraSel.value = "自定义";
-    document.getElementById("p-era-custom").value = p.era;
-    document.getElementById("p-era-custom-wrap").style.display = "block";
-  }
-  document.getElementById("p-level").value = p.level || 2;
-  document.getElementById("p-story").value = p.story || "";
-  document.getElementById("p-cover").value = p.cover || "";
-  document.getElementById("p-video").value = p.video_url || "";
-  document.getElementById("p-audio").value = p.audio_url || "";
-  document.getElementById("p-vr").value = p.vr_url || "";
-  // #8 文档
-  document.getElementById("p-doc-title").value = p.doc_title || "";
-  document.getElementById("p-doc-url").value = p.doc_url || "";
-  updateDocCurrentRow(p.doc_url, p.doc_title);
-  if(p.cover){
-    const preview = document.getElementById("p-cover-preview");
-    preview.src = p.cover; preview.classList.add("show");
-  }
-  pendingGallery = Array.isArray(p.gallery) ? [...p.gallery] : [];
-  renderGalleryStrip();
-}
-
-function onMapClickAdmin(e){
-  if(relocateTargetId !== null){
-    const target = pois.find(p => p.poi_id === relocateTargetId);
-    relocateTargetId = null;
-    if(target){ openEditPoiForm(target, e.latlng); toast("位置已更新，记得点击「保存修改」确认"); }
-    return;
-  }
-  editingPoiId = null;
-  pendingLatLng = e.latlng;
-  document.getElementById("point-modal-title").textContent = "新增点位";
-  document.getElementById("point-submit-btn").textContent = "一键发布";
-  document.getElementById("relocate-hint").style.display = "none";
-  document.getElementById("point-coords").textContent = `纬度 ${e.latlng.lat.toFixed(6)} · 经度 ${e.latlng.lng.toFixed(6)}`;
-  document.getElementById("point-form").reset();
-  document.getElementById("p-level").value = 2;
-  document.getElementById("point-err").textContent = "";
-  resetUploadWidgets();
-  populateVrWorkDropdown();
-  pointOverlay.classList.add("show");
-}
-
-function openEditPoiForm(p, overrideLatLng){
-  editingPoiId = p.poi_id;
-  pendingLatLng = overrideLatLng || { lat:p.lat, lng:p.lng };
-  document.getElementById("point-modal-title").textContent = `编辑点位：${p.name}`;
-  document.getElementById("point-submit-btn").textContent = "保存修改";
-  document.getElementById("point-coords").textContent = `纬度 ${pendingLatLng.lat.toFixed(6)} · 经度 ${pendingLatLng.lng.toFixed(6)}`;
-  document.getElementById("relocate-hint").style.display = "block";
-  document.getElementById("point-form").reset();
-  document.getElementById("point-err").textContent = "";
-  resetUploadWidgets();
-  fillPointForm(p);
-  populateVrWorkDropdown(p.vr_work_id);
-  pointOverlay.classList.add("show");
-}
-
-document.getElementById("relocate-btn").addEventListener("click", () => {
-  relocateTargetId = editingPoiId;
-  pointOverlay.classList.remove("show");
-  toast("请在地图上点击新位置");
-});
-
-document.querySelectorAll("[data-close-point]").forEach(b => b.addEventListener("click", () => {
-  pointOverlay.classList.remove("show");
-  editingPoiId = null;
-}));
-
-document.getElementById("point-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const errEl = document.getElementById("point-err");
-  if(!sb){ errEl.textContent = "尚未配置 Supabase，无法发布。"; return; }
-  if(!pendingLatLng){ errEl.textContent = "缺少地图坐标，请重新在地图上点击取点。"; return; }
-
-  // #1 自定义历史时期
-  const eraSel = document.getElementById("p-era");
-  const era = eraSel.value === "自定义"
-    ? (document.getElementById("p-era-custom").value.trim() || "未分类")
-    : eraSel.value;
-  // #4 显示编号
-  const displayNumRaw = document.getElementById("p-display-num").value;
-  const displayNum = displayNumRaw ? Number(displayNumRaw) : null;
-  // #8 文档
-  const docUrl = document.getElementById("p-doc-url").value.trim();
-  const docFile = document.getElementById("p-doc-file");
-  const docType = docFile.dataset.doctype || (docUrl.match(/\.docx?$/i) ? "word" : "pdf");
-  const docTitle = document.getElementById("p-doc-title").value.trim();
-
-  const fieldsPayload = {
-    name: document.getElementById("p-name").value.trim(),
-    lat: pendingLatLng.lat,
-    lng: pendingLatLng.lng,
-    era,
-    display_num: displayNum,
-    story: document.getElementById("p-story").value.trim(),
-    cover: document.getElementById("p-cover").value.trim(),
-    video_url: document.getElementById("p-video").value.trim(),
-    audio_url: document.getElementById("p-audio").value.trim(),
-    vr_url: document.getElementById("p-vr").value.trim(),
-    vr_work_id: document.getElementById("p-vr-work").value ? Number(document.getElementById("p-vr-work").value) : null,
-    gallery: pendingGallery,
-    doc_url: docUrl || null,
-    doc_type: docUrl ? docType : null,
-    doc_title: docTitle || null,
-    color_type: era,
-    level: Number(document.getElementById("p-level").value) || 1
-  };
-
-  markSelfUpdate();
-  let synced = false;
-  if(editingPoiId !== null){
-    const { error } = await sb.from("pois").update(fieldsPayload).eq("poi_id", editingPoiId);
-    if(error){ errEl.textContent = "保存失败：" + error.message; return; }
-    synced = await syncVrWorkLocation(fieldsPayload);
-    pointOverlay.classList.remove("show");
-    toast(synced ? "修改已保存，关联的环视台作品位置也已同步" : "修改已保存并同步给所有访客");
-    editingPoiId = null;
-  }else{
-    const nextId = pois.length ? Math.max(...pois.map(p=>p.poi_id)) + 1 : 1;
-    const nextOrder = pois.length ? Math.max(...pois.map(p=>p.sort_order||p.poi_id)) + 1 : 1;
-    const { error } = await sb.from("pois").insert({ poi_id:nextId, sort_order:nextOrder, ...fieldsPayload });
-    if(error){ errEl.textContent = "写入失败：" + error.message; return; }
-    synced = await syncVrWorkLocation(fieldsPayload);
-    pointOverlay.classList.remove("show");
-    toast(synced ? "已发布到全球 🌍 · 环视台作品位置已同步" : "已发布到全球 🌍");
-  }
-  pois = await fetchPois();
-  renderAll();
-});
-
-/* 把点位坐标和名称推送给其关联的环视台作品（vr_works.lat/lng/location_name），
-   让该作品也能正确出现在"环视台"首页的地图聚合模式里。仅在确实选择了
-   关联作品时才会写入；同步失败不影响点位本身的保存，只在控制台留下警告。 */
-async function syncVrWorkLocation(payload){
-  if(!payload.vr_work_id) return false;
-  const { error } = await sb.from("vr_works").update({
-    lat: payload.lat,
-    lng: payload.lng,
-    location_name: payload.name
-  }).eq("id", payload.vr_work_id);
-  if(error){ console.warn("同步环视台作品位置失败：", error.message); return false; }
-  return true;
-}
-
-/* =========================================================================
-   8b. 实时同步（Supabase Realtime）—— 任意客户端的增删改，
-   所有在线访客（包括其他管理员）都会立即看到，无需手动刷新页面。
-   注意：需要在 Supabase 控制台「Database → Replication」中为 pois 表开启 Realtime。
-   ========================================================================= */
-function subscribeRealtime(){
-  if(!sb) return;
-  const dot = document.getElementById("sync-dot");
-  sb.channel("pois-realtime")
-    .on("postgres_changes", { event:"*", schema:"public", table:"pois" }, async () => {
-      pois = await fetchPois();
-      renderAll();
-      if(Date.now() > suppressRealtimeToastUntil){ toast("点位数据已实时更新"); }
-    })
-    .subscribe((status) => {
-      if(!dot) return;
-      const live = status === "SUBSCRIBED";
-      dot.classList.toggle("live", live);
-      dot.title = live ? "实时同步中" : "实时同步未连接";
-    });
-}
-
-/* =========================================================================
-   10. 会员制投稿系统
-   ========================================================================= */
-
-/* ---- 会员登录/注册 ---- */
-function openMemberLogin(){
-  if(memberMode){ openMySubmissions(); return; }
-  showMemberLogin();
-  document.getElementById("member-overlay").classList.add("show");
-}
-function closeMemberModal(){ document.getElementById("member-overlay").classList.remove("show"); }
-function showMemberLogin(){
-  document.getElementById("member-modal-title").textContent = "会员登录";
-  document.getElementById("member-login-view").style.display = "block";
-  document.getElementById("member-register-view").style.display = "none";
-}
-function showMemberRegister(){
-  document.getElementById("member-modal-title").textContent = "注册会员";
-  document.getElementById("member-login-view").style.display = "none";
-  document.getElementById("member-register-view").style.display = "block";
-}
-
-document.getElementById("member-login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const errEl = document.getElementById("m-login-err");
-  const email = document.getElementById("m-email").value.trim();
-  const pass = document.getElementById("m-pass").value;
-  if(!sb){ errEl.textContent = "数据库未连接，无法登录"; return; }
-  // 管理员走这里也能登录（兼容），但识别为管理员
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if(error){ errEl.textContent = "登录失败：" + error.message; return; }
-  closeMemberModal();
-  if(email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
-    setAdminMode(true);
-    toast("已进入主控模式 ⚡");
-  }else{
-    setMemberMode(true, { id: data.user.id, email });
-    toast("欢迎回来，" + email.split("@")[0] + "！");
-  }
-});
-
-document.getElementById("member-register-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const errEl = document.getElementById("m-reg-err");
-  const email = document.getElementById("r-email").value.trim();
-  const pass = document.getElementById("r-pass").value;
-  const pass2 = document.getElementById("r-pass2").value;
-  if(!sb){ errEl.textContent = "数据库未连接"; return; }
-  if(pass !== pass2){ errEl.textContent = "两次密码不一致"; return; }
-  if(email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){ errEl.textContent = "该邮箱已被使用"; return; }
-  errEl.textContent = "注册中…";
-  const { data, error } = await sb.auth.signUp({ email, password: pass });
-  if(error){ errEl.textContent = "注册失败：" + error.message; return; }
-  if(data.user && !data.session){
-    // 需要邮件验证
-    errEl.textContent = "";
-    closeMemberModal();
-    toast("注册成功！请检查邮箱完成验证后即可登录。");
-  }else if(data.session){
-    closeMemberModal();
-    setMemberMode(true, { id: data.user.id, email });
-    toast("注册并登录成功，欢迎！");
-  }
-});
-
-function setMemberMode(on, user){
-  memberMode = on;
-  memberUser = on ? user : null;
-  // 侧栏会员状态条
-  const bar = document.getElementById("member-bar");
-  bar.classList.toggle("show", on);
-  if(on && user) document.getElementById("member-email-label").textContent = "👤 " + user.email;
-  // 首页按钮
-  const hpBtn = document.getElementById("hp-member-btn");
-  if(hpBtn){ hpBtn.textContent = on ? "👤 " + (user?.email.split("@")[0]||"会员") : "👤 会员中心"; hpBtn.classList.toggle("logged-in", on); }
-  // 地图侧栏/移动端会员按钮：登录后隐藏
-  const sbMemberBtn = document.getElementById("sb-member-btn");
-  if(sbMemberBtn) sbMemberBtn.style.display = on ? "none" : "block";
-  const mobileMemberBtn = document.getElementById("mobile-member-btn");
-  if(mobileMemberBtn) mobileMemberBtn.style.display = on ? "none" : "flex";
-  if(!on){ cancelSubmitMode(); }
-}
-
-function memberLogout(){
-  if(sb) sb.auth.signOut();
-  setMemberMode(false, null);
-  toast("已退出会员登录");
-}
-
-/* ---- 投稿流程 ---- */
-let submitMode = false;
-
-function startSubmitMode(){
-  if(!memberMode){ openMemberLogin(); return; }
-  submitMode = true;
-  document.getElementById("submit-mode-bar").classList.add("show");
-  showMapView();
-  map.on("click", onMapClickSubmit);
-  map.getContainer().style.cursor = "crosshair";
-  toast("请在地图上点击位置");
-}
-function cancelSubmitMode(){
-  submitMode = false;
-  document.getElementById("submit-mode-bar").classList.remove("show");
-  map.off("click", onMapClickSubmit);
-  map.getContainer().style.cursor = "";
-}
-function onMapClickSubmit(e){
-  pendingLatLng = e.latlng;
-  cancelSubmitMode();
-  document.getElementById("submit-coords").textContent = `纬度 ${e.latlng.lat.toFixed(6)} · 经度 ${e.latlng.lng.toFixed(6)}`;
-  document.getElementById("submit-form").reset();
-  document.getElementById("s-err").textContent = "";
-  document.getElementById("s-cover-status").textContent = "";
-  document.getElementById("submit-overlay").classList.add("show");
-}
-function closeSubmitForm(){
-  document.getElementById("submit-overlay").classList.remove("show");
-}
-
-/* 投稿封面图上传 */
-document.getElementById("s-cover-file").addEventListener("change", async () => {
-  const file = document.getElementById("s-cover-file").files[0];
-  if(!file) return;
-  const status = document.getElementById("s-cover-status");
-  status.textContent = "上传中…";
-  const { url, error } = await uploadToStorage(file, "submissions");
-  if(error){ status.textContent = "上传失败"; status.className = "upload-status err"; }
-  else{ document.getElementById("s-cover").value = url; status.textContent = "✓ 已上传"; status.className = "upload-status ok"; }
-  document.getElementById("s-cover-file").value = "";
-});
-
-document.getElementById("submit-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const errEl = document.getElementById("s-err");
-  if(!sb || !memberUser){ errEl.textContent = "请先登录会员"; return; }
-  if(!pendingLatLng){ errEl.textContent = "缺少位置坐标，请重新在地图上点击"; return; }
-  const payload = {
-    user_id: memberUser.id,
-    user_email: memberUser.email,
-    name: document.getElementById("s-name").value.trim(),
-    lat: pendingLatLng.lat,
-    lng: pendingLatLng.lng,
-    era: document.getElementById("s-era").value,
-    story: document.getElementById("s-story").value.trim(),
-    cover: document.getElementById("s-cover").value.trim() || null,
-    status: "pending"
-  };
-  const { error } = await sb.from("user_submissions").insert(payload);
-  if(error){ errEl.textContent = "提交失败：" + error.message; return; }
-  closeSubmitForm();
-  toast("✓ 投稿成功！等待管理员审核。");
-  // 通知管理员（更新审核徽标）
-  if(adminMode) loadPendingSubmissions();
-});
-
-/* ---- 我的投稿 ---- */
-async function openMySubmissions(){
-  if(!memberMode || !memberUser){ openMemberLogin(); return; }
-  const overlay = document.getElementById("my-submissions-overlay");
-  const list = document.getElementById("my-submissions-list");
-  list.innerHTML = "<p style='color:#6b6048;font-size:13px;'>加载中…</p>";
-  overlay.classList.add("show");
-  const { data, error } = await sb.from("user_submissions")
-    .select("*").eq("user_id", memberUser.id).order("created_at", { ascending:false });
-  if(error || !data || !data.length){
-    list.innerHTML = "<p style='color:#6b6048;font-size:13px;text-align:center;padding:20px 0;'>还没有投稿记录</p>";
-    return;
-  }
-  list.innerHTML = data.map(s => {
-    const statusMap = { pending:"⏳ 待审核", approved:"✓ 已通过", rejected:"✗ 已拒绝" };
-    const cls = s.status;
-    return `<div class="my-sub-item">
-      <div class="ms-name">${escapeHtml(s.name)}</div>
-      <span class="ms-status ${cls}">${statusMap[s.status]||s.status}</span>
-      <span style="font-size:11px;color:#9c8a63;margin-left:8px;">${s.era||""}</span>
-      ${s.admin_note ? `<div class="ms-note">管理员备注：${escapeHtml(s.admin_note)}</div>` : ""}
-      <div style="font-size:11px;color:#9c8a63;margin-top:3px;">${new Date(s.created_at).toLocaleDateString("zh-CN")}</div>
-    </div>`;
-  }).join("");
-}
-
-/* ---- 管理员审核面板 ---- */
-let reviewPanelOpen = false;
-function toggleReviewPanel(){
-  reviewPanelOpen = !reviewPanelOpen;
-  document.getElementById("review-panel").classList.toggle("show", reviewPanelOpen);
-  if(reviewPanelOpen) loadPendingSubmissions();
-}
-async function loadPendingSubmissions(){
-  const panel = document.getElementById("review-panel");
-  const badge = document.getElementById("review-badge");
-  if(!sb) return;
-  const { data, error } = await sb.from("user_submissions").select("*").order("created_at", { ascending:true });
-  if(error) return;
-  const pending = (data||[]).filter(s => s.status === "pending");
-  if(badge){
-    badge.style.display = pending.length ? "inline-block" : "none";
-    badge.textContent = pending.length;
-  }
-  if(!reviewPanelOpen) return;
-  if(!data || !data.length){ panel.innerHTML = "<h5>投稿记录</h5><p style='font-size:12px;color:#6b6048;'>暂无投稿</p>"; return; }
-  panel.innerHTML = "<h5>待审核 " + pending.length + " / 共 " + data.length + " 条</h5>" +
-    data.map(s => {
-      const statusColor = { pending:"#b87d1a", approved:"var(--jade-deep)", rejected:"var(--seal)" };
-      return `<div class="sub-card">
-        <div class="sc-name">${escapeHtml(s.name)} <span style="font-size:11px;font-weight:400;color:${statusColor[s.status]||"#6b6048"};">[${s.status}]</span></div>
-        <div class="sc-meta">${escapeHtml(s.era||"")} · ${escapeHtml(s.user_email||"")} · ${new Date(s.created_at).toLocaleDateString("zh-CN")}</div>
-        ${s.story ? `<div class="sc-story">${escapeHtml(s.story)}</div>` : ""}
-        ${s.status === "pending" ? `<div class="sc-actions">
-          <button class="sc-btn locate" onclick="map.flyTo([${s.lat},${s.lng}],16)">🗺 定位</button>
-          <button class="sc-btn approve" onclick="approveSubmission(${s.id})">✓ 通过</button>
-          <button class="sc-btn reject" onclick="rejectSubmission(${s.id})">✗ 拒绝</button>
-        </div>` : `<div class="sc-actions"><button class="sc-btn locate" onclick="map.flyTo([${s.lat},${s.lng}],16)">🗺 定位</button></div>`}
-      </div>`;
-    }).join("");
-}
-
-async function approveSubmission(subId){
-  const { data: sub } = await sb.from("user_submissions").select("*").eq("id", subId).single();
-  if(!sub) return;
-  // 创建真实点位
-  const nextId = pois.length ? Math.max(...pois.map(p=>p.poi_id)) + 1 : 1;
-  const nextOrder = pois.length ? Math.max(...pois.map(p=>p.sort_order||p.poi_id)) + 1 : 1;
-  const nextDisplay = pois.length ? Math.max(...pois.map(p=>p.display_num||p.poi_id)) + 1 : 1;
-  const { error: poiErr } = await sb.from("pois").insert({
-    poi_id: nextId, sort_order: nextOrder, display_num: nextDisplay,
-    name: sub.name, lat: sub.lat, lng: sub.lng, era: sub.era||"现代",
-    story: sub.story, cover: sub.cover, gallery: [], color_type: sub.era||"现代", level:1
-  });
-  if(poiErr){ toast("创建点位失败：" + poiErr.message); return; }
-  // 更新投稿状态
-  await sb.from("user_submissions").update({ status:"approved", reviewed_at: new Date().toISOString() }).eq("id", subId);
-  toast("✓ 已通过，点位已添加到地图");
-  pois = await fetchPois();
-  renderAll();
-  loadPendingSubmissions();
-}
-async function rejectSubmission(subId){
-  const note = prompt("请输入拒绝原因（可选，会显示给投稿用户）：") ?? "";
-  await sb.from("user_submissions").update({ status:"rejected", admin_note: note||null, reviewed_at: new Date().toISOString() }).eq("id", subId);
-  toast("已拒绝该投稿");
-  loadPendingSubmissions();
-}
-
-/* =========================================================================
-   11. 启动
-   ========================================================================= */
-
-/* #10 触屏滑动翻页 —— 全屏灯箱也支持滑动 */
-(function(){
-  const lb = document.getElementById("lightbox");
-  let lbTx = 0;
-  lb.addEventListener("touchstart", e => { lbTx = e.touches[0].clientX; }, { passive:true });
-  lb.addEventListener("touchend", e => {
-    const dx = e.changedTouches[0].clientX - lbTx;
-    if(Math.abs(dx) > 50) showLightboxSlide(lightboxIndex + (dx < 0 ? 1 : -1));
-  }, { passive:true });
-})();
-
-(async function init(){
-  if(isConfigured){
-    const loaded = await waitForSupabase();
-    if(loaded){
-      try{ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
-      catch(e){ console.warn("Supabase 初始化失败", e); }
-    }else{
-      console.warn("Supabase SDK 加载超时，进入演示模式");
-    }
-  }
-  pois = await fetchPois();
-  renderAll();
-  subscribeRealtime();
-  if(sb){
-    const { data } = await sb.auth.getSession();
-    if(data && data.session){
-      const email = data.session.user.email || "";
-      if(email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
-        setAdminMode(true);
-      }else{
-        setMemberMode(true, { id: data.session.user.id, email });
-      }
-    }
-    // 监听 auth 状态变化（处理邮件验证后自动登录等情况）
-    sb.auth.onAuthStateChange((_event, session) => {
-      if(session && !adminMode && !memberMode){
-        const email = session.user.email || "";
-        if(email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
-          setAdminMode(true);
-        }else{
-          setMemberMode(true, { id: session.user.id, email });
-        }
-      }
-    });
-  }
-  // #12 默认显示首页
-  document.getElementById("homepage").style.display = "block";
-})();
-
-/* =========================================================================
-   12. PWA：Service Worker 注册 + 安装引导横幅
-   ========================================================================= */
-if("serviceWorker" in navigator){
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").then(reg => {
-      console.log("SW registered:", reg.scope);
-    }).catch(err => {
-      console.warn("SW registration failed:", err);
-    });
-  });
-}
-
-/* 拦截浏览器的"安装 App"提示，在合适时机主动展示 */
-let deferredInstallPrompt = null;
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  showInstallUI();
-});
-
-function showInstallUI(){
-  // 主页按钮
-  const hpBtn = document.getElementById("hp-install-btn");
-  if(hpBtn) hpBtn.style.display = "inline-flex";
-  // 底部横幅（已安装则不再显示）
-  if(!sessionStorage.getItem("pwa-banner-dismissed")) showInstallBanner();
-}
-
-function showInstallBanner(){
-  const banner = document.getElementById("pwa-install-banner");
-  if(banner) banner.style.display = "flex";
-}
-
-function installApp(){
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    deferredInstallPrompt.userChoice.then(choice => {
-      if(choice.outcome === "accepted") toast("App 安装成功！可在桌面找到图标 🎉");
-      deferredInstallPrompt = null;
-      const hpBtn = document.getElementById("hp-install-btn");
-      if(hpBtn) hpBtn.style.display = "none";
-      const banner = document.getElementById("pwa-install-banner");
-      if(banner) banner.style.display = "none";
-    });
-  }else{
-    // 已安装或不支持，提示用户
-    toast("请在浏览器菜单中选择「添加到主屏幕」");
-  }
-}
-
-function dismissInstallBanner(){
-  const banner = document.getElementById("pwa-install-banner");
-  if(banner) banner.style.display = "none";
-  sessionStorage.setItem("pwa-banner-dismissed", "1");
-}
-
-/* 检测 iOS Safari，显示手动安装引导 */
-(function detectIosInstall(){
-  const isIosDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const isInStandaloneMode = window.matchMedia("(display-mode: standalone)").matches
-    || window.navigator.standalone === true;
-  if(isIosDevice && !isInStandaloneMode){
-    // iOS Safari 无法自动弹出安装提示，显示手动引导
-    const hint = document.getElementById("ios-install-hint");
-    if(hint) hint.style.display = "block";
-    const hpBtn = document.getElementById("hp-install-btn");
-    if(hpBtn){ hpBtn.style.display = "inline-flex"; hpBtn.textContent = "📲 安装到桌面"; hpBtn.onclick = () => {
-      hint.scrollIntoView({ behavior:"smooth" });
-    };}
-  }
-})();
-
-window.addEventListener("appinstalled", () => {
-  toast("已安装为 App！");
-  const hpBtn = document.getElementById("hp-install-btn");
-  if(hpBtn) hpBtn.style.display = "none";
-  const banner = document.getElementById("pwa-install-banner");
-  if(banner) banner.style.display = "none";
-  const hint = document.getElementById("ios-install-hint");
-  if(hint) hint.style.display = "none";
-});
-</script>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    // data
+    // components: Splash, Drawer, Timeline, AdminModal
+    // App with map logic
+    // render
+  </script>
+  <script>sw registration</script>
 </body>
 </html>
+```
 
-<!--
-=================================================================================
-Supabase 建表与权限策略 SQL（部署前在 Supabase SQL Editor 中执行一次）：
+Now let me write it all out. I'll be very careful about correctness.
 
-create table pois (
-  poi_id     integer primary key,
-  sort_order integer not null,
-  name       text not null,
-  lat        double precision not null,
-  lng        double precision not null,
-  era        text,
-  story      text,
-  cover      text,
-  video_url  text,
-  audio_url  text,
-  vr_url     text,
-  vr_work_id bigint references vr_works(id) on delete set null,  -- 关联"环视台"作品，用于抽屉内嵌全景查看
-  gallery    jsonb not null default '[]'::jsonb,                  -- 图片集，2张及以上时抽屉内自动轮播
-  color_type text,
-  level      integer default 1
-);
+Key implementation details:
 
-alter table pois enable row level security;
+**Data (compact):**
 
-create policy "公开可读" on pois for select using (true);
-create policy "管理员可写" on pois for insert  to authenticated with check (true);
-create policy "管理员可改" on pois for update  to authenticated using (true);
-create policy "管理员可删" on pois for delete  to authenticated using (true);
+```js
+const PERIODS=[
+ {id:'jj',name:'唐朝景教',range:[635,845],desc:'635年阿罗本入长安,景教碑为证'},
+ {id:'mt',name:'明末天主教',range:[1552,1724],desc:'利玛窦等耶稣会士以学术传教'},
+ {id:'wq',name:'晚清福音入华',range:[1807,1900],desc:'1807马礼逊来华,内地会深入内陆'},
+ {id:'mg',name:'民国复兴',range:[1900,1949],desc:'自立教会与边陲宣教兴起'},
+ {id:'dd',name:'当代',range:[1949,2024],desc:'新时期教会发展与遗产保护'}
+];
+```
 
--- 管理员账号：在 Supabase 控制台 Authentication → Users 中手动添加，并确认（Confirm）邮箱即可。
--- 实时推送：在 Supabase 控制台 Database → Replication 中为 pois 表开启 Realtime，
--- 否则新增/排序操作只有操作者本人能看到，其他访客需要手动刷新页面。
-=================================================================================
--->
+Points - 8 points, each compact. Fields: id,name,mis(宣教士),soc(差会),per,year,co:[lat,lng],sum,verse:{t,r},imgs[],pano,vid,aud
+
+Actually let me keep full-ish field names for readability but compact values.
+
+**Routes:**
+```js
+const ROUTES=[
+ {id:'r1',name:'景教东传之路',color:'#d4af37',desc:'波斯→敦煌→长安',path:[[32.65,51.68],[35.0,60.0],[40.14,94.66],[34.26,108.95]]},
+ {id:'r2',name:'马礼逊来华之路',color:'#7ec8ff',desc:'澳门→广州',path:[[22.20,113.54],[23.11,113.25]]},
+ {id:'r3',name:'戴德生内地会路线',color:'#ff9d7e',desc:'沿海→长江→西南',path:[[31.23,121.47],[32.20,119.45],[30.59,114.30],[30.57,104.07]]},
+ {id:'r4',name:'鼓岭—庐山寻踪',color:'#9dff9d',desc:'闽赣避暑胜地',path:[[26.10,119.38],[29.56,115.99]]}
+];
+```
+
+**COUNTRY_INFO:** ~10 entries.
+
+**Map init effect:**
+- create map once, dark tiles
+- vignette div (in JSX, absolute over map)
+- fetch world-atlas, add geojson layer with hover
+
+**Markers effect:** rebuild on visiblePoints change.
+
+**Routes effect:** draw when activeRoute changes; two polylines (halo + animated core).
+
+**Playback:** setTimeout chain through visiblePoints sorted by year; also animate active route drawing.
+
+Route drawing animation function:
+
+```js
+function animateLine(layer,pts,dur){
+  const t0=performance.now();
+  function fr(t){
+    const p=Math.min(1,(t-t0)/dur);
+    // interpolate
+    const segs=[];let total=0;
+    for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);segs.push(d);total+=d;}
+    let target=total*p,cur=[pts[0]],acc=0;
+    for(let i=1;i<pts.length;i++){
+      if(acc+segs[i-1]<=target){cur.push(pts[i]);acc+=segs[i-1];}
+      else{const r=(target-acc)/segs[i-1];cur.push([pts[i-1][0]+(pts[i][0]-pts[i-1][0])*r,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*r]);break;}
+    }
+    layer.setLatLngs(cur);
+    if(p<1)requestAnimationFrame(fr);
+  }
+  requestAnimationFrame(fr);
+}
+```
+
+**Drawer component:** tabs. Pannellum effect:
+
+```js
+useEffect(()=>{
+  if(tab!=='vr'||!point.pano)return;
+  const v=pannellum.viewer('pano-box',{type:'equirectangular',panorama:point.pano,autoLoad:true,autoRotate:-2});
+  return ()=>{try{v.destroy()}catch(e){}};
+},[tab,point]);
+```
+
+**Admin modal:** form fields; "拾取坐标" button sets picking=true and closes modal; map once('click') gets latlng, fills form, reopens.
+
+Implementation: in App, when picking, show toast; map click handler:
+
+```js
+useEffect(()=>{
+  const map=mapRef.current;
+  if(!map||!picking)return;
+  const h=e=>{setForm(f=>({...f,lat:e.latlng.lat.toFixed(4),lng:e.latlng.lng.toFixed(4)}));setPicking(false);setAdminOpen(true);};
+  map.once('click',h);
+  return ()=>map.off('click',h);
+},[picking]);
+```
+
+**Splash (Three.js):**
+
+```js
+function Splash({onEnter}){
+  const ref=useRef();
+  useEffect(()=>{
+    const W=innerWidth,H=innerHeight;
+    const scene=new THREE.Scene();
+    const cam=new THREE.PerspectiveCamera(60,W/H,.1,100);cam.position.z=6;
+    const ren=new THREE.WebGLRenderer({canvas:ref.current,alpha:true,antialias:true});
+    ren.setSize(W,H);ren.setPixelRatio(Math.min(devicePixelRatio,2));
+    // cross particles
+    const pos=[];
+    for(let i=0;i<220;i++){pos.push((Math.random()-.5)*.18,(Math.random()-.5)*3,(Math.random()-.5)*.18);}
+    for(let i=0;i<140;i++){pos.push((Math.random()-.5)*1.9,(Math.random()-.5)*.18+.55,(Math.random()-.5)*.18);}
+    // starfield
+    for(let i=0;i<400;i++){pos.push((Math.random()-.5)*30,(Math.random()-.5)*20,-5-Math.random()*10);}
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    const m=new THREE.PointsMaterial({color:0xffd700,size:.05,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false});
+    const pts=new THREE.Points(g,m);scene.add(pts);
+    let raf;
+    const loop=()=>{pts.rotation.y+=.004;raf=requestAnimationFrame(loop);ren.render(scene,cam);};
+    loop();
+    return ()=>{cancelAnimationFrame(raf);ren.dispose();};
+  },[]);
+  ...
+}
+```
+
+Hmm, the cross is vertical bar + horizontal bar. The starfield in same geometry will rotate together - that's fine, actually looks like rotating starfield. OK.
+
+Splash JSX: canvas absolute + centered text: ✝ title, subtitle, verse, button 进入地图. Fade out on enter: add opacity-0 class then unmount after 1s. Simple: parent holds showSplash state; Splash has internal `leaving` state.
+
+Simpler: 
+
+```js
+const [gone,setGone]=useState(false);
+...
+<div className={`fixed inset-0 z-[3000] ... transition-opacity duration-1000 ${gone?'opacity-0 pointer-events-none':''}`}>
+  <canvas ref={ref}/>
+  <div>...title...</div>
+  <button onClick={()=>{setGone(true);setTimeout(onEnter,1000);}}>进入地图</button>
+</div>
+```
+
+Parent: `{splash && <Splash onEnter={()=>setSplash(false)}/>}`
+
+**Timeline component:** collapsible. Chips for periods + "全部". Year range display. Play button.
+
+When period clicked: setPeriod, set yearRange to period range. Points filtered by yearRange.
+
+```js
+const visible=useMemo(()=>points.filter(p=>p.year>=yr[0]&&p.year<=yr[1]),[points,yr]);
+```
+
+Play: setPlaying(true) → effect flies through visible sorted.
+
+**Route panel:** list on left, toggle. Click route → setActiveRoute; map.fitBounds(path).
+
+**Header:** fixed top bar with title + buttons (路线, 时间轴, 录入).
+
+Let me also make sure tooltip on markers and country hover.
+
+Country layer:
+
+```js
+fetch('https://unpkg.com/world-atlas@2/countries-110m.json').then(r=>r.json()).then(topo=>{
+  const geo=topojson.feature(topo,topo.objects.countries);
+  const lyr=L.geoJSON(geo,{
+    style:{fillColor:'#16202e',fillOpacity:.4,color:'#3d4c63',weight:.7},
+    onEachFeature:(f,l)=>{
+      const name=f.properties.name,info=COUNTRY_INFO[name];
+      l.on({
+        mouseover:e=>{l.setStyle({fillColor:'#d4af37',fillOpacity:.25,color:'#ffd700',weight:1.5});},
+        mouseout:e=>{lyr.resetStyle(l);},
+      });
+      l.bindTooltip(`<b>${name}</b><br>${info||'暂无宣教资料,欢迎补充'}`,{className:'map-tip',sticky:true});
+    }
+  }).addTo(map);
+});
+```
+
+**Markers:**
+
+```js
+useEffect(()=>{
+  const map=mapRef.current;if(!map)return;
+  if(markRef.current)markRef.current.remove();
+  const g=L.layerGroup();
+  visible.forEach(p=>{
+    const ic=L.divIcon({className:'',html:`<div class="cross-marker"><div class="ripple"></div><div class="cross-v"></div><div class="cross-h"></div></div>`,iconSize:[30,30],iconAnchor:[15,15]});
+    const m=L.marker(p.co,{icon:ic});
+    m.bindTooltip(`<b>${p.name}</b><br>${p.mis} · ${p.year}年`,{className:'map-tip',direction:'top',offset:[0,-16]});
+    m.on('click',()=>{map.flyTo(p.co,Math.max(map.getZoom(),7),{duration:1.4});setSel(p);});
+    g.addLayer(m);
+  });
+  g.addTo(map);markRef.current=g;
+},[visible]);
+```
+
+**Routes layer:**
+
+```js
+useEffect(()=>{
+  const map=mapRef.current;if(!map)return;
+  if(routeRef.current)routeRef.current.remove();
+  routeRef.current=null;
+  if(!activeRoute)return;
+  const r=ROUTES.find(x=>x.id===activeRoute);if(!r)return;
+  const g=L.layerGroup();
+  L.polyline(r.path,{color:r.color,weight:8,opacity:.18}).addTo(g);
+  const core=L.polyline(r.path,{color:r.color,weight:2.5,opacity:.95,className:'route-flow'});
+  core.addTo(g);
+  r.path.forEach(c=>L.circleMarker(c,{radius:4,color:'#fff',fillColor:r.color,fillOpacity:1,weight:1.5}).addTo(g));
+  g.addTo(map);routeRef.current={g,core};
+  map.flyToBounds(L.latLngBounds(r.path),{padding:[60,60],duration:1.4});
+},[activeRoute]);
+```
+
+Wait, animateLine needs core — during playback if activeRoute, call animateLine(routeRef.current.core, r.path, 4000). Need to also set core latlngs empty first for the drawing effect. Only during playback. OK.
+
+**Playback effect:**
+
+```js
+useEffect(()=>{
+  if(!playing)return;
+  const list=[...visible].sort((a,b)=>a.year-b.year);
+  if(!list.length){setPlaying(false);return;}
+  const map=mapRef.current;
+  if(routeRef.current&&activeRoute){
+    const r=ROUTES.find(x=>x.id===activeRoute);
+    routeRef.current.core.setLatLngs([r.path[0]]);
+    animateLine(routeRef.current.core,r.path,list.length*2200);
+  }
+  let i=0,dead=false,t;
+  const step=()=>{
+    if(dead)return;
+    const p=list[i];
+    map.flyTo(p.co,7,{duration:1.8});
+    setSel(p);
+    i++;
+    if(i<list.length)t=setTimeout(step,2600);
+    else setPlaying(false);
+  };
+  t=setTimeout(step,400);
+  return ()=>{dead=true;clearTimeout(t);};
+},[playing]);
+```
+
+Hmm — opening the drawer on every playback step might be annoying on mobile (drawer covers map). Actually it's the spec: 动态复现行进路线 with point display. Keep it but maybe only flyTo without opening drawer? The drawer opening each step shows rich info. On desktop fine. I'll keep setSel(p) — good demo effect. Actually let me flyTo AND setSel — yes.
+
+**Admin save:**
+
+```js
+const save=()=>{
+  const np={id:'c'+Date.now(),name:form.name||'未命名',mis:form.mis||'—',soc:form.soc||'—',per:form.per,year:+form.year||2000,co:[+form.lat,+form.lng],sum:form.sum||'',verse:form.verse?{t:form.verse,r:form.vref||''}:null,imgs:form.imgs?form.imgs.split('\n').filter(Boolean):[],pano:form.pano||'',vid:form.vid||'',aud:form.aud||'',custom:true};
+  const all=[...points,np];setPoints(all);
+  localStorage.setItem('mm_custom',JSON.stringify(all.filter(p=>p.custom)));
+  if(form.route&&ROUTES.find(r=>r.id===form.route)){
+    // append to route path - routes are const... need routes as state
+  }
+  setAdminOpen(false);setForm(EMPTY_FORM);
+  mapRef.current.flyTo(np.co,8);
+};
+```
+
+Route append: make routes state: `const [routes,setRoutes]=useState(ROUTES)`. Then:
+
+```js
+if(form.route)setRoutes(rs=>rs.map(r=>r.id===form.route?{...r,path:[...r.path,np.co]}:r));
+```
+
+And route effect uses `routes` state, deps [activeRoute, routes].
+
+Load customs:
+
+```js
+const [points,setPoints]=useState(()=>{
+  try{return[...POINTS,...JSON.parse(localStorage.getItem('mm_custom')||'[]')]}catch(e){return POINTS}
+});
+```
+
+**Drawer JSX:** fixed panel. Mobile: bottom sheet; desktop: right side.
+
+```jsx
+<div className={`drawer fixed z-[1200] bg-[#0d1117f2] backdrop-blur border-[#d4af3755] shadow-2xl
+  inset-x-0 bottom-0 h-[62vh] rounded-t-2xl border-t
+  md:inset-x-auto md:right-0 md:top-0 md:h-full md:w-[430px] md:rounded-none md:border-t-0 md:border-l
+  ${sel?'translate-y-0 md:translate-x-0':'translate-y-full md:translate-y-0 md:translate-x-full'}`}>
+```
+
+Hmm, transitions for both axes — the class `drawer` has transition transform. Mobile hidden: translate-y-full; desktop hidden: translate-x-full. Combining: `translate-y-full md:translate-y-0 md:translate-x-full` when closed; `translate-y-0 md:translate-x-0` open. OK.
+
+Header of drawer: name, missionary/society chips, close button.
+Tabs row: 简介 全景VR 图集 视频 音频.
+Content scrollable.
+
+Verse block:
+
+```jsx
+{point.verse&&<div className="verse p-4 rounded-r-lg my-4">
+  <div className="text-[#e8d28a] italic">「{point.verse.t}」</div>
+  <div className="text-right text-sm text-[#d4af37] mt-1">—— {point.verse.r}</div>
+</div>}
+```
+
+Images tab: index state, arrows, click → lightbox:
+
+```jsx
+const [imgI,setImgI]=useState(0);const [zoom,setZoom]=useState(false);
+```
+
+Lightbox: fixed inset-0 z-[2000] bg-black/95, img contain, click close.
+
+Video/audio tabs: if url show player else empty state text.
+
+**Admin modal fields:** name, mis, soc, per(select), year, lat, lng (+拾取按钮), route(select, 可选), sum(textarea), verse, vref, imgs(textarea 每行一个), pano, vid, aud.
+
+That's a lot of fields — use grid 2 cols on desktop.
+
+**Timeline:** 
+
+```jsx
+<div className={`timeline-panel fixed z-[1100] left-1/2 -translate-x-1/2 bottom-4 w-[94%] max-w-3xl bg-[#0d1117ee] border border-[#d4af3744] rounded-2xl backdrop-blur ${tlOpen?'':'translate-y-[calc(100%+20px)]'}`}>
+```
+
+Wait, translate-x-1/2 conflicts with translate-y transform — Tailwind uses CSS variables for transforms, combined fine in modern Tailwind (translate utilities compose). Tailwind CDN v3 composes transforms via variables — yes, `translate-x-[-50%]` and `translate-y-full` compose. But my custom class translate-y-[calc(100%+20px)] — as arbitrary value it's fine.
+
+Hmm, careful: `-translate-x-1/2` sets --tw-translate-x: -50%. `translate-y-[calc(100%+20px)]` sets --tw-translate-y. Compose OK.
+
+Toggle button when closed: separate floating button "⏱" bottom right, or header button toggles. I'll do header button 时间轴 that toggles tlOpen; timeline has its own close ×.
+
+Timeline content:
+- Row of chips: 全部 + periods
+- Year display: {yr[0]} — {yr[1]}
+- Dual range sliders (two input type=range for min/max)
+- Play/stop button
+
+```jsx
+<input type="range" min="600" max="2024" value={yr[0]} onChange={e=>setYr([Math.min(+e.target.value,yr[1]),yr[1]])}/>
+<input type="range" min="600" max="2024" value={yr[1]} onChange={e=>setYr([yr[0],Math.max(+e.target.value,yr[0])])}/>
+```
+
+Period click: setYr(p.range); setPeriod(p.id).
+
+**Header:**
+
+```jsx
+<header className="fixed top-0 inset-x-0 z-[1300] flex items-center justify-between px-4 md:px-6 py-3 bg-gradient-to-b from-[#05070cf2] to-[#05070c88] pointer-events-none">
+  <div className="pointer-events-auto">
+    <h1 className="text-[#e8d28a] font-black text-base md:text-xl tracking-widest">✝ 历代宣教士足迹 · 属灵文旅智慧地图</h1>
+    <p className="text-[10px] md:text-xs text-gray-400 tracking-wider">CHRISTIAN HERITAGE MAP · 报福音传喜信的人,他们的脚踪何等佳美</p>
+  </div>
+  <div className="flex gap-2 pointer-events-auto">
+    <button 路线> <button 时间轴> <button ＋录入>
+  </div>
+</header>
+```
+
+Buttons styling: `px-3 py-1.5 text-sm rounded-full border border-[#d4af3766] text-[#e8d28a] hover:bg-[#d4af3722]`.
+
+**Route panel:**
+
+```jsx
+<div className={`fixed z-[1150] top-20 left-3 w-64 bg-[#0d1117ee] border border-[#d4af3744] rounded-xl backdrop-blur transition-all ${rpOpen?'opacity-100':'opacity-0 pointer-events-none -translate-x-4'}`}>
+  list routes with color dot, name, desc; click → setActiveRoute(toggle)
+</div>
+```
+
+**Picking toast:** fixed top center "📍 请点击地图拾取坐标".
+
+OK — also `useMemo` for visible; need React.useMemo via destructure.
+
+Potential pitfalls to avoid:
+1. Leaflet icons default image paths — using divIcon & circleMarker only, fine.
+2. Babel standalone with JSX in text/babel — OK.
+3. Pannellum destroy — wrap try/catch.
+4. Map double-init — guard with mapRef.
+5. `data-presets="react"` on script tag.
+
+Service worker registration (they have sw.js):
+
+```html
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})</script>
+```
+
+Manifest link: `<link rel="manifest" href="manifest.json">`.
+
+Also meta theme-color, apple-mobile-web-app-capable for PWA niceness.
+
+Now, images: picsum seeds (stable placeholders). Note to user to replace with real ones.
+
+Media sample: only attach to 

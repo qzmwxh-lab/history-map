@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>光之足迹 · 宣教历史地图与属灵文旅</title>
+
+<!-- PWA 支持 -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#d4af6a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- 核心样式与字体依赖 -->
+<link rel="preconnect" href="https://fonts.font.im">
+<link href="https://fonts.font.im/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+
+<style>
+  :root {
+    --ink: #e8e0cf;
+    --inkd: #9a917c;
+    --bg-dark: #0b0e14;
+    --paper-dark: #12161f;
+    --line: rgba(212, 175, 106, 0.25);
+    --gold: #d4af6a;
+    --gold-bright: #f5d78e;
+    --gold-dark: #8a6d3b;
+    --font-display: 'Ma Shan Zheng', cursive;
+    --font-body: 'Noto Serif SC', serif;
+    --font-mono: 'Roboto Mono', monospace;
+    --sidebar-w: 340px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; font-family: var(--font-body); background: var(--bg-dark); color: var(--ink); overflow: hidden; }
+  button, input, textarea, select { font-family: var(--font-body); outline: none; }
+  button { cursor: pointer; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+
+  /* 地图与黑金调色滤镜 */
+  #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; background: #0b0e14; }
+  .dark-gold-tiles { filter: grayscale(90%) invert(98%) hue-rotate(180deg) brightness(90%) contrast(110%); }
+  .vig { position: absolute; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 160px 45px rgba(0,0,0,.85); }
+
+  /* 国界 Tooltip 专属美化样式 */
+  .ctip {
+    background: rgba(14, 17, 25, 0.95)!important;
+    border: 1px solid var(--gold-bright)!important;
+    color: var(--ink)!important;
+    box-shadow: 0 0 16px rgba(245, 215, 142, 0.4)!important;
+    border-radius: 6px!important;
+    padding: 8px 12px!important;
+    font-size: 12px!important;
+  }
+  .ctip b { color: var(--gold-bright); font-size: 13px; display: block; margin-bottom: 4px; border-bottom: 1px dashed var(--line); padding-bottom: 2px; }
+  .ctip p { margin: 0; line-height: 1.5; color: var(--inkd); max-width: 220px; white-space: normal; }
+
+  /* 加载状态徽章 */
+  #cLoad {
+    position: fixed; left: 20px; bottom: 20px; z-index: 400; font-size: 11px; color: var(--gold-bright);
+    background: rgba(14, 17, 25, 0.85); border: 1px solid var(--line); padding: 6px 12px; border-radius: 20px;
+    backdrop-filter: blur(6px); transition: opacity .6s; pointer-events: none;
+  }
+  #cLoad.ok { color: #2ecc71; border-color: #2ecc71; }
+  #cLoad.bye { opacity: 0; }
+
+  /* 顶栏 Header */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 400; display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; background: linear-gradient(180deg, rgba(8,10,16,.95), transparent); pointer-events: none;
+  }
+  #topbar > * { pointer-events: auto; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .mc { width: 18px; height: 26px; position: relative; filter: drop-shadow(0 0 6px rgba(245,215,142,.8)); }
+  .mc::before, .mc::after { content: ''; position: absolute; background: var(--gold-bright); left: 50%; transform: translateX(-50%); }
+  .mc::before { width: 3px; height: 100%; } .mc::after { width: 100%; height: 3px; top: 32%; }
+  .brand h2 { font-size: 16px; letter-spacing: .14em; color: var(--gold-bright); white-space: nowrap; font-family: var(--font-display); }
+  .brand .sub { font-size: 9px; color: var(--inkd); letter-spacing: .28em; display: block; }
+  
+  .tb {
+    background: rgba(18,22,31,.85); border: 1px solid var(--line); color: var(--ink); padding: 8px 13px;
+    border-radius: 3px; font-size: 12px; letter-spacing: .1em; transition: .3s; white-space: nowrap;
+  }
+  .tb:hover, .tb.on { border-color: var(--gold); color: var(--gold-bright); box-shadow: 0 0 14px rgba(212,175,106,.3); }
+
+  /* 左侧主控侧栏 */
+  #sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    background: rgba(14, 17, 25, 0.95); border-right: 1px solid var(--line);
+    box-shadow: 6px 0 24px rgba(0,0,0,.6); z-index: 450; display: flex; flex-direction: column;
+    backdrop-filter: blur(10px); transform: translateX(0); transition: transform .4s cubic-bezier(.22,.61,.36,1);
+  }
+  #sidebar.collapsed { transform: translateX(-100%); }
+  #sidebar .sb-header { padding: 60px 20px 16px; border-bottom: 1px solid var(--line); }
+  #sidebar h1 { font-family: var(--font-display); font-size: 28px; color: var(--gold-bright); margin-bottom: 4px; }
+  #sidebar .sb-sub { font-size: 11px; color: var(--inkd); margin-bottom: 12px; }
+
+  #ranking-wrap { flex: 1; overflow-y: auto; padding: 10px 0; }
+  #ranking-list { list-style: none; }
+  #ranking-list li {
+    display: flex; align-items: center; gap: 10px; padding: 12px 20px; cursor: pointer;
+    border-bottom: 1px solid rgba(212, 175, 106, 0.1); transition: background .2s;
+  }
+  #ranking-list li:hover, #ranking-list li.active { background: rgba(212, 175, 106, 0.15); }
+  #ranking-list .num { font-family: var(--font-mono); font-size: 12px; color: var(--gold); min-width: 28px; }
+  #ranking-list .name { flex: 1; font-size: 14px; color: var(--ink); }
+
+  /* 十架 Marker 与发光诞生特效 */
+  .mkw { background: none!important; border: none!important; }
+  .mk { position: relative; width: 44px; height: 44px; cursor: pointer; transition: opacity .6s ease, transform .6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .mk.off { opacity: 0; transform: scale(0.1); pointer-events: none; }
+  .mk .rp { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(245,215,142,.75); animation: rip 2.6s ease-out infinite; }
+  .mk .r2 { animation-delay: 1.3s; }
+  @keyframes rip { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(1.7); opacity: 0; } }
+  
+  .mk.born { animation: bornHalo 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .mk.born::before {
+    content: ''; position: absolute; inset: -15px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,215,142,0.95) 0%, rgba(212,175,106,0) 70%);
+    animation: burst 1.2s ease-out forwards;
+  }
+  @keyframes bornHalo { 0% { transform: scale(0.2); } 50% { transform: scale(1.6); } 100% { transform: scale(1.0); } }
+  @keyframes burst { 0% { opacity: 1; transform: scale(0.3); } 100% { opacity: 0; transform: scale(2.2); } }
+
+  .mk .cx { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 0 8px rgba(245,215,142,.95)); }
+  .mk i { position: absolute; background: linear-gradient(180deg,var(--gold-bright),var(--gold)); left: 50%; top: 50%; transform: translate(-50%,-50%); border-radius: 2px; display: block; }
+  .mk .v { width: 4px; height: 26px; } .mk .h { width: 17px; height: 4px; top: 38%; }
+  .mk .lb { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; color: var(--gold-bright); text-shadow: 0 1px 4px #000; opacity: 0; transition: .3s; }
+  .mk:hover .lb { opacity: 1; }
+
+  /* 路线流光轨迹 */
+  .rt-glow { filter: drop-shadow(0 0 8px var(--gold-bright)); }
+  .rt-path { stroke-dasharray: 8 12; animation: flow 12s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset: -1000; } }
+  .spark-m { pointer-events: none; background: none!important; border: none!important; }
+  .spark { width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 0 14px #fff, 0 0 28px var(--gold-bright); animation: sparkle 1s infinite alternate; }
+  @keyframes sparkle { 0% { transform: scale(0.7); } 100% { transform: scale(1.3); } }
+
+  /* 路线面板 */
+  #routePanel {
+    position: fixed; left: 16px; top: 68px; z-index: 450; width: 340px; max-height: 80vh; overflow-y: auto;
+    background: rgba(14, 17, 25, 0.95); border: 1px solid var(--line); border-radius: 6px;
+    padding: 16px; backdrop-filter: blur(10px); display: none; box-shadow: 0 8px 30px rgba(0,0,0,.6);
+  }
+  .route-item {
+    padding: 10px; background: rgba(255,255,255,.03); border: 1px solid transparent; border-radius: 4px;
+    margin-top: 8px; cursor: pointer; transition: .3s; display: flex; align-items: center; justify-content: space-between;
+  }
+  .route-item:hover, .route-item.active { border-color: var(--gold); background: rgba(212,175,106,.12); }
+  .route-actions { display: flex; gap: 6px; }
+  .route-btn { background: none; border: 1px solid var(--line); color: var(--ink); padding: 2px 6px; font-size: 10px; border-radius: 3px; }
+  .route-btn:hover { border-color: var(--gold-bright); color: var(--gold-bright); }
+
+  /* 底部年代播放时空轴 */
+  #tl {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; z-index: 500; width: min(920px, 94vw);
+    background: rgba(11,14,20,.96); border: 1px solid var(--line); border-bottom: none; padding: 16px 24px 12px;
+    border-radius: 12px 12px 0 0; display: none; flex-direction: column; gap: 12px; backdrop-filter: blur(10px);
+    box-shadow: 0 -10px 30px rgba(0,0,0,.8);
+  }
+  .tl-hd { display: flex; align-items: center; justify-content: space-between; }
+  .tl-info { text-align: center; }
+  .tl-info .y-val { font-size: 22px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-mono); letter-spacing: 2px; }
+  .tl-info .e-val { font-size: 11px; color: var(--inkd); margin-top: 2px; letter-spacing: 1px; }
+  .tl-track { display: flex; align-items: center; gap: 14px; }
+  .tl-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: rgba(212,175,106,.2); border-radius: 2px; outline: none; cursor: pointer; }
+  .tl-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--gold-bright); cursor: pointer; box-shadow: 0 0 10px var(--gold-bright); transition: transform .2s; }
+  .tl-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+  .tl-eras { display: flex; justify-content: space-between; gap: 6px; overflow-x: auto; padding-top: 4px; }
+  .tl-era-chip { font-size: 11px; color: var(--inkd); background: rgba(255,255,255,.04); border: 1px solid var(--line); padding: 3px 10px; border-radius: 12px; cursor: pointer; transition: .3s; white-space: nowrap; }
+  .tl-era-chip:hover, .tl-era-chip.on { background: var(--gold); color: #000; font-weight: bold; border-color: var(--gold-bright); box-shadow: 0 0 8px rgba(245,215,142,.4); }
+
+  /* 地图右上角实时年代悬浮看板 */
+  #eraBadge {
+    position: fixed; top: 60px; right: 20px; z-index: 400; background: rgba(14,17,25,.9);
+    border: 1px solid var(--line); border-radius: 6px; padding: 10px 16px; text-align: right;
+    backdrop-filter: blur(8px); display: none; pointer-events: none;
+  }
+  #eraBadge .ey { font-size: 20px; font-weight: bold; color: var(--gold-bright); font-family: var(--font-mono); }
+  #eraBadge .en { font-size: 11px; color: var(--inkd); margin-top: 2px; }
+  #eraBadge .ec { font-size: 10px; color: var(--gold); margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px; }
+
+  /* 右侧多媒体抽屉 */
+  #drawer {
+    position: fixed; top: 0; right: -480px; bottom: 0; z-index: 600; width: min(480px, 100vw);
+    background: rgba(14,17,25,.96); border-left: 1px solid var(--line); padding: 20px; transition: .4s ease;
+    overflow-y: auto; backdrop-filter: blur(10px);
+  }
+  #drawer.open { right: 0; }
+  .media-box { margin-top: 12px; background: rgba(0,0,0,.4); border: 1px solid var(--line); padding: 10px; border-radius: 4px; }
+  #vr-panorama { width: 100%; height: 220px; border-radius: 4px; margin-top: 6px; }
+
+  /* 文件上传控件样式 */
+  .file-uploader {
+    display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--inkd);
+    background: rgba(0,0,0,.2); border: 1px dashed var(--line); padding: 8px 10px; border-radius: 4px;
+  }
+  .file-uploader input[type="file"] { font-size: 11px; color: var(--gold-bright); }
+
+  /* 弹窗通用样式 */
+  .modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.82); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; }
+  .modal-box { background: var(--paper-dark); border: 1px solid var(--gold); width: min(680px, 94vw); max-height: 85vh; border-radius: 8px; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.9); overflow: hidden; }
+  .modal-hd { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .modal-bd { padding: 20px; overflow-y: auto; flex: 1; }
+  .input-style { background: var(--bg-dark); border: 1px solid var(--line); color: #fff; padding: 8px 12px; border-radius: 4px; width: 100%; font-size: 12px; }
+  .btn-gold { background: linear-gradient(180deg,var(--gold-bright),var(--gold)); border: none; color: #000; padding: 8px 16px; font-weight: bold; border-radius: 4px; }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    #drawer { top: auto; left: 0; right: 0; bottom: -100%; width: 100%; max-height: 80vh; border-left: none; border-top: 1px solid var(--line); }
+    #drawer.open { bottom: 0; right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+<div class="vig"></div>
+<div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
+
+<!-- 地图右上角实时年代看板 -->
+<div id="eraBadge">
+  <div class="ey">公元 <span id="eBadgeYear">2026</span> 年</div>
+  <div class="en" id="eBadgeName">现代宣教</div>
+  <div class="ec">已建立宣教点位: <span id="eBadgeCount" style="color:#fff;font-weight:bold">0</span> 个</div>
+</div>
+
+<!-- 顶栏导航 -->
+<div id="topbar">
+  <div class="brand">
+    <div class="mc"></div>
+    <div><h2>光之足迹 · 宣教历史地图</h2><span class="sub">MISSIONARY ATLAS</span></div>
+  </div>
+  <button class="tb" id="bToggleSidebar">☰ 目录</button>
+  <button class="tb" id="bR">✦ 路线规划与特效</button>
+  <button class="tb" id="bT">✦ 时空轴</button>
+  <button class="tb" id="bAuth">👤 会员登录</button>
+  <button class="tb" id="bSubmit" style="display:none">➕ 提交点位</button>
+  <button class="tb" id="bAdmin" style="display:none">⚙ 超级审核后台</button>
+</div>
+
+<!-- 左侧点位目录 -->
+<aside id="sidebar" class="collapsed">
+  <div class="sb-header">
+    <h1>拓荒者足迹</h1>
+    <p class="sb-sub">数字化智慧宣教历史轨迹记录</p>
+  </div>
+  <div id="ranking-wrap">
+    <ul id="ranking-list"></ul>
+  </div>
+</aside>
+
+<!-- 路线规划面板 -->
+<div id="routePanel">
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px">
+    <h3 style="color:var(--gold-bright);font-size:14px">✦ 宣教路线规划与特效</h3>
+    <button onclick="document.getElementById('routePanel').style.display='none'" style="background:none;border:none;color:#fff">×</button>
+  </div>
+  
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="font-size:12px">流光动画特效开关</span>
+    <button id="btnToggleRouteAnim" class="btn-gold" style="padding:4px 10px;font-size:11px">关闭流光特效</button>
+  </div>
+
+  <div id="routeList"></div>
+
+  <div id="superAdminRouteEdit" style="display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--gold-bright)" id="routeEditTitle">⚙ 超级管理员路线修改</div>
+      <button onclick="APP.resetRouteForm()" class="route-btn" style="color:var(--gold-bright);border-color:var(--gold)">➕ 新建路线</button>
+    </div>
+    <input type="hidden" id="editRouteId">
+    <input type="text" id="editRouteName" class="input-style" placeholder="路线名称 (例: 戴德生内陆拓荒线)" style="margin-bottom:6px">
+    <input type="text" id="editRoutePts" class="input-style" placeholder="关联站点ID (例如: gz, mlc, sh)" style="margin-bottom:6px">
+    <button onclick="APP.saveRouteConfig()" class="btn-gold" style="width:100%;font-size:11px">保存路线配置</button>
+  </div>
+</div>
+
+<!-- 底部年代时空轴 -->
+<div id="tl">
+  <div class="tl-hd">
+    <button id="btnPlay" style="background:var(--gold-bright);border:none;width:36px;height:36px;border-radius:50%;font-weight:bold;font-size:16px;box-shadow:0 0 10px rgba(245,215,142,.4)">▶</button>
+    <div class="tl-info">
+      <div class="y-val">公元 <span id="tYear">2026</span> 年</div>
+      <div class="e-val" id="tEraText">现代宣教时期</div>
+    </div>
+    <button id="btnCloseTl" style="background:none;border:none;color:#fff;font-size:20px">×</button>
+  </div>
+  <div class="tl-track">
+    <span style="font-size:11px;color:var(--inkd)">600</span>
+    <input type="range" class="tl-slider" id="tSlider" min="600" max="2026" value="2026">
+    <span style="font-size:11px;color:var(--inkd)">2026</span>
+  </div>
+  <div class="tl-eras" id="tErasContainer"></div>
+</div>
+
+<!-- 右侧富媒体抽屉 -->
+<div id="drawer">
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px">
+    <h3 id="dWTitle" style="color:var(--gold-bright);font-size:16px">详情</h3>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="drawerAdminBtns" style="display:none;gap:6px">
+        <button onclick="APP.editCurrentPointFromDrawer()" class="route-btn" style="color:var(--gold-bright);border-color:var(--gold)">✏️ 编辑</button>
+        <button onclick="APP.deleteCurrentPointFromDrawer()" class="route-btn" style="color:#e74c3c;border-color:#e74c3c">🗑️ 删除</button>
+      </div>
+      <button onclick="document.getElementById('drawer').classList.remove('open')" style="background:none;border:none;color:#fff;font-size:20px">×</button>
+    </div>
+  </div>
+  <div id="dWBody"></div>
+</div>
+
+<!-- 会员登录 / 注册 Modal -->
+<div id="authModal" class="modal">
+  <div class="modal-box" style="width:min(380px,90vw)">
+    <div class="modal-hd"><h3 style="color:var(--gold-bright);font-size:15px">会员登录 / 注册</h3><button onclick="document.getElementById('authModal').style.display='none'" style="background:none;border:none;color:#fff">×</button></div>
+    <div class="modal-bd">
+      <form id="authForm" style="display:flex;flex-direction:column;gap:12px">
+        <input type="email" id="authEmail" class="input-style" placeholder="邮箱账号" required>
+        <input type="password" id="authPass" class="input-style" placeholder="密码" required>
+        
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--inkd);cursor:pointer;user-select:none;">
+          <input type="checkbox" id="rememberMe" style="accent-color:var(--gold);"> 记住账号密码（下次自动填充）
+        </label>
+
+        <div style="display:flex;gap:10px;margin-top:6px">
+          <button type="button" onclick="APP.handleAuth('login')" class="btn-gold" style="flex:1">登录</button>
+          <button type="button" onclick="APP.handleAuth('register')" style="flex:1;background:none;border:1px solid var(--line);color:var(--ink)" class="btn-gold">注册会员</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 提交/管理 Modal -->
+<div id="adminModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3 style="color:var(--gold-bright);font-size:16px" id="modalTitle">宣教数据中心</h3>
+      <button onclick="document.getElementById('adminModal').style.display='none'" style="background:none;border:none;color:#fff">×</button>
+    </div>
+    <div class="modal-bd">
+      <div style="display:flex;gap:10px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:10px">
+        <button class="tb on" id="tab1Btn" onclick="APP.switchTab('form')">提交/修改坐标点位</button>
+        <button class="tb" id="tab2Btn" onclick="APP.switchTab('list')">超级审核管理后台</button>
+      </div>
+
+      <form id="pointForm" style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+        <input type="hidden" id="afId">
+        <div style="display:flex;gap:10px">
+          <input type="text" id="afN" class="input-style" placeholder="地点名称 (例: 广州 · 十三行)" required>
+          <input type="text" id="afW" class="input-style" placeholder="先驱人物 (例: 马礼逊)" required>
+        </div>
+        <div style="display:flex;gap:10px">
+          <input type="number" id="afY" class="input-style" placeholder="年份 (例: 1807)" required>
+          <input type="text" id="afC" class="input-style" placeholder="点击地图拾取坐标" readonly style="color:var(--gold-bright)">
+        </div>
+        <textarea id="afD" class="input-style" placeholder="历史简介考证故事..." style="height:60px"></textarea>
+
+        <div style="border-top:1px dashed var(--line);padding-top:10px;margin-top:6px">
+          <div style="color:var(--gold-bright);margin-bottom:8px">📁 本地多媒体文件直传（支持图片、MP3、MP4、VR全景、文档）</div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="file-uploader">
+              <span>🖼️ 封面图片文件:</span>
+              <input type="file" id="fileImg" accept="image/*">
+            </div>
+            
+            <div class="file-uploader">
+              <span>🎵 音频文件 (.mp3 / .wav):</span>
+              <input type="file" id="fileAudio" accept="audio/*">
+            </div>
+
+            <div class="file-uploader">
+              <span>🎬 视频文件 (.mp4):</span>
+              <input type="file" id="fileVideo" accept="video/*">
+            </div>
+
+            <div class="file-uploader">
+              <span>🥽 VR 360全景图像:</span>
+              <input type="file" id="fileVR" accept="image/*">
+            </div>
+          </div>
+
+          <div class="file-uploader" style="margin-top:10px">
+            <span>📄 历史考证文档 (.pdf / .txt):</span>
+            <input type="file" id="fileDoc" accept=".pdf, .txt, .docx">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-gold" style="margin-top:10px">保存点位数据</button>
+      </form>
+
+      <div id="auditList" style="display:none">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="color:var(--gold-bright);text-align:left"><th style="padding:8px">名称</th><th>人物</th><th>状态</th><th>超级管理员操作</th></tr></thead>
+          <tbody id="auditTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 脚本依赖 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const SUPER_ADMIN_EMAIL = '440032005@qq.com'; 
+  const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
+  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const isCloudMode = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+  const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+  window.APP = {
+    user: null,
+    isSuperAdmin: false,
+    markers: {},
+    visibleState: {},
+    routeAnimFrame: null,
+    enableRouteAnim: true,
+    activeRouteId: 'r4', // 默认选中西南少数民族宣教线路
+    currentPoint: null,
+    // 包含最新追加的【保山清华教堂富能仁墓】在内的全量点位数据库
+    points: [
+      {id:'xian_daqin', n:'西安 · 大秦寺塔', w:'阿罗本', y:635, la:34.05, ln:108.88, d:'635年阿罗本抵长安，唐太宗敕建大秦寺，开启福音首次系统入华。', status:'approved', vr360_url:'https://pannellum.org/images/alma.jpg'},
+      {id:'turpan', n:'吐鲁番 · 高昌古城教堂遗址', w:'西域景教僧侣', y:700, la:42.85, ln:89.52, d:'古代丝绸之路景教重镇，出土大量叙利亚文圣经残页与壁画。', status:'approved'},
+      {id:'zhaoqing', n:'肇庆 · 娗香阁', w:'利玛窦', y:1583, la:23.05, ln:112.47, d:'1583年利玛窦由澳门入境肇庆，建立中国大陆第一座天主教堂。', status:'approved'},
+      {id:'macau', n:'澳门 · 大三巴', w:'范礼安 / 罗明坚', y:1594, la:22.197, ln:113.54, d:'远东第一所西式大学，明清时期宣教士进入大陆的前哨基地。', status:'approved'},
+      {id:'bj', n:'北京 · 利玛窦墓', w:'利玛窦', y:1601, la:39.9, ln:116.4, d:'1601年利玛窦入京觐见万历帝，以学术科学架起交流桥梁。', status:'approved'},
+      {id:'shanghai_xujiahui', n:'上海 · 徐家汇圣母院', w:'徐光启 / 利玛窦', y:1608, la:31.19, ln:121.43, d:'明代内阁重臣徐光启受洗后建立的宣教与西学东渐中心。', status:'approved'},
+      {id:'gz', n:'广州 · 十三行', w:'马礼逊 (Robert Morrison)', y:1807, la:23.13, ln:113.26, d:'1807年马礼逊抵穗隐居译经，按立第一位华人牧师。', status:'approved'},
+      {id:'mlc', n:'马六甲 · 英华书院', w:'米怜 (William Milne)', y:1818, la:2.2, ln:102.25, d:'1818年创办英华书院，集教育、印刷与宣教于一体。', status:'approved'},
+      {id:'sh', n:'上海 · 墨海书馆', w:'麦都思 (Walter Henry Medhurst)', y:1843, la:31.23, ln:121.47, d:'1843年设墨海书馆，上海逐步成为宣教与出版枢纽。', status:'approved'},
+      {id:'fuzhou', n:'福州 · 仓山保福堂', w:'麦利和', y:1847, la:26.04, ln:119.31, d:'美以美会在华宣教大本营，创办学校并推动福建各地事工。', status:'approved'},
+      {id:'ningbo', n:'宁波 · 桥头街礼拜堂', w:'戴德生 (Hudson Taylor)', y:1854, la:29.87, ln:121.54, d:'1854年戴德生抵宁波换穿华人服饰布道，为创内地会奠基。', status:'approved'},
+      {id:'hz', n:'杭州 · 天水堂', w:'戴德生', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', status:'approved'},
+      {id:'wenzhou', n:'温州 · 城西堂', w:'曹雅直 (George Stott)', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', status:'approved'},
+      {id:'taiyuan', n:'太原 · 浸信会宣教站', w:'李提摩太 (Timothy Richard)', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', status:'approved'},
+      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', w:'李德立 (Edward Selby Little)', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', status:'approved'},
+      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', w:'李立生 (Daniel Nelson)', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', status:'approved'},
+      {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', w:'伯格理 (Samuel Pollard)', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', status:'approved'},
+      {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', w:'倪柝声', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', status:'approved'},
+      {id:'moganshan', n:'德清 · 莫干山疗养古堡', w:'梅滕更 (Duncan Main)', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', status:'approved'},
+      {id:'dali', n:'大理 · 崇圣寺旁宣教点', w:'富能仁 (James O. Fraser)', y:1910, la:25.70, ln:100.15, d:'富能仁深入滇西北山区创制傈僳文字，促成滇西北少数民族大规模归主。', status:'approved'},
+      {id:'baoshan_qinghua', n:'保山 · 清华教堂（富能仁墓）', w:'富能仁 (James O. Fraser)', y:1938, la:25.1012, ln:99.1585, d:'傈僳族使徒富能仁牧师1938年于保山安息。其遗骨安葬于保山市隆阳区清华教堂院内，墓碑以傈僳文、中文、英文三种文字撰刻纪念。', status:'approved'},
+      {id:'wuding_sapushan', n:'武定 · 洒普山', w:'王志明 (Wang Zhiming)', y:1944, la:25.53, ln:102.40, d:'滇北苗族教会领袖。王志明牧师一生服事少数民族同胞，其雕像1998年立于英国伦敦西敏寺大教堂。', status:'approved'}
+    ],
+    // 包含了更新后的【西南少数民族拓荒与文化复兴线】
+    routes: [
+      { id: 'r1', name: '马礼逊译经与东亚传播线', pts: ['gz', 'mlc', 'sh'] },
+      { id: 'r2', name: '利玛窦西学东渐与京畿线', pts: ['macau', 'zhaoqing', 'shanghai_xujiahui', 'bj'] },
+      { id: 'r3', name: '戴德生内地会内陆拓荒线', pts: ['ningbo', 'hz', 'wenzhou', 'taiyuan'] },
+      { id: 'r4', name: '西南少数民族拓荒与文化复兴线', pts: ['dali', 'baoshan_qinghua', 'shimankan', 'wuding_sapushan'] },
+      { id: 'r5', name: '四大名山宣教避暑与研讨线', pts: ['jigongshan', 'lushan_guling', 'fuzhou_guling', 'moganshan'] }
+    ]
+  };
+
+  APP.ERAS = [
+    { y: 635, n: '唐朝景教时期' },
+    { y: 1580, n: '明末天主教传播' },
+    { y: 1807, n: '晚清福音入华' },
+    { y: 1865, n: '内地会内陆拓荒' },
+    { y: 1900, n: '民国教务蓬勃时期' },
+    { y: 2026, n: '现代宣教时代' }
+  ];
+
+  // 地图初始化
+  const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView([25.5, 101.5], 6);
+  L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+    subdomains: ['1', '2', '3', '4'], maxZoom: 18, className: 'dark-gold-tiles'
+  }).addTo(map);
+  APP.map = map;
+
+  // 点击拾取坐标
+  let clickLatLng = null;
+  map.on('click', (e) => {
+    clickLatLng = e.latlng;
+    const afC = document.getElementById('afC');
+    if(afC) afC.value = `${clickLatLng.lat.toFixed(4)}, ${clickLatLng.lng.toFixed(4)}`;
+  });
+
+  // 加载全球国界与宣教 Tooltip
+  (function initCountries(){
+    const map = APP.map;
+    if(!map) return;
+    const badge = document.getElementById('cLoad');
+
+    const CB = {
+      'China':['中国','635年景教入长安；1807年马礼逊来华；戴德生创内地会。'],
+      'India':['印度','相传多马1世纪抵马拉巴海岸；近代威廉·克理译经办学。'],
+      'Japan':['日本','1549年沙勿略登陆鹿儿岛；禁教时代隐匿信徒坚守250年。'],
+      'Korea':['韩国','1884年新教传入；1907年平壤大复兴，以祷告之国著称。'],
+      'United Kingdom':['英国','近代宣教运动发源地，差出马礼逊、戴德生等先驱。'],
+      'United States of America':['美国','19世纪学生志愿运动兴起，差会网络遍及全球。'],
+      'Germany':['德国','敬虔主义孕育莫拉维亚弟兄会，1732年起差派海外。'],
+      'France':['法国','巴黎外方传教会深耕东南亚；修会在华办学兴医。'],
+      'Italy':['意大利','利玛窦、汤若望等耶稣会士由此启程来华。'],
+      'Portugal':['葡萄牙','1557年定居澳门，成为天主教入华门户。'],
+      'Spain':['西班牙','沙勿略由此启程赴东方；修会进入菲律宾与拉美。'],
+      'Netherlands':['荷兰','改革宗1627年随东印度公司进入台湾与印尼。'],
+      'Israel':['以色列','福音发源地；耶路撒冷——教会诞生之城。'],
+      'Egypt':['埃及','马可开创亚历山大教会；沙漠修道运动发源地。'],
+      'Ethiopia':['埃塞俄比亚','徒8章埃提阿伯太监受洗；4世纪奉基督教为国教。'],
+      'Turkey':['土耳其','保罗故乡大数；安提阿首称基督徒；七教会所在。'],
+      'Russia':['俄罗斯','988年罗斯受洗；东正教宣教士19世纪抵北京。'],
+      'Brazil':['巴西','天主教根基深厚，近代福音派增长全球最快之一。'],
+      'Philippines':['菲律宾','1521年十字架抵宿务，亚洲最大天主教国家。'],
+      'Vietnam':['越南','17世纪耶稣会士创制国语字；信徒历逼迫持守见证。'],
+      'Thailand':['泰国','1828年新教抵曼谷，医疗与教育宣教深耕。'],
+      'Myanmar':['缅甸','1813年耶德逊译缅文圣经，克伦族山区大复兴。'],
+      'Indonesia':['印度尼西亚','19世纪荷兰差会拓荒爪哇与巴布亚群岛。'],
+      'Australia':['澳大利亚','1788年建立圣公会，后为太平洋差传基地。'],
+      'Canada':['加拿大','17世纪耶稣会士赴新法兰西，于原住民中布道。']
+    };
+    const DEF = n => ['', n+'：该国宣教史料持续整理中，后续可通过后台录入补充本地教会见证。'];
+
+    const baseStyle = () => ({ color:'rgba(212,175,106,.28)', weight:.6, fillColor:'#d4af6a', fillOpacity:.04 });
+    const hovStyle = () => ({ color:'#f5d78e', weight:1.5, fillColor:'#d4af6a', fillOpacity:.16 });
+
+    const URLS = [
+      'https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json',
+      'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'
+    ];
+    (async ()=>{
+      let gj = null;
+      for(const u of URLS){
+        try{ const r = await fetch(u); if(r.ok){ gj = await r.json(); break; } }catch(e){}
+      }
+      if(!gj){
+        badge.textContent = '✦ 国界数据加载失败（需联网），不影响后续点位功能';
+        badge.classList.add('ok');
+        setTimeout(()=>badge.classList.add('bye'), 5000);
+        return;
+      }
+
+      const layer = L.geoJSON(gj, {
+        style: baseStyle,
+        onEachFeature:(f, ly)=>{
+          const en = (f.properties && f.properties.name) || '';
+          const [cn, brief] = CB[en] || DEF(en || '未知地区');
+          ly.bindTooltip(
+            '<b>' + (cn ? cn + ' · ' : '') + en + '</b><p>' + brief + '</p>',
+            {sticky:true, className:'ctip', direction:'top', opacity:1}
+          );
+          ly.on('mouseover', e=>{
+            const t = e.propagatedFrom || e.target;
+            t.setStyle(hovStyle());
+            if(t.bringToFront) t.bringToFront();
+          });
+          ly.on('mouseout', e=>{
+            const t = e.propagatedFrom || e.target;
+            t.setStyle(baseStyle());
+          });
+          ly.on('click', e=>{
+            const t = e.propagatedFrom || e.target;
+            t.setStyle(hovStyle());
+            setTimeout(()=> t.setStyle(baseStyle()), 1600);
+          });
+        }
+      }).addTo(map);
+
+      APP.countries = layer;
+      badge.textContent = '✦ 全球国界与宣教数据已载入';
+      badge.classList.add('ok');
+      setTimeout(()=>badge.classList.add('bye'), 3500);
+    })();
+  })();
+
+  // Marker 渲染
+  const mkHtml = p => `<div class="mk" id="mk_${p.id}"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${p.n.split('·')[0].trim()}</div></div>`;
+
+  APP.renderAll = () => {
+    Object.values(APP.markers).forEach(m => map.removeLayer(m));
+    APP.markers = {};
+    APP.visibleState = {};
+
+    const listEl = document.getElementById('ranking-list');
+    listEl.innerHTML = '';
+
+    const activePoints = APP.points.filter(p => p.status === 'approved');
+
+    activePoints.forEach((p, idx) => {
+      const icon = L.divIcon({ className:'mkw', html:mkHtml(p), iconSize:[44,44], iconAnchor:[22,22] });
+      const m = L.marker([p.la, p.ln], {icon}).addTo(map);
+      m.bindTooltip(`<b>${p.n}</b> (${p.y}年)`, {direction:'top'});
+      m.on('click', () => {
+        map.flyTo([p.la, p.ln], 8, {duration:1.2});
+        APP.openDrawer(p);
+      });
+      APP.markers[p.id] = m;
+      APP.visibleState[p.id] = true;
+
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="num">${String(idx + 1).padStart(2,'0')}</span><span class="name">${p.n} (${p.y}年)</span>`;
+      li.onclick = () => {
+        map.flyTo([p.la, p.ln], 8, {duration:1.2});
+        APP.openDrawer(p);
+      };
+      listEl.appendChild(li);
+    });
+
+    APP.renderRouteList();
+  };
+
+  // 抽屉详情展示
+  APP.openDrawer = (p) => {
+    APP.currentPoint = p;
+    document.getElementById('dWTitle').innerText = p.n;
+
+    const adminBtns = document.getElementById('drawerAdminBtns');
+    if(adminBtns) adminBtns.style.display = APP.isSuperAdmin ? 'flex' : 'none';
+
+    let html = `
+      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px">✦ 先驱人物：${p.w} (${p.y}年)</div>
+      <p style="font-size:12px;line-height:1.7;color:var(--inkd);margin-bottom:12px">${p.d}</p>
+    `;
+
+    if(p.img) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🖼️ 现场图景</div><img src="${p.img}" style="width:100%;max-height:200px;object-fit:cover;border-radius:4px"></div>`;
+    if(p.audio_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎵 原声解说 / 录音</div><audio controls style="width:100%;height:32px"><source src="${p.audio_url}"></audio></div>`;
+    if(p.video_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎬 历史影像 / 纪录片</div><video controls style="width:100%;max-height:220px"><source src="${p.video_url}"></video></div>`;
+    if(p.vr360_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 VR 360° 沉浸全景</div><div id="vr-panorama"></div></div>`;
+    if(p.doc_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">📄 关联考证文档</div><iframe src="${p.doc_url}" style="width:100%;height:220px;border:none"></iframe></div>`;
+
+    document.getElementById('dWBody').innerHTML = html;
+    document.getElementById('drawer').classList.add('open');
+
+    if(p.vr360_url) {
+      setTimeout(() => { pannellum.viewer('vr-panorama', { type: 'equirectangular', panorama: p.vr360_url, autoLoad: true }); }, 300);
+    }
+  };
+
+  // 抽屉内编辑当前点位
+  APP.editCurrentPointFromDrawer = () => {
+    if(!APP.currentPoint) return;
+    const p = APP.currentPoint;
+    document.getElementById('adminModal').style.display = 'flex';
+    APP.switchTab('form');
+
+    document.getElementById('afId').value = p.id;
+    document.getElementById('afN').value = p.n;
+    document.getElementById('afW').value = p.w;
+    document.getElementById('afY').value = p.y;
+    document.getElementById('afC').value = `${p.la}, ${p.ln}`;
+    clickLatLng = { lat: p.la, lng: p.ln };
+    document.getElementById('afD').value = p.d || '';
+  };
+
+  // 抽屉内删除当前点位
+  APP.deleteCurrentPointFromDrawer = () => {
+    if(!APP.currentPoint) return;
+    APP.deletePoint(APP.currentPoint.id);
+    document.getElementById('drawer').classList.remove('open');
+  };
+
+  // 路线管理
+  APP.renderRouteList = () => {
+    const rContainer = document.getElementById('routeList');
+    rContainer.innerHTML = APP.routes.map(r => `
+      <div class="route-item ${APP.activeRouteId === r.id ? 'active' : ''}" onclick="APP.selectRoute('${r.id}')">
+        <div>
+          <div style="font-size:12px;color:var(--gold-bright);font-weight:bold">${r.name}</div>
+          <div style="font-size:10px;color:var(--inkd);margin-top:2px">包含站点: ${r.pts.join(' ➔ ')}</div>
+        </div>
+        ${APP.isSuperAdmin ? `
+          <div class="route-actions" onclick="event.stopPropagation()">
+            <button class="route-btn" onclick="APP.editRoute('${r.id}')">编辑</button>
+            <button class="route-btn" style="color:#e74c3c" onclick="APP.deleteRoute('${r.id}')">删除</button>
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+  };
+
+  APP.selectRoute = (rid) => {
+    APP.activeRouteId = rid;
+    APP.renderRouteList();
+    APP.drawRoute(rid);
+  };
+
+  APP.drawRoute = (rid) => {
+    if(APP.routeAnimFrame) cancelAnimationFrame(APP.routeAnimFrame);
+    if(APP.routeLayer) map.removeLayer(APP.routeLayer);
+
+    const r = APP.routes.find(x => x.id === rid);
+    if(!r) return;
+
+    const latlngs = r.pts.map(pid => {
+      const p = APP.points.find(pt => pt.id === pid && pt.status === 'approved');
+      return p ? [p.la, p.ln] : null;
+    }).filter(Boolean);
+
+    if(latlngs.length < 2) return;
+
+    APP.routeLayer = L.featureGroup().addTo(map);
+    L.polyline(latlngs, {color:'var(--gold-bright)', weight:4, opacity:0.4, className: APP.enableRouteAnim ? 'rt-glow' : ''}).addTo(APP.routeLayer);
+    
+    const path = L.polyline(latlngs, {color:'#fff', weight:2, className: APP.enableRouteAnim ? 'rt-path' : ''}).addTo(APP.routeLayer);
+    map.flyToBounds(path.getBounds(), {padding:[50,50], duration:1.2});
+
+    if(APP.enableRouteAnim) {
+      const spark = L.marker(latlngs[0], {icon:L.divIcon({className:'spark-m', html:'<div class="spark"></div>', iconSize:[14,14]})}).addTo(APP.routeLayer);
+      let st = null;
+      const anim = (t) => {
+        if(!st) st = t;
+        const pct = Math.min((t - st)/4500, 1);
+        spark.setLatLng([latlngs[0][0]+(latlngs[1][0]-latlngs[0][0])*pct, latlngs[0][1]+(latlngs[1][1]-latlngs[0][1])*pct]);
+        if(pct < 1) APP.routeAnimFrame = requestAnimationFrame(anim);
+        else setTimeout(()=> { st=null; APP.routeAnimFrame = requestAnimationFrame(anim); }, 1000);
+      };
+      APP.routeAnimFrame = requestAnimationFrame(anim);
+    }
+  };
+
+  document.getElementById('btnToggleRouteAnim').onclick = () => {
+    APP.enableRouteAnim = !APP.enableRouteAnim;
+    document.getElementById('btnToggleRouteAnim').innerText = APP.enableRouteAnim ? '关闭流光特效' : '开启流光特效';
+    if(APP.activeRouteId) APP.drawRoute(APP.activeRouteId);
+  };
+
+  document.getElementById('bR').onclick = () => {
+    const rp = document.getElementById('routePanel');
+    const isShow = rp.style.display === 'block';
+    rp.style.display = isShow ? 'none' : 'block';
+    if(!isShow && APP.activeRouteId) APP.drawRoute(APP.activeRouteId);
+  };
+
+  APP.editRoute = (rid) => {
+    const r = APP.routes.find(x => x.id === rid);
+    if(!r) return;
+    document.getElementById('editRouteId').value = r.id;
+    document.getElementById('editRouteName').value = r.name;
+    document.getElementById('editRoutePts').value = r.pts.join(', ');
+    document.getElementById('routeEditTitle').innerText = '⚙ 编辑路线: ' + r.name;
+  };
+
+  APP.deleteRoute = (rid) => {
+    if(!APP.isSuperAdmin) return alert('权限不足！只有超级管理员可以删除路线。');
+    if(!confirm('确定要删除这条路线规划吗？')) return;
+
+    APP.routes = APP.routes.filter(r => r.id !== rid);
+    if(APP.activeRouteId === rid) {
+      APP.activeRouteId = APP.routes.length > 0 ? APP.routes[0].id : null;
+    }
+    APP.renderRouteList();
+    if(APP.activeRouteId) APP.drawRoute(APP.activeRouteId);
+    else if(APP.routeLayer) map.removeLayer(APP.routeLayer);
+  };
+
+  APP.resetRouteForm = () => {
+    document.getElementById('editRouteId').value = '';
+    document.getElementById('editRouteName').value = '';
+    document.getElementById('editRoutePts').value = '';
+    document.getElementById('routeEditTitle').innerText = '➕ 新建宣教路线';
+  };
+
+  APP.saveRouteConfig = () => {
+    if(!APP.isSuperAdmin) return alert('只有超级管理员可以修改路线配置！');
+    const id = document.getElementById('editRouteId').value;
+    const name = document.getElementById('editRouteName').value.trim();
+    const ptsStr = document.getElementById('editRoutePts').value.trim();
+    
+    if(!name || !ptsStr) return alert('请填写入路线名称与站点ID！');
+
+    const pts = ptsStr.split(',').map(s => s.trim()).filter(Boolean);
+
+    if(id) {
+      const r = APP.routes.find(x => x.id === id);
+      if(r) { r.name = name; r.pts = pts; }
+    } else {
+      const newId = 'r_' + Date.now();
+      APP.routes.push({ id: newId, name, pts });
+      APP.activeRouteId = newId;
+    }
+
+    APP.renderRouteList();
+    APP.drawRoute(APP.activeRouteId);
+    APP.resetRouteForm();
+    alert('路线保存成功！');
+  };
+
+  // 时空轴
+  const tSlider = document.getElementById('tSlider');
+  const tYear = document.getElementById('tYear');
+  const tEraText = document.getElementById('tEraText');
+  const btnPlay = document.getElementById('btnPlay');
+  const eraBadge = document.getElementById('eraBadge');
+
+  let isPlaying = false, playTimer = null;
+
+  const erasContainer = document.getElementById('tErasContainer');
+  erasContainer.innerHTML = APP.ERAS.map(e => `<div class="tl-era-chip" data-y="${e.y}">${e.n}</div>`).join('');
+
+  APP.updateTimeline = (year, isAutoPlay = false) => {
+    tYear.innerText = year;
+    tSlider.value = year;
+
+    let activeEraName = '古代宣教探求';
+    for(let i = APP.ERAS.length - 1; i >= 0; i--) {
+      if(year >= APP.ERAS[i].y - 10) { activeEraName = APP.ERAS[i].n; break; }
+    }
+    tEraText.innerText = activeEraName;
+    document.getElementById('eBadgeYear').innerText = year;
+    document.getElementById('eBadgeName').innerText = activeEraName;
+
+    let activeCount = 0;
+    let newlyBornPt = null;
+
+    APP.points.filter(p => p.status==='approved').forEach(p => {
+      const mk = APP.markers[p.id];
+      if(!mk) return;
+      const el = mk.getElement() ? mk.getElement().querySelector('.mk') : null;
+      
+      if(p.y <= year) {
+        activeCount++;
+        if(el) {
+          el.classList.remove('off');
+          if(!APP.visibleState[p.id]) {
+            el.classList.remove('born');
+            void el.offsetWidth;
+            el.classList.add('born');
+            newlyBornPt = p;
+          }
+        }
+        APP.visibleState[p.id] = true;
+      } else {
+        if(el) { el.classList.add('off'); el.classList.remove('born'); }
+        APP.visibleState[p.id] = false;
+      }
+    });
+
+    document.getElementById('eBadgeCount').innerText = activeCount;
+
+    if(isAutoPlay && newlyBornPt) {
+      map.panTo([newlyBornPt.la, newlyBornPt.ln], { animate: true, duration: 1.0 });
+    }
+  };
+
+  tSlider.oninput = (e) => APP.updateTimeline(parseInt(e.target.value));
+
+  document.querySelectorAll('.tl-era-chip').forEach(chip => {
+    chip.onclick = () => APP.updateTimeline(parseInt(chip.dataset.y));
+  });
+
+  btnPlay.onclick = () => {
+    isPlaying = !isPlaying;
+    btnPlay.innerText = isPlaying ? '■' : '▶';
+    if(isPlaying) {
+      let curY = parseInt(tSlider.value);
+      if(curY >= 2026) curY = 600;
+      playTimer = setInterval(() => {
+        curY += 3;
+        if(curY >= 2026) { curY = 2026; isPlaying = false; btnPlay.innerText = '▶'; clearInterval(playTimer); }
+        APP.updateTimeline(curY, true);
+      }, 50);
+    } else {
+      clearInterval(playTimer);
+    }
+  };
+
+  document.getElementById('btnCloseTl').onclick = () => {
+    document.getElementById('tl').style.display = 'none';
+    eraBadge.style.display = 'none';
+    if(isPlaying) btnPlay.click();
+    APP.updateTimeline(2026);
+  };
+
+  document.getElementById('bT').onclick = () => {
+    const tl = document.getElementById('tl');
+    const isShow = tl.style.display === 'flex';
+    tl.style.display = isShow ? 'none' : 'flex';
+    eraBadge.style.display = isShow ? 'none' : 'block';
+    if(!isShow) APP.updateTimeline(parseInt(tSlider.value));
+  };
+
+  // 账号登录与“记住密码/账号”本地缓存
+  document.getElementById('bToggleSidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
+  
+  APP.loadSavedAuth = () => {
+    const savedEmail = localStorage.getItem('ma_remember_email');
+    const savedPass = localStorage.getItem('ma_remember_pass');
+    if(savedEmail && savedPass) {
+      document.getElementById('authEmail').value = savedEmail;
+      document.getElementById('authPass').value = savedPass;
+      document.getElementById('rememberMe').checked = true;
+    }
+  };
+
+  document.getElementById('bAuth').onclick = () => {
+    APP.loadSavedAuth();
+    document.getElementById('authModal').style.display = 'flex';
+  };
+
+  APP.handleAuth = async (type) => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPass').value;
+    const isRemember = document.getElementById('rememberMe').checked;
+
+    if(!email || !password) return alert('请填写完整的账号与密码');
+
+    if(isCloudMode) {
+      const { data, error } = type === 'login' 
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({ email, password });
+      if(error) return alert('验证失败: ' + error.message);
+      APP.user = data.user;
+    } else {
+      APP.user = { email, id: 'user_' + Date.now() };
+    }
+
+    if(isRemember) {
+      localStorage.setItem('ma_remember_email', email);
+      localStorage.setItem('ma_remember_pass', password);
+    } else {
+      localStorage.removeItem('ma_remember_email');
+      localStorage.removeItem('ma_remember_pass');
+    }
+
+    APP.isSuperAdmin = (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
+
+    alert(APP.isSuperAdmin ? '超级管理员登录成功！解锁路线管理与点位审核权限。' : '会员登录成功！解锁点位上传功能。');
+    
+    document.getElementById('authModal').style.display = 'none';
+    document.getElementById('bAuth').innerText = `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(超级管理员)' : ''}`;
+    document.getElementById('bSubmit').style.display = 'inline-block';
+    
+    if(APP.isSuperAdmin) {
+      document.getElementById('bAdmin').style.display = 'inline-block';
+      document.getElementById('superAdminRouteEdit').style.display = 'block';
+    } else {
+      document.getElementById('bAdmin').style.display = 'none';
+      document.getElementById('superAdminRouteEdit').style.display = 'none';
+    }
+
+    APP.renderRouteList();
+  };
+
+  document.getElementById('bSubmit').onclick = () => {
+    document.getElementById('afId').value = '';
+    document.getElementById('pointForm').reset();
+    document.getElementById('adminModal').style.display = 'flex';
+    APP.switchTab('form');
+  };
+  
+  document.getElementById('bAdmin').onclick = () => {
+    if(!APP.isSuperAdmin) return alert('权限不足！只有超级管理员才可以进入审核管理后台。');
+    document.getElementById('adminModal').style.display = 'flex';
+    APP.switchTab('list');
+  };
+
+  APP.switchTab = (type) => {
+    document.getElementById('tab1Btn').classList.toggle('on', type==='form');
+    document.getElementById('tab2Btn').classList.toggle('on', type==='list');
+    document.getElementById('pointForm').style.display = type==='form' ? 'flex' : 'none';
+    document.getElementById('auditList').style.display = type==='list' ? 'block' : 'none';
+    if(type === 'list') APP.renderAuditList();
+  };
+
+  // 辅助 FileReader 转换
+  const readFileAsDataURL = (file) => {
+    return new Promise((resolve, reject) => {
+      if(!file) return resolve('');
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // 提交与保存点位
+  document.getElementById('pointForm').onsubmit = async (e) => {
+    e.preventDefault();
+    if(!clickLatLng) return alert('请先在地图上点击拾取坐标！');
+
+    const editId = document.getElementById('afId').value;
+
+    const fileImg = document.getElementById('fileImg').files[0];
+    const fileAudio = document.getElementById('fileAudio').files[0];
+    const fileVideo = document.getElementById('fileVideo').files[0];
+    const fileVR = document.getElementById('fileVR').files[0];
+    const fileDoc = document.getElementById('fileDoc').files[0];
+
+    let imgData = fileImg ? await readFileAsDataURL(fileImg) : '';
+    let audioData = fileAudio ? await readFileAsDataURL(fileAudio) : '';
+    let videoData = fileVideo ? await readFileAsDataURL(fileVideo) : '';
+    let vrData = fileVR ? await readFileAsDataURL(fileVR) : '';
+    let docData = fileDoc ? await readFileAsDataURL(fileDoc) : '';
+
+    const existingPoint = editId ? APP.points.find(x => x.id === editId) : null;
+
+    const targetPoint = {
+      id: editId || ('p_' + Date.now()),
+      n: document.getElementById('afN').value,
+      w: document.getElementById('afW').value,
+      y: parseInt(document.getElementById('afY').value),
+      la: clickLatLng.lat,
+      ln: clickLatLng.lng,
+      d: document.getElementById('afD').value,
+      img: imgData || (existingPoint ? existingPoint.img : ''),
+      audio_url: audioData || (existingPoint ? existingPoint.audio_url : ''),
+      video_url: videoData || (existingPoint ? existingPoint.video_url : ''),
+      vr360_url: vrData || (existingPoint ? existingPoint.vr360_url : ''),
+      doc_url: docData || (existingPoint ? existingPoint.doc_url : ''),
+      status: APP.isSuperAdmin ? 'approved' : 'pending'
+    };
+
+    if(editId) {
+      const idx = APP.points.findIndex(x => x.id === editId);
+      if(idx !== -1) APP.points[idx] = targetPoint;
+    } else {
+      APP.points.push(targetPoint);
+    }
+
+    if(isCloudMode) {
+      if(editId) {
+        await supabase.from('missionary_points').update(targetPoint).eq('id', editId);
+      } else {
+        await supabase.from('missionary_points').insert([targetPoint]);
+      }
+    }
+
+    alert(APP.isSuperAdmin ? '点位数据保存成功！' : '点位已提交！请等待超级管理员审核。');
+    document.getElementById('adminModal').style.display = 'none';
+    document.getElementById('pointForm').reset();
+    document.getElementById('afId').value = '';
+    
+    APP.renderAll();
+    if(editId) APP.openDrawer(targetPoint);
+  };
+
+  APP.renderAuditList = () => {
+    const tbody = document.getElementById('auditTbody');
+    tbody.innerHTML = APP.points.map(p => `
+      <tr style="border-bottom:1px solid var(--line)">
+        <td style="padding:8px"><b>${p.n}</b></td>
+        <td>${p.w}</td>
+        <td><span style="color:${p.status==='approved'?'#2ecc71':'var(--gold-bright)'}">${p.status==='approved'?'已上线':'待审核'}</span></td>
+        <td>
+          ${p.status !== 'approved' ? `<button onclick="APP.approvePoint('${p.id}')" style="color:#2ecc71;background:none;border:none">通过</button>` : ''}
+          <button onclick="APP.deletePoint('${p.id}')" style="color:#e74c3c;background:none;border:none;margin-left:6px">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  };
+
+  APP.approvePoint = async (id) => {
+    if(!APP.isSuperAdmin) return alert('只有超级管理员可以执行审核！');
+    const p = APP.points.find(x => x.id === id);
+    if(p) p.status = 'approved';
+    if(isCloudMode) {
+      await supabase.from('missionary_points').update({ status: 'approved' }).eq('id', id);
+    }
+    APP.renderAll();
+    APP.renderAuditList();
+  };
+
+  APP.deletePoint = async (id) => {
+    if(!APP.isSuperAdmin) return alert('只有超级管理员可以执行删除！');
+    if(!confirm('确定删除该记录吗？此操作不可逆！')) return;
+    APP.points = APP.points.filter(x => x.id !== id);
+    if(isCloudMode) {
+      await supabase.from('missionary_points').delete().eq('id', id);
+    }
+    APP.renderAll();
+    APP.renderAuditList();
+  };
+
+  // 初始渲染
+  APP.renderAll();
+  APP.updateTimeline(2026);
+  APP.loadSavedAuth();
+
+  // 默认开启并绘制西南线路轨迹
+  setTimeout(() => {
+    if(APP.drawRoute) APP.drawRoute('r4');
+  }, 600);
+});
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>光之足迹 · 宣教历史地图与属灵文旅</title>
 
-<!-- PWA 支持与图标配置 -->
+<!-- PWA 跨平台 APP 规范配置 -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0b0e14">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,11 +21,11 @@
 
 <style>
   :root {
-    --ink: #e8e0cf;
-    --inkd: #9a917c;
+    --ink: #f0e8d8;
+    --inkd: #a8a090;
     --bg-dark: #0b0e14;
-    --paper-dark: #12161f;
-    --line: rgba(212, 175, 106, 0.25);
+    --glass-bg: rgba(22, 28, 40, 0.75);
+    --glass-border: rgba(245, 215, 142, 0.3);
     --gold: #d4af6a;
     --gold-bright: #f5d78e;
     --gold-dark: #8a6d3b;
@@ -50,48 +50,54 @@
 
   /* 国界 Tooltip 专属样式 */
   .ctip {
-    background: rgba(14, 17, 25, 0.95)!important;
+    background: rgba(14, 17, 25, 0.85)!important;
     border: 1px solid var(--gold-bright)!important;
     color: var(--ink)!important;
-    box-shadow: 0 0 16px rgba(245, 215, 142, 0.4)!important;
-    border-radius: 6px!important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6)!important;
+    border-radius: 8px!important;
     padding: 8px 12px!important;
     font-size: 12px!important;
+    backdrop-filter: blur(12px);
   }
-  .ctip b { color: var(--gold-bright); font-size: 13px; display: block; margin-bottom: 4px; border-bottom: 1px dashed var(--line); padding-bottom: 2px; }
+  .ctip b { color: var(--gold-bright); font-size: 13px; display: block; margin-bottom: 4px; border-bottom: 1px dashed var(--glass-border); padding-bottom: 2px; }
   .ctip p { margin: 0; line-height: 1.5; color: var(--inkd); max-width: 220px; white-space: normal; }
 
   /* 加载状态徽章 */
   #cLoad {
     position: fixed; left: 16px; bottom: calc(20px + var(--safe-bottom)); z-index: 400; font-size: 11px; color: var(--gold-bright);
-    background: rgba(14, 17, 25, 0.85); border: 1px solid var(--line); padding: 6px 12px; border-radius: 20px;
-    backdrop-filter: blur(6px); transition: opacity .6s; pointer-events: none;
+    background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 6px 12px; border-radius: 20px;
+    backdrop-filter: blur(16px) saturate(180%); transition: opacity .6s; pointer-events: none;
   }
   #cLoad.ok { color: #2ecc71; border-color: #2ecc71; }
   #cLoad.bye { opacity: 0; }
 
-  /* 📲 智能 APP 下载提示条 (全终端自适应) */
+  /* 📲 增加【手动关闭×】的跨平台 PWA APP 下载提示条 */
   #pwaPromptBar {
-    position: fixed; bottom: calc(16px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); z-index: 900;
-    width: min(460px, 92vw); background: rgba(18, 22, 31, 0.96); border: 1px solid var(--gold);
-    border-radius: 30px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); backdrop-filter: blur(12px); animation: slideUp .5s ease;
+    position: fixed; top: calc(60px + var(--safe-top)); left: 50%; transform: translateX(-50%); z-index: 900;
+    width: min(480px, 92vw); background: var(--glass-bg); border: 1px solid var(--gold);
+    border-radius: 30px; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px) saturate(180%); animation: fadeIn .4s ease;
   }
-  @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-  .pwa-info { display: flex; align-items: center; gap: 10px; }
-  .pwa-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--gold-bright), var(--gold-dark)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 18px; }
-  .pwa-text h4 { font-size: 13px; color: var(--gold-bright); }
-  .pwa-text p { font-size: 10px; color: var(--inkd); }
-  .pwa-btn { background: var(--gold-bright); color: #000; border: none; padding: 6px 14px; border-radius: 16px; font-weight: bold; font-size: 11px; }
+  @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  .pwa-info { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
+  .pwa-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--gold-bright), var(--gold-dark)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 16px; flex-shrink: 0; }
+  .pwa-text { overflow: hidden; }
+  .pwa-text h4 { font-size: 12px; color: var(--gold-bright); white-space: nowrap; text-overflow: ellipsis; }
+  .pwa-text p { font-size: 10px; color: var(--inkd); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+  .pwa-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .pwa-btn { background: var(--gold-bright); color: #000; border: none; padding: 5px 12px; border-radius: 16px; font-weight: bold; font-size: 11px; }
+  .pwa-close { background: none; border: none; color: var(--inkd); font-size: 18px; padding: 0 4px; line-height: 1; }
+  .pwa-close:hover { color: #fff; }
 
   /* 顶栏 Header */
   #topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 400; display: flex; align-items: center; gap: 8px;
-    padding: calc(10px + var(--safe-top)) 12px 10px; background: linear-gradient(180deg, rgba(8,10,16,.96), transparent); pointer-events: none;
-    overflow-x: auto;
+    padding: calc(10px + var(--safe-top)) 12px 10px; background: linear-gradient(180deg, rgba(8,10,16,.9), transparent); pointer-events: none;
   }
   #topbar > * { pointer-events: auto; flex-shrink: 0; }
-  .brand { display: flex; align-items: center; gap: 8px; margin-right: auto; }
+  
+  .brand { display: flex; align-items: center; gap: 8px; margin-right: auto; cursor: pointer; user-select: none; transition: transform .2s; }
+  .brand:active { transform: scale(0.96); }
   .mc { width: 16px; height: 22px; position: relative; filter: drop-shadow(0 0 6px rgba(245,215,142,.8)); }
   .mc::before, .mc::after { content: ''; position: absolute; background: var(--gold-bright); left: 50%; transform: translateX(-50%); }
   .mc::before { width: 3px; height: 100%; } .mc::after { width: 100%; height: 3px; top: 32%; }
@@ -99,33 +105,37 @@
   .brand .sub { font-size: 8px; color: var(--inkd); letter-spacing: .2em; display: block; }
   
   .tb {
-    background: rgba(18,22,31,.85); border: 1px solid var(--line); color: var(--ink); padding: 6px 10px;
-    border-radius: 4px; font-size: 11px; transition: .3s; white-space: nowrap;
+    background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--ink); padding: 6px 12px;
+    border-radius: 20px; font-size: 11px; transition: .3s; backdrop-filter: blur(12px) saturate(180%); white-space: nowrap;
   }
-  .tb:hover, .tb.on { border-color: var(--gold); color: var(--gold-bright); box-shadow: 0 0 12px rgba(212,175,106,.3); }
+  .tb:hover, .tb.on { border-color: var(--gold); color: var(--gold-bright); box-shadow: 0 0 14px rgba(212,175,106,.3); }
 
-  /* 左侧主控侧栏 */
+  /* 手机端集合抽屉 */
   #sidebar {
     position: fixed; top: 0; left: 0; bottom: 0; width: min(var(--sidebar-w), 85vw);
-    background: rgba(14, 17, 25, 0.96); border-right: 1px solid var(--line);
-    box-shadow: 6px 0 24px rgba(0,0,0,.6); z-index: 450; display: flex; flex-direction: column;
-    backdrop-filter: blur(10px); transform: translateX(-100%); transition: transform .4s cubic-bezier(.22,.61,.36,1);
+    background: var(--glass-bg); border-right: 1px solid var(--glass-border);
+    box-shadow: 10px 0 30px rgba(0,0,0,.8); z-index: 850; display: flex; flex-direction: column;
+    backdrop-filter: blur(24px) saturate(180%); transform: translateX(-100%); transition: transform .4s cubic-bezier(.22,.61,.36,1);
     padding-top: var(--safe-top);
   }
   #sidebar.open { transform: translateX(0); }
-  #sidebar .sb-header { padding: 50px 20px 14px; border-bottom: 1px solid var(--line); }
-  #sidebar h1 { font-family: var(--font-display); font-size: 24px; color: var(--gold-bright); margin-bottom: 4px; }
+  #sidebar .sb-header { padding: 40px 16px 12px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
+  #sidebar h1 { font-family: var(--font-display); font-size: 22px; color: var(--gold-bright); }
   #sidebar .sb-sub { font-size: 10px; color: var(--inkd); }
+
+  .mobile-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--glass-border); }
+  .m-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; padding: 10px; color: var(--ink); font-size: 11px; display: flex; align-items: center; gap: 6px; justify-content: center; }
+  .m-btn:active { background: rgba(212,175,106,0.2); }
 
   #ranking-wrap { flex: 1; overflow-y: auto; padding: 10px 0; }
   #ranking-list { list-style: none; }
   #ranking-list li {
-    display: flex; align-items: center; gap: 10px; padding: 12px 20px; cursor: pointer;
-    border-bottom: 1px solid rgba(212, 175, 106, 0.1); transition: background .2s;
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer;
+    border-bottom: 1px solid rgba(212, 175, 106, 0.08); transition: background .2s;
   }
   #ranking-list li:hover, #ranking-list li.active { background: rgba(212, 175, 106, 0.15); }
   #ranking-list .num { font-family: var(--font-mono); font-size: 11px; color: var(--gold); min-width: 24px; }
-  #ranking-list .name { flex: 1; font-size: 13px; color: var(--ink); }
+  #ranking-list .name { flex: 1; font-size: 12px; color: var(--ink); }
 
   /* 十架 Marker 与发光诞生特效 */
   .mkw { background: none!important; border: none!important; }
@@ -161,23 +171,23 @@
   /* 路线面板 */
   #routePanel {
     position: fixed; left: 12px; top: calc(56px + var(--safe-top)); z-index: 450; width: min(340px, 90vw); max-height: 75vh; overflow-y: auto;
-    background: rgba(14, 17, 25, 0.96); border: 1px solid var(--line); border-radius: 8px;
-    padding: 14px; backdrop-filter: blur(10px); display: none; box-shadow: 0 8px 30px rgba(0,0,0,.6);
+    background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px;
+    padding: 14px; backdrop-filter: blur(24px) saturate(180%); display: none; box-shadow: 0 12px 40px rgba(0,0,0,.7);
   }
   .route-item {
-    padding: 10px; background: rgba(255,255,255,.03); border: 1px solid transparent; border-radius: 4px;
+    padding: 10px; background: rgba(255,255,255,.04); border: 1px solid transparent; border-radius: 8px;
     margin-top: 8px; cursor: pointer; transition: .3s; display: flex; align-items: center; justify-content: space-between;
   }
-  .route-item:hover, .route-item.active { border-color: var(--gold); background: rgba(212,175,106,.12); }
+  .route-item:hover, .route-item.active { border-color: var(--gold); background: rgba(212,175,106,.15); }
   .route-actions { display: flex; gap: 6px; }
-  .route-btn { background: none; border: 1px solid var(--line); color: var(--ink); padding: 2px 6px; font-size: 10px; border-radius: 3px; }
+  .route-btn { background: none; border: 1px solid var(--glass-border); color: var(--ink); padding: 2px 6px; font-size: 10px; border-radius: 4px; }
 
-  /* 底部年代播放时空轴 */
+  /* 底部年代播放时空轴 (iOS 玻璃面板) */
   #tl {
     position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; z-index: 500; width: min(920px, 100vw);
-    background: rgba(11,14,20,.96); border: 1px solid var(--line); border-bottom: none; padding: 14px 18px calc(10px + var(--safe-bottom));
-    border-radius: 14px 14px 0 0; display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
-    box-shadow: 0 -10px 30px rgba(0,0,0,.8);
+    background: var(--glass-bg); border: 1px solid var(--glass-border); border-bottom: none; padding: 14px 18px calc(10px + var(--safe-bottom));
+    border-radius: 20px 20px 0 0; display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 -12px 40px rgba(0,0,0,.8);
   }
   .tl-hd { display: flex; align-items: center; justify-content: space-between; }
   .tl-info { text-align: center; }
@@ -187,14 +197,14 @@
   .tl-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: rgba(212,175,106,.2); border-radius: 2px; }
   .tl-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--gold-bright); box-shadow: 0 0 10px var(--gold-bright); }
   .tl-eras { display: flex; gap: 6px; overflow-x: auto; padding-top: 4px; -webkit-overflow-scrolling: touch; }
-  .tl-era-chip { font-size: 10px; color: var(--inkd); background: rgba(255,255,255,.04); border: 1px solid var(--line); padding: 3px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
+  .tl-era-chip { font-size: 10px; color: var(--inkd); background: rgba(255,255,255,.05); border: 1px solid var(--glass-border); padding: 3px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
   .tl-era-chip.on { background: var(--gold); color: #000; font-weight: bold; border-color: var(--gold-bright); }
 
   /* 右上角实时年代看板 */
   #eraBadge {
-    position: fixed; top: calc(54px + var(--safe-top)); right: 12px; z-index: 400; background: rgba(14,17,25,.9);
-    border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; text-align: right;
-    backdrop-filter: blur(8px); display: none; pointer-events: none;
+    position: fixed; top: calc(54px + var(--safe-top)); right: 12px; z-index: 400; background: var(--glass-bg);
+    border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px 12px; text-align: right;
+    backdrop-filter: blur(16px) saturate(180%); display: none; pointer-events: none;
   }
   #eraBadge .ey { font-size: 16px; font-weight: bold; color: var(--gold-bright); font-family: var(--font-mono); }
   #eraBadge .en { font-size: 10px; color: var(--inkd); }
@@ -202,30 +212,36 @@
   /* 右侧/底部多媒体抽屉 */
   #drawer {
     position: fixed; top: 0; right: -480px; bottom: 0; z-index: 600; width: min(480px, 100vw);
-    background: rgba(14,17,25,.96); border-left: 1px solid var(--line); padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); transition: .4s ease;
-    overflow-y: auto; backdrop-filter: blur(10px);
+    background: var(--glass-bg); border-left: 1px solid var(--glass-border); padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); transition: .4s cubic-bezier(.22,.61,.36,1);
+    overflow-y: auto; backdrop-filter: blur(24px) saturate(180%);
   }
   #drawer.open { right: 0; }
-  .media-box { margin-top: 10px; background: rgba(0,0,0,.4); border: 1px solid var(--line); padding: 10px; border-radius: 4px; }
-  #vr-panorama { width: 100%; height: 200px; border-radius: 4px; margin-top: 6px; }
+  .media-box { margin-top: 10px; background: rgba(0,0,0,.3); border: 1px solid var(--glass-border); padding: 10px; border-radius: 8px; }
+  #vr-panorama { width: 100%; height: 200px; border-radius: 6px; margin-top: 6px; }
 
   /* 文件上传选择器样式 */
   .file-uploader {
     display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--inkd);
-    background: rgba(0,0,0,.2); border: 1px dashed var(--line); padding: 8px; border-radius: 4px;
+    background: rgba(0,0,0,.2); border: 1px dashed var(--glass-border); padding: 8px; border-radius: 6px;
   }
   .file-uploader input[type="file"] { font-size: 10px; color: var(--gold-bright); }
 
-  /* 弹窗通用样式 */
-  .modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.82); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 12px; }
-  .modal-box { background: var(--paper-dark); border: 1px solid var(--gold); width: min(680px, 100%); max-height: 85vh; border-radius: 8px; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.9); overflow: hidden; }
-  .modal-hd { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  /* iOS 玻璃质感 Modal 弹窗 */
+  .modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.5); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; padding: 12px; }
+  .modal-box { background: var(--glass-bg); border: 1px solid var(--glass-border); width: min(640px, 100%); max-height: 85vh; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.8); overflow: hidden; backdrop-filter: blur(24px) saturate(180%); }
+  .modal-hd { padding: 14px 16px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
   .modal-bd { padding: 16px; overflow-y: auto; flex: 1; }
-  .input-style { background: var(--bg-dark); border: 1px solid var(--line); color: #fff; padding: 8px 10px; border-radius: 4px; width: 100%; font-size: 12px; }
-  .btn-gold { background: linear-gradient(180deg,var(--gold-bright),var(--gold)); border: none; color: #000; padding: 8px 14px; font-weight: bold; border-radius: 4px; font-size: 12px; }
+  .input-style { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: #fff; padding: 8px 10px; border-radius: 6px; width: 100%; font-size: 12px; }
+  .btn-gold { background: linear-gradient(180deg,var(--gold-bright),var(--gold)); border: none; color: #000; padding: 8px 14px; font-weight: bold; border-radius: 6px; font-size: 12px; }
+
+  /* 地图导航选择按钮 */
+  .nav-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .nav-btn { background: rgba(212,175,106,0.15); border: 1px solid var(--gold); color: var(--gold-bright); padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; text-decoration: none; font-weight: bold; }
+  .nav-btn:active { background: var(--gold); color: #000; }
 
   @media (max-width: 768px) {
-    #drawer { top: auto; left: 0; right: 0; bottom: -100%; width: 100%; max-height: 80vh; border-left: none; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; }
+    .desktop-only { display: none!important; }
+    #drawer { top: auto; left: 0; right: 0; bottom: -100%; width: 100%; max-height: 80vh; border-left: none; border-top: 1px solid var(--glass-border); border-radius: 20px 20px 0 0; }
     #drawer.open { bottom: 0; right: 0; }
   }
 </style>
@@ -236,16 +252,19 @@
 <div class="vig"></div>
 <div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
 
-<!-- 📲 智能跨平台 APP 下载/安装引导提示 -->
+<!-- 📲 增加【手动关闭×】的 PWA APP 下载安装引导条 -->
 <div id="pwaPromptBar">
   <div class="pwa-info">
     <div class="pwa-icon">✝</div>
     <div class="pwa-text">
       <h4>安装“光之足迹” APP</h4>
-      <p id="pwaDesc">自适应全终端，体验更流畅的宣教地图</p>
+      <p id="pwaDesc">全终端支持，体验更流畅的宣教历史地图</p>
     </div>
   </div>
-  <button class="pwa-btn" id="btnInstallPwa">立即下载</button>
+  <div class="pwa-actions">
+    <button class="pwa-btn" id="btnInstallPwa">立即安装</button>
+    <button class="pwa-close" id="btnClosePwa" title="关闭">×</button>
+  </div>
 </div>
 
 <!-- 右上角实时年代看板 -->
@@ -257,24 +276,37 @@
 
 <!-- 顶栏导航 -->
 <div id="topbar">
-  <div class="brand">
+  <div class="brand" id="btnLogoHome">
     <div class="mc"></div>
     <div><h2>光之足迹</h2><span class="sub">MISSIONARY ATLAS</span></div>
   </div>
+  
   <button class="tb" id="bToggleSidebar">☰ 目录</button>
-  <button class="tb" id="bR">✦ 路线规划</button>
-  <button class="tb" id="bT">✦ 时空轴</button>
-  <button class="tb" id="bAuth">👤 登录</button>
-  <button class="tb" id="bSubmit" style="display:none">➕ 提交点位</button>
-  <button class="tb" id="bAdmin" style="display:none">⚙ 审核后台</button>
+  <button class="tb desktop-only" id="bR">✦ 路线规划</button>
+  <button class="tb desktop-only" id="bT">✦ 时空轴</button>
+  <button class="tb desktop-only" id="bAuth">👤 登录</button>
+  <button class="tb desktop-only" id="bSubmit" style="display:none">➕ 提交点位</button>
+  <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ 审核后台</button>
 </div>
 
-<!-- 左侧点位目录 -->
+<!-- 手机端集合抽屉 -->
 <aside id="sidebar">
   <div class="sb-header">
-    <h1>拓荒者足迹</h1>
-    <p class="sb-sub">数字化智慧宣教历史轨迹记录</p>
+    <div>
+      <h1>拓荒者足迹</h1>
+      <p class="sb-sub">智慧宣教历史轨迹记录</p>
+    </div>
+    <button onclick="document.getElementById('sidebar').classList.remove('open')" style="background:none;border:none;color:#fff;font-size:20px">×</button>
   </div>
+
+  <div class="mobile-menu-grid">
+    <div class="m-btn" onclick="APP.triggerMobile('bR')">🗺️ 路线规划</div>
+    <div class="m-btn" onclick="APP.triggerMobile('bT')">⏳ 历史时空轴</div>
+    <div class="m-btn" onclick="APP.triggerMobile('bAuth')" id="mBtnAuth">👤 会员登录</div>
+    <div class="m-btn" onclick="APP.triggerMobile('bSubmit')" id="mBtnSubmit" style="display:none">➕ 提交点位</div>
+    <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ 管理审核后台</div>
+  </div>
+
   <div id="ranking-wrap">
     <ul id="ranking-list"></ul>
   </div>
@@ -282,19 +314,19 @@
 
 <!-- 路线规划面板 -->
 <div id="routePanel">
-  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:8px">
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:8px;margin-bottom:8px">
     <h3 style="color:var(--gold-bright);font-size:13px">✦ 宣教路线规划与特效</h3>
     <button onclick="document.getElementById('routePanel').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px">×</button>
   </div>
   
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <span style="font-size:11px">流光动画特效开关</span>
+    <span style="font-size:11px">流光动画特效</span>
     <button id="btnToggleRouteAnim" class="btn-gold" style="padding:3px 8px;font-size:10px">关闭特效</button>
   </div>
 
   <div id="routeList"></div>
 
-  <div id="superAdminRouteEdit" style="display:none;margin-top:12px;border-top:1px dashed var(--line);padding-top:8px">
+  <div id="superAdminRouteEdit" style="display:none;margin-top:12px;border-top:1px dashed var(--glass-border);padding-top:8px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div style="font-size:10px;color:var(--gold-bright)" id="routeEditTitle">⚙ 超级管理员路线修改</div>
       <button onclick="APP.resetRouteForm()" class="route-btn" style="color:var(--gold-bright)">➕ 新建路线</button>
@@ -306,7 +338,7 @@
   </div>
 </div>
 
-<!-- 底部年代时空轴 -->
+<!-- 底部年代播放时空轴 -->
 <div id="tl">
   <div class="tl-hd">
     <button id="btnPlay" style="background:var(--gold-bright);border:none;width:32px;height:32px;border-radius:50%;font-weight:bold;font-size:14px">▶</button>
@@ -326,7 +358,7 @@
 
 <!-- 右侧富媒体抽屉 -->
 <div id="drawer">
-  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:8px;margin-bottom:12px">
     <h3 id="dWTitle" style="color:var(--gold-bright);font-size:15px">详情</h3>
     <div style="display:flex;align-items:center;gap:6px">
       <div id="drawerAdminBtns" style="display:none;gap:4px">
@@ -354,7 +386,7 @@
 
         <div style="display:flex;gap:8px;margin-top:6px">
           <button type="button" onclick="APP.handleAuth('login')" class="btn-gold" style="flex:1">登录</button>
-          <button type="button" onclick="APP.handleAuth('register')" style="flex:1;background:none;border:1px solid var(--line);color:var(--ink)" class="btn-gold">注册会员</button>
+          <button type="button" onclick="APP.handleAuth('register')" style="flex:1;background:none;border:1px solid var(--glass-border);color:var(--ink)" class="btn-gold">注册会员</button>
         </div>
       </form>
     </div>
@@ -369,7 +401,7 @@
       <button onclick="document.getElementById('adminModal').style.display='none'" style="background:none;border:none;color:#fff">×</button>
     </div>
     <div class="modal-bd">
-      <div style="display:flex;gap:8px;margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:12px;border-bottom:1px solid var(--glass-border);padding-bottom:8px">
         <button class="tb on" id="tab1Btn" onclick="APP.switchTab('form')">提交/修改坐标点位</button>
         <button class="tb" id="tab2Btn" onclick="APP.switchTab('list')">超级审核管理后台</button>
       </div>
@@ -386,8 +418,8 @@
         </div>
         <textarea id="afD" class="input-style" placeholder="历史简介考证故事..." style="height:50px"></textarea>
 
-        <div style="border-top:1px dashed var(--line);padding-top:8px;margin-top:4px">
-          <div style="color:var(--gold-bright);margin-bottom:6px">📁 本地多媒体文件直传（支持图片、MP3、MP4、VR全景、文档）</div>
+        <div style="border-top:1px dashed var(--glass-border);padding-top:8px;margin-top:4px">
+          <div style="color:var(--gold-bright);margin-bottom:6px">📁 本地多媒体文件直传（图片/MP3/MP4/VR/文档）</div>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div class="file-uploader">
@@ -494,19 +526,34 @@ window.addEventListener('DOMContentLoaded', () => {
     { y: 2026, n: '现代宣教时代' }
   ];
 
-  // 1. 地图初始化：首页精准定格在中国地图全景视角 [35, 104], 缩放层级 4
-  const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView([35, 104], 4);
+  // 地图初始化
+  const HOME_VIEW = { center: [35, 104], zoom: 4 };
+  const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
   L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
     subdomains: ['1', '2', '3', '4'], maxZoom: 18, className: 'dark-gold-tiles'
   }).addTo(map);
   APP.map = map;
 
-  // 2. 📲 智能 APP 安装/提示逻辑 (适配 iOS & Android 全终端)
+  // 点击 Logo 返回主页视角
+  document.getElementById('btnLogoHome').onclick = () => {
+    map.flyTo(HOME_VIEW.center, HOME_VIEW.zoom, { duration: 1.2 });
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('drawer').classList.remove('open');
+  };
+
+  APP.triggerMobile = (btnId) => {
+    document.getElementById('sidebar').classList.remove('open');
+    const el = document.getElementById(btnId);
+    if(el) el.click();
+  };
+
+  // 📲 跨平台 PWA APP 安装与【手动关闭】控制逻辑
   let deferredPrompt = null;
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const pwaClosedByUser = sessionStorage.getItem('pwa_prompt_closed');
 
-  if (isStandalone) {
+  if (isStandalone || pwaClosedByUser) {
     document.getElementById('pwaPromptBar').style.display = 'none';
   } else {
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -521,18 +568,22 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 点击手动关闭×
+  document.getElementById('btnClosePwa').onclick = () => {
+    document.getElementById('pwaPromptBar').style.display = 'none';
+    sessionStorage.setItem('pwa_prompt_closed', 'true');
+  };
+
   document.getElementById('btnInstallPwa').onclick = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        document.getElementById('pwaPromptBar').style.display = 'none';
-      }
+      if (outcome === 'accepted') document.getElementById('pwaPromptBar').style.display = 'none';
       deferredPrompt = null;
     } else if (isIos) {
       alert('🍎 苹果 iOS 安装指引：\n请点击 Safari 浏览器底部的“分享”图标 ⎋，然后向上滑动选择“添加到主屏幕”，即可完成 APP 安装！');
     } else {
-      alert('💡 请点击浏览器菜单栏，选择“安装应用”或“添加到主屏幕”');
+      alert('💡 电脑/安卓客户端安装：\n点击浏览器地址栏右侧的“安装”小图标，或点击浏览器菜单选择“添加到主屏幕”/“安装应用”');
     }
   };
 
@@ -668,7 +719,20 @@ window.addEventListener('DOMContentLoaded', () => {
     APP.renderRouteList();
   };
 
-  // 抽屉详情
+  // 地图导航
+  APP.openNavigation = (lat, lng, name) => {
+    const encodedName = encodeURIComponent(name);
+    const gaodeUrl = `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodedName}`;
+    const appleUrl = `https://maps.apple.com/?q=${encodedName}&ll=${lat},${lng}`;
+
+    const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+    
+    if (confirm(`准备导航至：${name}\n点击【确定】唤醒专业地图开始导航路线。`)) {
+      window.open(isAppleDevice ? appleUrl : gaodeUrl, '_blank');
+    }
+  };
+
+  // 抽屉详情展示
   APP.openDrawer = (p) => {
     APP.currentPoint = p;
     document.getElementById('dWTitle').innerText = p.n;
@@ -679,6 +743,11 @@ window.addEventListener('DOMContentLoaded', () => {
     let html = `
       <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px">✦ 先驱人物：${p.w} (${p.y}年)</div>
       <p style="font-size:12px;line-height:1.7;color:var(--inkd);margin-bottom:12px">${p.d}</p>
+      
+      <div class="nav-btn-group">
+        <a class="nav-btn" href="javascript:void(0)" onclick="APP.openNavigation(${p.la}, ${p.ln}, '${p.n}')">🧭 一键导航路线</a>
+        <a class="nav-btn" style="border-color:var(--glass-border);color:var(--ink)" href="https://uri.amap.com/marker?position=${p.ln},${p.la}&name=${encodeURIComponent(p.n)}" target="_blank">🗺️ 高德地图直达</a>
+      </div>
     `;
 
     if(p.img) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🖼️ 现场图景</div><img src="${p.img}" style="width:100%;max-height:200px;object-fit:cover;border-radius:4px"></div>`;
@@ -984,14 +1053,20 @@ window.addEventListener('DOMContentLoaded', () => {
     alert(APP.isSuperAdmin ? '超级管理员登录成功！解锁路线管理与点位审核权限。' : '会员登录成功！解锁点位上传功能。');
     
     document.getElementById('authModal').style.display = 'none';
-    document.getElementById('bAuth').innerText = `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(管理员)' : ''}`;
+    const authText = `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(管理员)' : ''}`;
+    document.getElementById('bAuth').innerText = authText;
+    document.getElementById('mBtnAuth').innerText = authText;
+
     document.getElementById('bSubmit').style.display = 'inline-block';
+    document.getElementById('mBtnSubmit').style.display = 'flex';
     
     if(APP.isSuperAdmin) {
       document.getElementById('bAdmin').style.display = 'inline-block';
+      document.getElementById('mBtnAdmin').style.display = 'flex';
       document.getElementById('superAdminRouteEdit').style.display = 'block';
     } else {
       document.getElementById('bAdmin').style.display = 'none';
+      document.getElementById('mBtnAdmin').style.display = 'none';
       document.getElementById('superAdminRouteEdit').style.display = 'none';
     }
 
@@ -1093,7 +1168,7 @@ window.addEventListener('DOMContentLoaded', () => {
   APP.renderAuditList = () => {
     const tbody = document.getElementById('auditTbody');
     tbody.innerHTML = APP.points.map(p => `
-      <tr style="border-bottom:1px solid var(--line)">
+      <tr style="border-bottom:1px solid var(--glass-border)">
         <td style="padding:6px"><b>${p.n}</b></td>
         <td>${p.w}</td>
         <td><span style="color:${p.status==='approved'?'#2ecc71':'var(--gold-bright)'}">${p.status==='approved'?'已上线':'待审核'}</span></td>

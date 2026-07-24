@@ -71,7 +71,7 @@
   #cLoad.ok { color: #2ecc71; border-color: #2ecc71; }
   #cLoad.bye { opacity: 0; }
 
-  /* 📲 增加【手动关闭×】的跨平台 PWA APP 下载提示条 */
+  /* 📲 PWA APP 下载安装引导条 */
   #pwaPromptBar {
     position: fixed; top: calc(60px + var(--safe-top)); left: 50%; transform: translateX(-50%); z-index: 900;
     width: min(480px, 92vw); background: var(--glass-bg); border: 1px solid var(--gold);
@@ -110,7 +110,7 @@
   }
   .tb:hover, .tb.on { border-color: var(--gold); color: var(--gold-bright); box-shadow: 0 0 14px rgba(212,175,106,.3); }
 
-  /* 手机端集合抽屉 */
+  /* 手机端集合侧栏 */
   #sidebar {
     position: fixed; top: 0; left: 0; bottom: 0; width: min(var(--sidebar-w), 85vw);
     background: var(--glass-bg); border-right: 1px solid var(--glass-border);
@@ -168,7 +168,7 @@
   .spark { width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 0 14px #fff, 0 0 28px var(--gold-bright); animation: sparkle 1s infinite alternate; }
   @keyframes sparkle { 0% { transform: scale(0.7); } 100% { transform: scale(1.3); } }
 
-  /* 路线面板 */
+  /* 桌面端路线面板 */
   #routePanel {
     position: fixed; left: 12px; top: calc(56px + var(--safe-top)); z-index: 450; width: min(340px, 90vw); max-height: 75vh; overflow-y: auto;
     background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px;
@@ -181,6 +181,9 @@
   .route-item:hover, .route-item.active { border-color: var(--gold); background: rgba(212,175,106,.15); }
   .route-actions { display: flex; gap: 6px; }
   .route-btn { background: none; border: 1px solid var(--glass-border); color: var(--ink); padding: 2px 6px; font-size: 10px; border-radius: 4px; }
+
+  /* 📱 手机竖屏专属单路线迷你轮播卡片 */
+  .mobile-route-carousel { display: none; }
 
   /* 底部年代播放时空轴 (iOS 玻璃面板) */
   #tl {
@@ -239,8 +242,31 @@
   .nav-btn { background: rgba(212,175,106,0.15); border: 1px solid var(--gold); color: var(--gold-bright); padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; text-decoration: none; font-weight: bold; }
   .nav-btn:active { background: var(--gold); color: #000; }
 
+  /* 📱 手机竖屏极简自适应样式（关键优化：不遮挡背后地图） */
   @media (max-width: 768px) {
     .desktop-only { display: none!important; }
+    
+    /* 将路线规划面板缩放到手机底部，极轻极薄 */
+    #routePanel {
+      top: auto; left: 10px; right: 10px; bottom: calc(10px + var(--safe-bottom)); width: auto; max-height: none;
+      padding: 10px 12px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    .desktop-route-list { display: none!important; }
+    
+    /* 手机模式单路线轮播卡片 */
+    .mobile-route-carousel {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;
+    }
+    .m-route-card {
+      flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--gold); border-radius: 10px; padding: 8px 10px;
+    }
+    .m-route-title { font-size: 12px; color: var(--gold-bright); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .m-route-pts { font-size: 10px; color: var(--inkd); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .m-nav-arrow {
+      background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--gold-bright);
+      width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+
     #drawer { top: auto; left: 0; right: 0; bottom: -100%; width: 100%; max-height: 80vh; border-left: none; border-top: 1px solid var(--glass-border); border-radius: 20px 20px 0 0; }
     #drawer.open { bottom: 0; right: 0; }
   }
@@ -252,7 +278,7 @@
 <div class="vig"></div>
 <div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
 
-<!-- 📲 增加【手动关闭×】的 PWA APP 下载安装引导条 -->
+<!-- 📲 PWA APP 下载安装引导条 -->
 <div id="pwaPromptBar">
   <div class="pwa-info">
     <div class="pwa-icon">✝</div>
@@ -312,29 +338,38 @@
   </div>
 </aside>
 
-<!-- 路线规划面板 -->
+<!-- 📱 路线规划面板（手机端下精准缩放到底部，只显示一条路线轮播） -->
 <div id="routePanel">
-  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:8px;margin-bottom:8px">
-    <h3 style="color:var(--gold-bright);font-size:13px">✦ 宣教路线规划与特效</h3>
-    <button onclick="document.getElementById('routePanel').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px">×</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:6px">
+    <h3 style="color:var(--gold-bright);font-size:12px">✦ 宣教路线规划与流光</h3>
+    <div style="display:flex;align-items:center;gap:6px">
+      <button id="btnToggleRouteAnim" class="btn-gold" style="padding:2px 6px;font-size:10px">关闭特效</button>
+      <button onclick="document.getElementById('routePanel').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px">×</button>
+    </div>
   </div>
   
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <span style="font-size:11px">流光动画特效</span>
-    <button id="btnToggleRouteAnim" class="btn-gold" style="padding:3px 8px;font-size:10px">关闭特效</button>
+  <!-- 💻 电脑端多路线列表 -->
+  <div id="routeList" class="desktop-route-list"></div>
+
+  <!-- 📱 手机竖屏单路线轮播卡片（不遮挡背后的地图） -->
+  <div class="mobile-route-carousel">
+    <button class="m-nav-arrow" onclick="APP.prevRoute()">◀</button>
+    <div class="m-route-card" id="mRouteCard">
+      <div class="m-route-title" id="mRouteTitle">路线名称</div>
+      <div class="m-route-pts" id="mRoutePts">站点...</div>
+    </div>
+    <button class="m-nav-arrow" onclick="APP.nextRoute()">➔</button>
   </div>
 
-  <div id="routeList"></div>
-
-  <div id="superAdminRouteEdit" style="display:none;margin-top:12px;border-top:1px dashed var(--glass-border);padding-top:8px">
+  <div id="superAdminRouteEdit" style="display:none;margin-top:8px;border-top:1px dashed var(--glass-border);padding-top:6px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-size:10px;color:var(--gold-bright)" id="routeEditTitle">⚙ 超级管理员路线修改</div>
-      <button onclick="APP.resetRouteForm()" class="route-btn" style="color:var(--gold-bright)">➕ 新建路线</button>
+      <div style="font-size:10px;color:var(--gold-bright)" id="routeEditTitle">⚙ 管理员路线修改</div>
+      <button onclick="APP.resetRouteForm()" class="route-btn" style="color:var(--gold-bright)">➕ 新建</button>
     </div>
     <input type="hidden" id="editRouteId">
     <input type="text" id="editRouteName" class="input-style" placeholder="路线名称" style="margin-bottom:6px">
-    <input type="text" id="editRoutePts" class="input-style" placeholder="关联站点ID (例如: gz, mlc, sh)" style="margin-bottom:6px">
-    <button onclick="APP.saveRouteConfig()" class="btn-gold" style="width:100%;font-size:11px">保存路线配置</button>
+    <input type="text" id="editRoutePts" class="input-style" placeholder="关联站点ID (例: gz, mlc, sh)" style="margin-bottom:6px">
+    <button onclick="APP.saveRouteConfig()" class="btn-gold" style="width:100%;font-size:11px">保存配置</button>
   </div>
 </div>
 
@@ -534,7 +569,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }).addTo(map);
   APP.map = map;
 
-  // 点击 Logo 返回主页视角
   document.getElementById('btnLogoHome').onclick = () => {
     map.flyTo(HOME_VIEW.center, HOME_VIEW.zoom, { duration: 1.2 });
     document.getElementById('sidebar').classList.remove('open');
@@ -547,7 +581,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(el) el.click();
   };
 
-  // 📲 跨平台 PWA APP 安装与【手动关闭】控制逻辑
+  // PWA APP 安装与手动关闭
   let deferredPrompt = null;
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -568,7 +602,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 点击手动关闭×
   document.getElementById('btnClosePwa').onclick = () => {
     document.getElementById('pwaPromptBar').style.display = 'none';
     sessionStorage.setItem('pwa_prompt_closed', 'true');
@@ -587,7 +620,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 点击拾取坐标
   let clickLatLng = null;
   map.on('click', (e) => {
     clickLatLng = e.latlng;
@@ -719,20 +751,19 @@ window.addEventListener('DOMContentLoaded', () => {
     APP.renderRouteList();
   };
 
-  // 地图导航
+  // 导航
   APP.openNavigation = (lat, lng, name) => {
     const encodedName = encodeURIComponent(name);
     const gaodeUrl = `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodedName}`;
     const appleUrl = `https://maps.apple.com/?q=${encodedName}&ll=${lat},${lng}`;
 
     const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
-    
-    if (confirm(`准备导航至：${name}\n点击【确定】唤醒专业地图开始导航路线。`)) {
+    if (confirm(`准备导航至：${name}\n点击【确定】唤醒专业地图导航。`)) {
       window.open(isAppleDevice ? appleUrl : gaodeUrl, '_blank');
     }
   };
 
-  // 抽屉详情展示
+  // 抽屉详情
   APP.openDrawer = (p) => {
     APP.currentPoint = p;
     document.getElementById('dWTitle').innerText = p.n;
@@ -785,7 +816,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('drawer').classList.remove('open');
   };
 
-  // 路线管理
+  // 路线管理与手机竖屏单卡片切换
   APP.renderRouteList = () => {
     const rContainer = document.getElementById('routeList');
     rContainer.innerHTML = APP.routes.map(r => `
@@ -802,6 +833,29 @@ window.addEventListener('DOMContentLoaded', () => {
         ` : ''}
       </div>
     `).join('');
+
+    // 更新手机端单卡片显示
+    APP.updateMobileRouteCard();
+  };
+
+  APP.updateMobileRouteCard = () => {
+    const curRoute = APP.routes.find(r => r.id === APP.activeRouteId) || APP.routes[0];
+    if(curRoute) {
+      document.getElementById('mRouteTitle').innerText = curRoute.name;
+      document.getElementById('mRoutePts').innerText = `包含站点: ${curRoute.pts.join(' ➔ ')}`;
+    }
+  };
+
+  APP.nextRoute = () => {
+    const idx = APP.routes.findIndex(r => r.id === APP.activeRouteId);
+    const nextIdx = (idx + 1) % APP.routes.length;
+    APP.selectRoute(APP.routes[nextIdx].id);
+  };
+
+  APP.prevRoute = () => {
+    const idx = APP.routes.findIndex(r => r.id === APP.activeRouteId);
+    const prevIdx = (idx - 1 + APP.routes.length) % APP.routes.length;
+    APP.selectRoute(APP.routes[prevIdx].id);
   };
 
   APP.selectRoute = (rid) => {

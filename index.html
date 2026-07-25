@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>光之足迹 · 宣教历史地图与属灵文旅</title>
 
-<!-- PWA 跨平台 APP 规范配置 -->
+<!-- PWA 跨平台应用规范配置 -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0b0e14">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -68,7 +68,7 @@
   #cLoad.ok { color: #2ecc71; border-color: #2ecc71; }
   #cLoad.bye { opacity: 0; }
 
-  /* 📱 全平台智能安装/下载引导条 */
+  /* 📱 “添加到主屏幕”提示条 */
   #smartInstallBar {
     position: fixed; top: calc(60px + var(--safe-top)); left: 50%; transform: translateX(-50%); z-index: 900;
     width: min(480px, 92vw); background: var(--glass-bg); border: 1px solid var(--gold);
@@ -260,7 +260,7 @@
 <div class="vig"></div>
 <div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
 
-<!-- 📱 智能选择平台安装引导条 -->
+<!-- 📱 智能“添加到主屏幕”安装引导条 -->
 <div id="smartInstallBar">
   <div class="pwa-info">
     <div class="pwa-icon">✝</div>
@@ -474,7 +474,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// 注册离线 Service Worker 支持 PWA 检测打包
+// 注册离线 Service Worker 支持 PWA 离线运行
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -514,8 +514,8 @@ window.addEventListener('DOMContentLoaded', () => {
       {id:'hz', n:'杭州 · 天水堂', w:'戴德生', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', status:'approved'},
       {id:'wenzhou', n:'温州 · 城西堂', w:'曹雅直 (George Stott)', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', status:'approved'},
       {id:'taiyuan', n:'太原 · 浸信会宣教站', w:'李提摩太 (Timothy Richard)', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', status:'approved'},
-      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', w:'李德立 (Edward Selby Little)', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避署地，后各差会在此建立教堂与牯岭美国学堂。', status:'approved'},
-      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', w:'李立生 (Daniel Nelson)', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避署地。1920年多国信义会在此联合成立“中华信义会”。', status:'approved'},
+      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', w:'李德立 (Edward Selby Little)', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', status:'approved'},
+      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', w:'李立生 (Daniel Nelson)', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', status:'approved'},
       {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', w:'伯格理 (Samuel Pollard)', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', status:'approved'},
       {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', w:'倪柝声', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', status:'approved'},
       {id:'moganshan', n:'德清 · 莫干山疗养古堡', w:'梅滕更 (Duncan Main)', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', status:'approved'},
@@ -560,9 +560,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if(el) el.click();
   };
 
-  // 📱 全平台智能设备检测与引导逻辑
+  // 📱 全平台智能“添加到主屏幕”安装引导
   const bar = document.getElementById('smartInstallBar');
-  const btnInstall = document.getElementById('btnInstallPwa');
+  const btnInstallPwa = document.getElementById('btnInstallPwa');
   const btnClosePwa = document.getElementById('btnClosePwa');
   const installDesc = document.getElementById('installDesc');
 
@@ -575,35 +575,40 @@ window.addEventListener('DOMContentLoaded', () => {
   } else {
     let deferredPrompt = null;
 
+    // 捕获 Android / Chrome / Edge 的原生添加到主屏幕事件
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       if (bar) bar.style.display = 'flex';
     });
 
+    // 针对 iPhone / iPad 显示 Safari 添加指引
     if (isIos) {
       if (bar) bar.style.display = 'flex';
       installDesc.innerText = '点击 Safari 底部分享 ⎋ 选“添加到主屏幕”';
     }
 
-    btnClosePwa.onclick = () => {
-      bar.style.display = 'none';
-      sessionStorage.setItem('install_bar_closed', 'true');
-    };
+    if (btnClosePwa) {
+      btnClosePwa.onclick = () => {
+        bar.style.display = 'none';
+        sessionStorage.setItem('install_bar_closed', 'true');
+      };
+    }
 
-    btnInstall.onclick = async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') bar.style.display = 'none';
-        deferredPrompt = null;
-      } else if (isIos) {
-        alert('🍎 苹果 iOS 安装指引：\n请点击 Safari 浏览器底部的“分享”图标 ⎋，向上滑动并选择“添加到主屏幕”，即可完成安装！');
-      } else {
-        // 安卓用户点击兜底触发下载 APK 安装包
-        window.location.href = '/download/tuohuangzhe.apk';
-      }
-    };
+    if (btnInstallPwa) {
+      btnInstallPwa.onclick = async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') bar.style.display = 'none';
+          deferredPrompt = null;
+        } else if (isIos) {
+          alert('🍎 苹果 iOS 安装指引：\n请点击 Safari 浏览器底部的“分享”图标 ⎋，向上滑动并选择“添加到主屏幕”，即可像原生 APP 一样在桌面启动！');
+        } else {
+          alert('💡 电脑/安卓客户端添加到桌面：\n点击浏览器地址栏右侧的“安装”小图标，或点击浏览器菜单选择“添加到主屏幕”/“安装应用”即可！');
+        }
+      };
+    }
   }
 
   let clickLatLng = null;

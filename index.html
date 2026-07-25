@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="光之足迹">
-<link rel="apple-touch-icon" href="/pwa图标/192.png">
+<link rel="apple-touch-icon" href="/pwa-icons/icon-192.png">
 
 <!-- 核心样式与字体依赖 -->
 <link rel="preconnect" href="https://fonts.font.im">
@@ -43,12 +43,10 @@
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
 
-  /* 地图与黑金调色滤镜 */
   #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; background: #0b0e14; }
   .dark-gold-tiles { filter: grayscale(90%) invert(98%) hue-rotate(180deg) brightness(90%) contrast(110%); }
   .vig { position: absolute; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 160px 45px rgba(0,0,0,.85); }
 
-  /* 国界 Tooltip 专属样式 */
   .ctip {
     background: rgba(14, 17, 25, 0.85)!important;
     border: 1px solid var(--gold-bright)!important;
@@ -62,7 +60,6 @@
   .ctip b { color: var(--gold-bright); font-size: 13px; display: block; margin-bottom: 4px; border-bottom: 1px dashed var(--glass-border); padding-bottom: 2px; }
   .ctip p { margin: 0; line-height: 1.5; color: var(--inkd); max-width: 220px; white-space: normal; }
 
-  /* 加载状态徽章 */
   #cLoad {
     position: fixed; left: 16px; bottom: calc(20px + var(--safe-bottom)); z-index: 400; font-size: 11px; color: var(--gold-bright);
     background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 6px 12px; border-radius: 20px;
@@ -71,8 +68,8 @@
   #cLoad.ok { color: #2ecc71; border-color: #2ecc71; }
   #cLoad.bye { opacity: 0; }
 
-  /* 📲 PWA APP 下载安装引导条 */
-  #pwaPromptBar {
+  /* 📱 全平台智能安装/下载引导条 */
+  #smartInstallBar {
     position: fixed; top: calc(60px + var(--safe-top)); left: 50%; transform: translateX(-50%); z-index: 900;
     width: min(480px, 92vw); background: var(--glass-bg); border: 1px solid var(--gold);
     border-radius: 30px; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -89,7 +86,6 @@
   .pwa-close { background: none; border: none; color: var(--inkd); font-size: 18px; padding: 0 4px; line-height: 1; }
   .pwa-close:hover { color: #fff; }
 
-  /* 顶栏 Header */
   #topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 400; display: flex; align-items: center; gap: 8px;
     padding: calc(10px + var(--safe-top)) 12px 10px; background: linear-gradient(180deg, rgba(8,10,16,.9), transparent); pointer-events: none;
@@ -110,7 +106,6 @@
   }
   .tb:hover, .tb.on { border-color: var(--gold); color: var(--gold-bright); box-shadow: 0 0 14px rgba(212,175,106,.3); }
 
-  /* 手机端集合侧栏 */
   #sidebar {
     position: fixed; top: 0; left: 0; bottom: 0; width: min(var(--sidebar-w), 85vw);
     background: var(--glass-bg); border-right: 1px solid var(--glass-border);
@@ -137,7 +132,6 @@
   #ranking-list .num { font-family: var(--font-mono); font-size: 11px; color: var(--gold); min-width: 24px; }
   #ranking-list .name { flex: 1; font-size: 12px; color: var(--ink); }
 
-  /* 十架 Marker 与发光诞生特效 */
   .mkw { background: none!important; border: none!important; }
   .mk { position: relative; width: 44px; height: 44px; cursor: pointer; transition: opacity .6s ease, transform .6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   .mk.off { opacity: 0; transform: scale(0.1); pointer-events: none; }
@@ -160,7 +154,6 @@
   .mk .lb { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; color: var(--gold-bright); text-shadow: 0 1px 4px #000; opacity: 0; transition: .3s; }
   .mk:hover .lb { opacity: 1; }
 
-  /* 路线流光轨迹 */
   .rt-glow { filter: drop-shadow(0 0 8px var(--gold-bright)); }
   .rt-path { stroke-dasharray: 8 12; animation: flow 12s linear infinite; }
   @keyframes flow { to { stroke-dashoffset: -1000; } }
@@ -168,7 +161,6 @@
   .spark { width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 0 14px #fff, 0 0 28px var(--gold-bright); animation: sparkle 1s infinite alternate; }
   @keyframes sparkle { 0% { transform: scale(0.7); } 100% { transform: scale(1.3); } }
 
-  /* 桌面端路线面板 */
   #routePanel {
     position: fixed; left: 12px; top: calc(56px + var(--safe-top)); z-index: 450; width: min(340px, 90vw); max-height: 75vh; overflow-y: auto;
     background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px;
@@ -182,10 +174,8 @@
   .route-actions { display: flex; gap: 6px; }
   .route-btn { background: none; border: 1px solid var(--glass-border); color: var(--ink); padding: 2px 6px; font-size: 10px; border-radius: 4px; }
 
-  /* 📱 手机竖屏专属单路线迷你轮播卡片 */
   .mobile-route-carousel { display: none; }
 
-  /* 底部年代播放时空轴 (iOS 玻璃面板) */
   #tl {
     position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; z-index: 500; width: min(920px, 100vw);
     background: var(--glass-bg); border: 1px solid var(--glass-border); border-bottom: none; padding: 14px 18px calc(10px + var(--safe-bottom));
@@ -203,7 +193,6 @@
   .tl-era-chip { font-size: 10px; color: var(--inkd); background: rgba(255,255,255,.05); border: 1px solid var(--glass-border); padding: 3px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
   .tl-era-chip.on { background: var(--gold); color: #000; font-weight: bold; border-color: var(--gold-bright); }
 
-  /* 右上角实时年代看板 */
   #eraBadge {
     position: fixed; top: calc(54px + var(--safe-top)); right: 12px; z-index: 400; background: var(--glass-bg);
     border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px 12px; text-align: right;
@@ -212,7 +201,6 @@
   #eraBadge .ey { font-size: 16px; font-weight: bold; color: var(--gold-bright); font-family: var(--font-mono); }
   #eraBadge .en { font-size: 10px; color: var(--inkd); }
 
-  /* 右侧/底部多媒体抽屉 */
   #drawer {
     position: fixed; top: 0; right: -480px; bottom: 0; z-index: 600; width: min(480px, 100vw);
     background: var(--glass-bg); border-left: 1px solid var(--glass-border); padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); transition: .4s cubic-bezier(.22,.61,.36,1);
@@ -222,14 +210,12 @@
   .media-box { margin-top: 10px; background: rgba(0,0,0,.3); border: 1px solid var(--glass-border); padding: 10px; border-radius: 8px; }
   #vr-panorama { width: 100%; height: 200px; border-radius: 6px; margin-top: 6px; }
 
-  /* 文件上传选择器样式 */
   .file-uploader {
     display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--inkd);
     background: rgba(0,0,0,.2); border: 1px dashed var(--glass-border); padding: 8px; border-radius: 6px;
   }
   .file-uploader input[type="file"] { font-size: 10px; color: var(--gold-bright); }
 
-  /* iOS 玻璃质感 Modal 弹窗 */
   .modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.5); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; padding: 12px; }
   .modal-box { background: var(--glass-bg); border: 1px solid var(--glass-border); width: min(640px, 100%); max-height: 85vh; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.8); overflow: hidden; backdrop-filter: blur(24px) saturate(180%); }
   .modal-hd { padding: 14px 16px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
@@ -237,23 +223,19 @@
   .input-style { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: #fff; padding: 8px 10px; border-radius: 6px; width: 100%; font-size: 12px; }
   .btn-gold { background: linear-gradient(180deg,var(--gold-bright),var(--gold)); border: none; color: #000; padding: 8px 14px; font-weight: bold; border-radius: 6px; font-size: 12px; }
 
-  /* 地图导航选择按钮 */
   .nav-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .nav-btn { background: rgba(212,175,106,0.15); border: 1px solid var(--gold); color: var(--gold-bright); padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; text-decoration: none; font-weight: bold; }
   .nav-btn:active { background: var(--gold); color: #000; }
 
-  /* 📱 手机竖屏极简自适应样式（关键优化：不遮挡背后地图） */
   @media (max-width: 768px) {
     .desktop-only { display: none!important; }
     
-    /* 将路线规划面板缩放到手机底部，极轻极薄 */
     #routePanel {
       top: auto; left: 10px; right: 10px; bottom: calc(10px + var(--safe-bottom)); width: auto; max-height: none;
       padding: 10px 12px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
     .desktop-route-list { display: none!important; }
     
-    /* 手机模式单路线轮播卡片 */
     .mobile-route-carousel {
       display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;
     }
@@ -278,13 +260,13 @@
 <div class="vig"></div>
 <div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
 
-<!-- 📲 PWA APP 下载安装引导条 -->
-<div id="pwaPromptBar">
+<!-- 📱 智能选择平台安装引导条 -->
+<div id="smartInstallBar">
   <div class="pwa-info">
     <div class="pwa-icon">✝</div>
     <div class="pwa-text">
-      <h4>安装“光之足迹” APP</h4>
-      <p id="pwaDesc">全终端支持，体验更流畅的宣教历史地图</p>
+      <h4 id="installTitle">安装“拓荒者足迹” APP</h4>
+      <p id="installDesc">体验更流畅的全屏宣教历史地图</p>
     </div>
   </div>
   <div class="pwa-actions">
@@ -293,14 +275,12 @@
   </div>
 </div>
 
-<!-- 右上角实时年代看板 -->
 <div id="eraBadge">
   <div class="ey">公元 <span id="eBadgeYear">2026</span> 年</div>
   <div class="en" id="eBadgeName">现代宣教</div>
   <div class="ec" style="font-size:9px;color:var(--gold);margin-top:2px">点位: <span id="eBadgeCount" style="color:#fff">0</span> 个</div>
 </div>
 
-<!-- 顶栏导航 -->
 <div id="topbar">
   <div class="brand" id="btnLogoHome">
     <div class="mc"></div>
@@ -315,7 +295,6 @@
   <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ 审核后台</button>
 </div>
 
-<!-- 手机端集合抽屉 -->
 <aside id="sidebar">
   <div class="sb-header">
     <div>
@@ -338,7 +317,6 @@
   </div>
 </aside>
 
-<!-- 📱 路线规划面板（手机端下精准缩放到底部，只显示一条路线轮播） -->
 <div id="routePanel">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:6px">
     <h3 style="color:var(--gold-bright);font-size:12px">✦ 宣教路线规划与流光</h3>
@@ -348,10 +326,8 @@
     </div>
   </div>
   
-  <!-- 💻 电脑端多路线列表 -->
   <div id="routeList" class="desktop-route-list"></div>
 
-  <!-- 📱 手机竖屏单路线轮播卡片（不遮挡背后的地图） -->
   <div class="mobile-route-carousel">
     <button class="m-nav-arrow" onclick="APP.prevRoute()">◀</button>
     <div class="m-route-card" id="mRouteCard">
@@ -373,7 +349,6 @@
   </div>
 </div>
 
-<!-- 底部年代播放时空轴 -->
 <div id="tl">
   <div class="tl-hd">
     <button id="btnPlay" style="background:var(--gold-bright);border:none;width:32px;height:32px;border-radius:50%;font-weight:bold;font-size:14px">▶</button>
@@ -391,7 +366,6 @@
   <div class="tl-eras" id="tErasContainer"></div>
 </div>
 
-<!-- 右侧富媒体抽屉 -->
 <div id="drawer">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:8px;margin-bottom:12px">
     <h3 id="dWTitle" style="color:var(--gold-bright);font-size:15px">详情</h3>
@@ -406,7 +380,6 @@
   <div id="dWBody"></div>
 </div>
 
-<!-- 会员登录 / 注册 Modal -->
 <div id="authModal" class="modal">
   <div class="modal-box" style="width:min(360px,90vw)">
     <div class="modal-hd"><h3 style="color:var(--gold-bright);font-size:14px">会员登录 / 注册</h3><button onclick="document.getElementById('authModal').style.display='none'" style="background:none;border:none;color:#fff">×</button></div>
@@ -428,7 +401,6 @@
   </div>
 </div>
 
-<!-- 提交/管理 Modal -->
 <div id="adminModal" class="modal">
   <div class="modal-box">
     <div class="modal-hd">
@@ -497,12 +469,20 @@
   </div>
 </div>
 
-<!-- 脚本依赖 -->
 <script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+// 注册离线 Service Worker 支持 PWA 检测打包
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker 注册成功:', reg.scope))
+      .catch(err => console.log('Service Worker 注册失败:', err));
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const SUPER_ADMIN_EMAIL = '440032005@qq.com'; 
   const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
@@ -534,8 +514,8 @@ window.addEventListener('DOMContentLoaded', () => {
       {id:'hz', n:'杭州 · 天水堂', w:'戴德生', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', status:'approved'},
       {id:'wenzhou', n:'温州 · 城西堂', w:'曹雅直 (George Stott)', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', status:'approved'},
       {id:'taiyuan', n:'太原 · 浸信会宣教站', w:'李提摩太 (Timothy Richard)', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', status:'approved'},
-      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', w:'李德立 (Edward Selby Little)', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', status:'approved'},
-      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', w:'李立生 (Daniel Nelson)', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', status:'approved'},
+      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', w:'李德立 (Edward Selby Little)', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避署地，后各差会在此建立教堂与牯岭美国学堂。', status:'approved'},
+      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', w:'李立生 (Daniel Nelson)', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避署地。1920年多国信义会在此联合成立“中华信义会”。', status:'approved'},
       {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', w:'伯格理 (Samuel Pollard)', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', status:'approved'},
       {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', w:'倪柝声', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', status:'approved'},
       {id:'moganshan', n:'德清 · 莫干山疗养古堡', w:'梅滕更 (Duncan Main)', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', status:'approved'},
@@ -561,7 +541,6 @@ window.addEventListener('DOMContentLoaded', () => {
     { y: 2026, n: '现代宣教时代' }
   ];
 
-  // 地图初始化
   const HOME_VIEW = { center: [35, 104], zoom: 4 };
   const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
   L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -581,44 +560,51 @@ window.addEventListener('DOMContentLoaded', () => {
     if(el) el.click();
   };
 
-  // PWA APP 安装与手动关闭
-  let deferredPrompt = null;
+  // 📱 全平台智能设备检测与引导逻辑
+  const bar = document.getElementById('smartInstallBar');
+  const btnInstall = document.getElementById('btnInstallPwa');
+  const btnClosePwa = document.getElementById('btnClosePwa');
+  const installDesc = document.getElementById('installDesc');
+
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  const pwaClosedByUser = sessionStorage.getItem('pwa_prompt_closed');
+  const isBarClosed = sessionStorage.getItem('install_bar_closed');
 
-  if (isStandalone || pwaClosedByUser) {
-    document.getElementById('pwaPromptBar').style.display = 'none';
+  if (isStandalone || isBarClosed) {
+    if (bar) bar.style.display = 'none';
   } else {
+    let deferredPrompt = null;
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      document.getElementById('pwaPromptBar').style.display = 'flex';
+      if (bar) bar.style.display = 'flex';
     });
 
     if (isIos) {
-      document.getElementById('pwaPromptBar').style.display = 'flex';
-      document.getElementById('pwaDesc').innerText = '点击分享按钮选“添加到主屏幕”安装 APP';
+      if (bar) bar.style.display = 'flex';
+      installDesc.innerText = '点击 Safari 底部分享 ⎋ 选“添加到主屏幕”';
     }
+
+    btnClosePwa.onclick = () => {
+      bar.style.display = 'none';
+      sessionStorage.setItem('install_bar_closed', 'true');
+    };
+
+    btnInstall.onclick = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') bar.style.display = 'none';
+        deferredPrompt = null;
+      } else if (isIos) {
+        alert('🍎 苹果 iOS 安装指引：\n请点击 Safari 浏览器底部的“分享”图标 ⎋，向上滑动并选择“添加到主屏幕”，即可完成安装！');
+      } else {
+        // 安卓用户点击兜底触发下载 APK 安装包
+        window.location.href = '/download/tuohuangzhe.apk';
+      }
+    };
   }
-
-  document.getElementById('btnClosePwa').onclick = () => {
-    document.getElementById('pwaPromptBar').style.display = 'none';
-    sessionStorage.setItem('pwa_prompt_closed', 'true');
-  };
-
-  document.getElementById('btnInstallPwa').onclick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') document.getElementById('pwaPromptBar').style.display = 'none';
-      deferredPrompt = null;
-    } else if (isIos) {
-      alert('🍎 苹果 iOS 安装指引：\n请点击 Safari 浏览器底部的“分享”图标 ⎋，然后向上滑动选择“添加到主屏幕”，即可完成 APP 安装！');
-    } else {
-      alert('💡 电脑/安卓客户端安装：\n点击浏览器地址栏右侧的“安装”小图标，或点击浏览器菜单选择“添加到主屏幕”/“安装应用”');
-    }
-  };
 
   let clickLatLng = null;
   map.on('click', (e) => {
@@ -627,7 +613,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if(afC) afC.value = `${clickLatLng.lat.toFixed(4)}, ${clickLatLng.lng.toFixed(4)}`;
   });
 
-  // 加载国界与 Tooltip
   (function initCountries(){
     const map = APP.map;
     if(!map) return;
@@ -714,7 +699,6 @@ window.addEventListener('DOMContentLoaded', () => {
     })();
   })();
 
-  // Marker 渲染
   const mkHtml = p => `<div class="mk" id="mk_${p.id}"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${p.n.split('·')[0].trim()}</div></div>`;
 
   APP.renderAll = () => {
@@ -751,7 +735,6 @@ window.addEventListener('DOMContentLoaded', () => {
     APP.renderRouteList();
   };
 
-  // 导航
   APP.openNavigation = (lat, lng, name) => {
     const encodedName = encodeURIComponent(name);
     const gaodeUrl = `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodedName}`;
@@ -763,7 +746,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 抽屉详情
   APP.openDrawer = (p) => {
     APP.currentPoint = p;
     document.getElementById('dWTitle').innerText = p.n;
@@ -816,7 +798,6 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('drawer').classList.remove('open');
   };
 
-  // 路线管理与手机竖屏单卡片切换
   APP.renderRouteList = () => {
     const rContainer = document.getElementById('routeList');
     rContainer.innerHTML = APP.routes.map(r => `
@@ -834,7 +815,6 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
 
-    // 更新手机端单卡片显示
     APP.updateMobileRouteCard();
   };
 
@@ -965,7 +945,6 @@ window.addEventListener('DOMContentLoaded', () => {
     alert('路线保存成功！');
   };
 
-  // 时空轴
   const tSlider = document.getElementById('tSlider');
   const tYear = document.getElementById('tYear');
   const tEraText = document.getElementById('tEraText');
@@ -1059,7 +1038,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!isShow) APP.updateTimeline(parseInt(tSlider.value));
   };
 
-  // 账号与本地缓存
   document.getElementById('bToggleSidebar').onclick = () => document.getElementById('sidebar').classList.toggle('open');
   
   APP.loadSavedAuth = () => {
@@ -1158,7 +1136,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // 点位提交
   document.getElementById('pointForm').onsubmit = async (e) => {
     e.preventDefault();
     if(!clickLatLng) return alert('请先在地图上点击拾取坐标！');
@@ -1256,7 +1233,6 @@ window.addEventListener('DOMContentLoaded', () => {
     APP.renderAuditList();
   };
 
-  // 初始渲染
   APP.renderAll();
   APP.updateTimeline(2026);
   APP.loadSavedAuth();

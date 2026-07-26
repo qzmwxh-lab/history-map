@@ -45,7 +45,17 @@
 
   #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; background: #0b0e14; }
   .dark-gold-tiles { filter: grayscale(90%) invert(98%) hue-rotate(180deg) brightness(90%) contrast(110%); }
-  .vig { position: absolute; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 160px 45px rgba(0,0,0,.85); }
+  
+  /* 🔦 “探索模式”手电筒探照灯暗色遮罩层 */
+  .flashlight-overlay {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease;
+    background: radial-gradient(circle 180px at 50% 50%, rgba(245, 215, 142, 0.22) 0%, rgba(11, 14, 20, 0.55) 50%, rgba(11, 14, 20, 0.88) 100%);
+    box-shadow: inset 0 0 160px 45px rgba(0,0,0,.85);
+  }
+  .flashlight-overlay.active {
+    opacity: 1; visibility: visible;
+  }
 
   .ctip {
     background: rgba(14, 17, 25, 0.85)!important;
@@ -92,11 +102,13 @@
   }
   #topbar > * { pointer-events: auto; flex-shrink: 0; }
   
+  /* ✝️ 顶栏 Logo 的十字架比例调整（上短下长） */
   .brand { display: flex; align-items: center; gap: 8px; margin-right: auto; cursor: pointer; user-select: none; transition: transform .2s; }
   .brand:active { transform: scale(0.96); }
-  .mc { width: 16px; height: 22px; position: relative; filter: drop-shadow(0 0 6px rgba(245,215,142,.8)); }
-  .mc::before, .mc::after { content: ''; position: absolute; background: var(--gold-bright); left: 50%; transform: translateX(-50%); }
-  .mc::before { width: 3px; height: 100%; } .mc::after { width: 100%; height: 3px; top: 32%; }
+  .mc { width: 16px; height: 24px; position: relative; filter: drop-shadow(0 0 6px rgba(245,215,142,.8)); }
+  .mc::before, .mc::after { content: ''; position: absolute; background: var(--gold-bright); left: 50%; transform: translateX(-50%); border-radius: 1px; }
+  .mc::before { width: 3px; height: 100%; top: 0; } 
+  .mc::after { width: 15px; height: 3px; top: 28%; }
   .brand h2 { font-size: 15px; letter-spacing: .1em; color: var(--gold-bright); white-space: nowrap; font-family: var(--font-display); }
   .brand .sub { font-size: 8px; color: var(--inkd); letter-spacing: .2em; display: block; }
   
@@ -117,6 +129,18 @@
   #sidebar .sb-header { padding: 40px 16px 12px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
   #sidebar h1 { font-family: var(--font-display); font-size: 22px; color: var(--gold-bright); }
   #sidebar .sb-sub { font-size: 10px; color: var(--inkd); }
+
+  /* 🗺️ 地图模式切换 UI 菜单 */
+  .mode-switch-box { padding: 12px 16px; border-bottom: 1px solid var(--glass-border); }
+  .mode-switch-title { font-size: 11px; color: var(--gold-bright); margin-bottom: 8px; font-weight: bold; }
+  .mode-btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .mode-btn {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 6px;
+    padding: 8px 4px; color: var(--inkd); font-size: 10px; text-align: center; cursor: pointer; transition: all .2s;
+  }
+  .mode-btn:hover, .mode-btn.active {
+    background: rgba(212, 175, 106, 0.25); border-color: var(--gold-bright); color: var(--gold-bright); font-weight: bold;
+  }
 
   .mobile-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--glass-border); }
   .m-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; padding: 10px; color: var(--ink); font-size: 11px; display: flex; align-items: center; gap: 6px; justify-content: center; }
@@ -148,11 +172,19 @@
   @keyframes bornHalo { 0% { transform: scale(0.2); } 50% { transform: scale(1.6); } 100% { transform: scale(1.0); } }
   @keyframes burst { 0% { opacity: 1; transform: scale(0.3); } 100% { opacity: 0; transform: scale(2.2); } }
 
-  .mk .cx { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 0 8px rgba(245,215,142,.95)); }
-  .mk i { position: absolute; background: linear-gradient(180deg,var(--gold-bright),var(--gold)); left: 50%; top: 50%; transform: translate(-50%,-50%); border-radius: 2px; display: block; }
-  .mk .v { width: 4px; height: 26px; } .mk .h { width: 17px; height: 4px; top: 38%; }
+  /* ✝️ 地图点位十字架：调整竖杠和横杠比例为经典拉丁十字（上短下长） */
+  .mk .cx { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 0 8px rgba(245,215,142,.95)); width: 20px; height: 28px; }
+  .mk i { position: absolute; background: linear-gradient(180deg,var(--gold-bright),var(--gold)); border-radius: 2px; display: block; }
+  .mk .v { width: 3.5px; height: 28px; left: 50%; top: 0; transform: translateX(-50%); } 
+  .mk .h { width: 17px; height: 3.5px; left: 50%; top: 28%; transform: translateX(-50%); }
   .mk .lb { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; color: var(--gold-bright); text-shadow: 0 1px 4px #000; opacity: 0; transition: .3s; }
   .mk:hover .lb { opacity: 1; }
+
+  /* ☀️ 正常白色模式下的深色十字架样式 */
+  .normal-mode-active .mk i { background: linear-gradient(180deg, #4a3818, #221808); }
+  .normal-mode-active .mk .rp { border-color: rgba(74, 56, 24, 0.6); }
+  .normal-mode-active .mk .lb { color: #3a280b; text-shadow: 0 1px 2px rgba(255,255,255,0.9); font-weight: bold; }
+  .normal-mode-active .mk .cx { filter: drop-shadow(0 0 4px rgba(0,0,0,0.3)); }
 
   .rt-glow { filter: drop-shadow(0 0 8px var(--gold-bright)); }
   .rt-path { stroke-dasharray: 8 12; animation: flow 12s linear infinite; }
@@ -257,7 +289,8 @@
 <body>
 
 <div id="map"></div>
-<div class="vig"></div>
+<!-- 🔦 手电筒光效遮罩层 -->
+<div class="flashlight-overlay" id="flashlight"></div>
 <div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
 
 <!-- 📱 智能“添加到主屏幕”安装引导条 -->
@@ -302,6 +335,16 @@
       <p class="sb-sub">智慧宣教历史轨迹记录</p>
     </div>
     <button onclick="document.getElementById('sidebar').classList.remove('open')" style="background:none;border:none;color:#fff;font-size:20px">×</button>
+  </div>
+
+  <!-- 🗺️ 切换地图模式 -->
+  <div class="mode-switch-box">
+    <div class="mode-switch-title">🗺️ 切换地图模式</div>
+    <div class="mode-btn-group">
+      <div class="mode-btn" id="btnModeNormal" onclick="APP.setMapMode('normal')">☀️ 正常模式</div>
+      <div class="mode-btn active" id="btnModeDarkGold" onclick="APP.setMapMode('darkGold')">🌙 黑金模式</div>
+      <div class="mode-btn" id="btnModeExplore" onclick="APP.setMapMode('explore')">🔦 探索模式</div>
+    </div>
   </div>
 
   <div class="mobile-menu-grid">
@@ -490,9 +533,24 @@ window.addEventListener('DOMContentLoaded', () => {
   const isCloudMode = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+  // 🔦 手电筒探照灯位置更新
+  const flashlight = document.getElementById('flashlight');
+  const updateFlashlight = (x, y) => {
+    flashlight.style.background = `radial-gradient(circle 220px at ${x}px ${y}px, rgba(245, 215, 142, 0.22) 0%, rgba(11, 14, 20, 0.55) 50%, rgba(11, 14, 20, 0.88) 100%)`;
+  };
+
+  window.addEventListener('mousemove', (e) => updateFlashlight(e.clientX, e.clientY));
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 0) {
+      updateFlashlight(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  });
+
   window.APP = {
     user: null,
     isSuperAdmin: false,
+    currentMapMode: 'darkGold', // 模式: 'normal', 'darkGold', 'explore'
+    tileLayer: null,
     markers: {},
     visibleState: {},
     routeAnimFrame: null,
@@ -532,6 +590,42 @@ window.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
+  const HOME_VIEW = { center: [35, 104], zoom: 4 };
+  const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
+  APP.map = map;
+
+  // 🗺️ 地图模式设置方法
+  APP.setMapMode = (mode) => {
+    APP.currentMapMode = mode;
+
+    document.getElementById('btnModeNormal').classList.toggle('active', mode === 'normal');
+    document.getElementById('btnModeDarkGold').classList.toggle('active', mode === 'darkGold');
+    document.getElementById('btnModeExplore').classList.toggle('active', mode === 'explore');
+
+    // 1. 设置手电筒探照模式
+    if (mode === 'explore') {
+      flashlight.classList.add('active');
+    } else {
+      flashlight.classList.remove('active');
+    }
+
+    // 2. 移除旧瓦片图层并重新载入对应风格
+    if (APP.tileLayer) map.removeLayer(APP.tileLayer);
+
+    const isNormal = mode === 'normal';
+    const tileClass = isNormal ? '' : 'dark-gold-tiles';
+
+    APP.tileLayer = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+      subdomains: ['1', '2', '3', '4'], maxZoom: 18, className: tileClass
+    }).addTo(map);
+
+    // 3. 正常白色背景模式下，十字架反转为深色
+    document.body.classList.toggle('normal-mode-active', isNormal);
+  };
+
+  // 初始化为黑金模式
+  APP.setMapMode('darkGold');
+
   APP.ERAS = [
     { y: 635, n: '唐朝景教时期' },
     { y: 1580, n: '明末天主教传播' },
@@ -540,13 +634,6 @@ window.addEventListener('DOMContentLoaded', () => {
     { y: 1900, n: '民国教务蓬勃时期' },
     { y: 2026, n: '现代宣教时代' }
   ];
-
-  const HOME_VIEW = { center: [35, 104], zoom: 4 };
-  const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
-  L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-    subdomains: ['1', '2', '3', '4'], maxZoom: 18, className: 'dark-gold-tiles'
-  }).addTo(map);
-  APP.map = map;
 
   document.getElementById('btnLogoHome').onclick = () => {
     map.flyTo(HOME_VIEW.center, HOME_VIEW.zoom, { duration: 1.2 });
@@ -575,14 +662,12 @@ window.addEventListener('DOMContentLoaded', () => {
   } else {
     let deferredPrompt = null;
 
-    // 捕获 Android / Chrome / Edge 的原生添加到主屏幕事件
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       if (bar) bar.style.display = 'flex';
     });
 
-    // 针对 iPhone / iPad 显示 Safari 添加指引
     if (isIos) {
       if (bar) bar.style.display = 'flex';
       installDesc.innerText = '点击 Safari 底部分享 ⎋ 选“添加到主屏幕”';
@@ -850,8 +935,16 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   APP.drawRoute = (rid) => {
-    if(APP.routeAnimFrame) cancelAnimationFrame(APP.routeAnimFrame);
-    if(APP.routeLayer) map.removeLayer(APP.routeLayer);
+    if(APP.routeAnimFrame) {
+      cancelAnimationFrame(APP.routeAnimFrame);
+      APP.routeAnimFrame = null;
+    }
+    if(APP.routeLayer) {
+      map.removeLayer(APP.routeLayer);
+      APP.routeLayer = null;
+    }
+
+    if(!APP.enableRouteAnim) return;
 
     const r = APP.routes.find(x => x.id === rid);
     if(!r) return;
@@ -864,23 +957,60 @@ window.addEventListener('DOMContentLoaded', () => {
     if(latlngs.length < 2) return;
 
     APP.routeLayer = L.featureGroup().addTo(map);
-    L.polyline(latlngs, {color:'var(--gold-bright)', weight:4, opacity:0.4, className: APP.enableRouteAnim ? 'rt-glow' : ''}).addTo(APP.routeLayer);
+    L.polyline(latlngs, {color:'var(--gold-bright)', weight:4, opacity:0.4, className: 'rt-glow'}).addTo(APP.routeLayer);
     
-    const path = L.polyline(latlngs, {color:'#fff', weight:2, className: APP.enableRouteAnim ? 'rt-path' : ''}).addTo(APP.routeLayer);
+    const path = L.polyline(latlngs, {color:'#fff', weight:2, className: 'rt-path'}).addTo(APP.routeLayer);
     map.flyToBounds(path.getBounds(), {padding:[40,40], duration:1.2});
 
-    if(APP.enableRouteAnim) {
-      const spark = L.marker(latlngs[0], {icon:L.divIcon({className:'spark-m', html:'<div class="spark"></div>', iconSize:[14,14]})}).addTo(APP.routeLayer);
-      let st = null;
-      const anim = (t) => {
-        if(!st) st = t;
-        const pct = Math.min((t - st)/4500, 1);
-        spark.setLatLng([latlngs[0][0]+(latlngs[1][0]-latlngs[0][0])*pct, latlngs[0][1]+(latlngs[1][1]-latlngs[0][1])*pct]);
-        if(pct < 1) APP.routeAnimFrame = requestAnimationFrame(anim);
-        else setTimeout(()=> { st=null; APP.routeAnimFrame = requestAnimationFrame(anim); }, 1000);
-      };
-      APP.routeAnimFrame = requestAnimationFrame(anim);
+    const segments = [];
+    let totalDistance = 0;
+
+    for (let i = 0; i < latlngs.length - 1; i++) {
+      const p1 = L.latLng(latlngs[i]);
+      const p2 = L.latLng(latlngs[i + 1]);
+      const dist = p1.distanceTo(p2);
+      segments.push({
+        start: latlngs[i],
+        end: latlngs[i + 1],
+        dist: dist,
+        startDist: totalDistance
+      });
+      totalDistance += dist;
     }
+
+    const spark = L.marker(latlngs[0], {
+      icon: L.divIcon({className: 'spark-m', html: '<div class="spark"></div>', iconSize: [14, 14]})
+    }).addTo(APP.routeLayer);
+
+    let st = null;
+    const duration = Math.max(3500, Math.min(8500, totalDistance / 450)); 
+
+    const anim = (t) => {
+      if(!st) st = t;
+      const progress = (t - st) / duration;
+
+      if (progress < 1) {
+        const currentDist = progress * totalDistance;
+        const seg = segments.find(s => currentDist >= s.startDist && currentDist <= s.startDist + s.dist) || segments[segments.length - 1];
+        const segPct = seg.dist > 0 ? (currentDist - seg.startDist) / seg.dist : 0;
+
+        const lat = seg.start[0] + (seg.end[0] - seg.start[0]) * segPct;
+        const lng = seg.start[1] + (seg.end[1] - seg.start[1]) * segPct;
+
+        spark.setLatLng([lat, lng]);
+        APP.routeAnimFrame = requestAnimationFrame(anim);
+      } else {
+        spark.setLatLng(latlngs[latlngs.length - 1]);
+        setTimeout(() => {
+          st = null;
+          if(APP.enableRouteAnim) {
+            APP.routeAnimFrame = requestAnimationFrame(anim);
+          }
+        }, 800);
+      }
+    };
+
+    APP.routeAnimFrame = requestAnimationFrame(anim);
   };
 
   document.getElementById('btnToggleRouteAnim').onclick = () => {

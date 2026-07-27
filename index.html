@@ -102,7 +102,7 @@
   }
   #topbar > * { pointer-events: auto; flex-shrink: 0; }
   
-  /* ✝️ 顶栏 Logo 的十字架比例调整（上短下长） */
+  /* ✝️ 顶栏 Logo 的十字架比例调整 */
   .brand { display: flex; align-items: center; gap: 8px; margin-right: auto; cursor: pointer; user-select: none; transition: transform .2s; }
   .brand:active { transform: scale(0.96); }
   .mc { width: 16px; height: 24px; position: relative; filter: drop-shadow(0 0 6px rgba(245,215,142,.8)); }
@@ -129,6 +129,18 @@
   #sidebar .sb-header { padding: 40px 16px 12px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
   #sidebar h1 { font-family: var(--font-display); font-size: 22px; color: var(--gold-bright); }
   #sidebar .sb-sub { font-size: 10px; color: var(--inkd); }
+
+  /* 🌐 语言切换 UI 模块 */
+  .lang-switch-box { padding: 12px 16px; border-bottom: 1px solid var(--glass-border); }
+  .lang-switch-title { font-size: 11px; color: var(--gold-bright); margin-bottom: 8px; font-weight: bold; }
+  .lang-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .lang-btn {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 6px;
+    padding: 6px 4px; color: var(--inkd); font-size: 11px; text-align: center; cursor: pointer; transition: all .2s;
+  }
+  .lang-btn:hover, .lang-btn.active {
+    background: rgba(212, 175, 106, 0.25); border-color: var(--gold-bright); color: var(--gold-bright); font-weight: bold;
+  }
 
   /* 🗺️ 地图模式切换 UI 菜单 */
   .mode-switch-box { padding: 12px 16px; border-bottom: 1px solid var(--glass-border); }
@@ -172,7 +184,7 @@
   @keyframes bornHalo { 0% { transform: scale(0.2); } 50% { transform: scale(1.6); } 100% { transform: scale(1.0); } }
   @keyframes burst { 0% { opacity: 1; transform: scale(0.3); } 100% { opacity: 0; transform: scale(2.2); } }
 
-  /* ✝️ 地图点位十字架：调整竖杠和横杠比例为经典拉丁十字（上短下长） */
+  /* ✝️ 地图点位十字架 */
   .mk .cx { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 0 8px rgba(245,215,142,.95)); width: 20px; height: 28px; }
   .mk i { position: absolute; background: linear-gradient(180deg,var(--gold-bright),var(--gold)); border-radius: 2px; display: block; }
   .mk .v { width: 3.5px; height: 28px; left: 50%; top: 0; transform: translateX(-50%); } 
@@ -309,50 +321,59 @@
 </div>
 
 <div id="eraBadge">
-  <div class="ey">公元 <span id="eBadgeYear">2026</span> 年</div>
+  <div class="ey"><span id="badgeADPrefix">公元</span> <span id="eBadgeYear">2026</span> <span id="badgeADSuffix">年</span></div>
   <div class="en" id="eBadgeName">现代宣教</div>
-  <div class="ec" style="font-size:9px;color:var(--gold);margin-top:2px">点位: <span id="eBadgeCount" style="color:#fff">0</span> 个</div>
+  <div class="ec" style="font-size:9px;color:var(--gold);margin-top:2px"><span id="badgePointsLabel">点位:</span> <span id="eBadgeCount" style="color:#fff">0</span> <span id="badgeUnitLabel">个</span></div>
 </div>
 
 <div id="topbar">
   <div class="brand" id="btnLogoHome">
     <div class="mc"></div>
-    <div><h2>光之足迹</h2><span class="sub">MISSIONARY ATLAS</span></div>
+    <div><h2 id="uiMainTitle">光之足迹</h2><span class="sub">MISSIONARY ATLAS</span></div>
   </div>
   
-  <button class="tb" id="bToggleSidebar">☰ 目录</button>
-  <button class="tb desktop-only" id="bR">✦ 路线规划</button>
-  <button class="tb desktop-only" id="bT">✦ 时空轴</button>
-  <button class="tb desktop-only" id="bAuth">👤 登录</button>
-  <button class="tb desktop-only" id="bSubmit" style="display:none">➕ 提交点位</button>
-  <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ 审核后台</button>
+  <button class="tb" id="bToggleSidebar">☰ <span id="uiNavSidebar">目录</span></button>
+  <button class="tb desktop-only" id="bR">✦ <span id="uiNavRoute">路线规划</span></button>
+  <button class="tb desktop-only" id="bT">✦ <span id="uiNavTimeline">时空轴</span></button>
+  <button class="tb desktop-only" id="bAuth">👤 <span id="uiNavAuth">登录</span></button>
+  <button class="tb desktop-only" id="bSubmit" style="display:none">➕ <span id="uiNavSubmit">提交点位</span></button>
+  <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ <span id="uiNavAdmin">审核后台</span></button>
 </div>
 
 <aside id="sidebar">
   <div class="sb-header">
     <div>
-      <h1>拓荒者足迹</h1>
-      <p class="sb-sub">智慧宣教历史轨迹记录</p>
+      <h1 id="sbTitle">拓荒者足迹</h1>
+      <p class="sb-sub" id="sbSubTitle">智慧宣教历史轨迹记录</p>
     </div>
     <button onclick="document.getElementById('sidebar').classList.remove('open')" style="background:none;border:none;color:#fff;font-size:20px">×</button>
   </div>
 
+  <!-- 🌐 语言切换控制模块 -->
+  <div class="lang-switch-box">
+    <div class="lang-switch-title" id="uiLangSwitchTitle">🌐 界面语言 / Language</div>
+    <div class="lang-btn-group">
+      <div class="lang-btn active" id="btnLangZh" onclick="APP.setLanguage('zh')">🇨🇳 中文</div>
+      <div class="lang-btn" id="btnLangEn" onclick="APP.setLanguage('en')">🇺🇸 English</div>
+    </div>
+  </div>
+
   <!-- 🗺️ 切换地图模式 -->
   <div class="mode-switch-box">
-    <div class="mode-switch-title">🗺️ 切换地图模式</div>
+    <div class="mode-switch-title" id="uiMapModeTitle">🗺️ 切换地图模式</div>
     <div class="mode-btn-group">
-      <div class="mode-btn" id="btnModeNormal" onclick="APP.setMapMode('normal')">☀️ 正常模式</div>
-      <div class="mode-btn active" id="btnModeDarkGold" onclick="APP.setMapMode('darkGold')">🌙 黑金模式</div>
-      <div class="mode-btn" id="btnModeExplore" onclick="APP.setMapMode('explore')">🔦 探索模式</div>
+      <div class="mode-btn" id="btnModeNormal" onclick="APP.setMapMode('normal')">☀️ <span id="uiModeNormal">正常模式</span></div>
+      <div class="mode-btn active" id="btnModeDarkGold" onclick="APP.setMapMode('darkGold')">🌙 <span id="uiModeDarkGold">黑金模式</span></div>
+      <div class="mode-btn" id="btnModeExplore" onclick="APP.setMapMode('explore')">🔦 <span id="uiModeExplore">探索模式</span></div>
     </div>
   </div>
 
   <div class="mobile-menu-grid">
-    <div class="m-btn" onclick="APP.triggerMobile('bR')">🗺️ 路线规划</div>
-    <div class="m-btn" onclick="APP.triggerMobile('bT')">⏳ 历史时空轴</div>
-    <div class="m-btn" onclick="APP.triggerMobile('bAuth')" id="mBtnAuth">👤 会员登录</div>
-    <div class="m-btn" onclick="APP.triggerMobile('bSubmit')" id="mBtnSubmit" style="display:none">➕ 提交点位</div>
-    <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ 管理审核后台</div>
+    <div class="m-btn" onclick="APP.triggerMobile('bR')">🗺️ <span id="uiMNavRoute">路线规划</span></div>
+    <div class="m-btn" onclick="APP.triggerMobile('bT')">⏳ <span id="uiMNavTimeline">历史时空轴</span></div>
+    <div class="m-btn" onclick="APP.triggerMobile('bAuth')" id="mBtnAuth">👤 <span id="uiMNavAuth">会员登录</span></div>
+    <div class="m-btn" onclick="APP.triggerMobile('bSubmit')" id="mBtnSubmit" style="display:none">➕ <span id="uiMNavSubmit">提交点位</span></div>
+    <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ <span id="uiMNavAdmin">管理审核后台</span></div>
   </div>
 
   <div id="ranking-wrap">
@@ -362,7 +383,7 @@
 
 <div id="routePanel">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:6px">
-    <h3 style="color:var(--gold-bright);font-size:12px">✦ 宣教路线规划与流光</h3>
+    <h3 style="color:var(--gold-bright);font-size:12px" id="uiRoutePanelTitle">✦ 宣教路线规划与流光</h3>
     <div style="display:flex;align-items:center;gap:6px">
       <button id="btnToggleRouteAnim" class="btn-gold" style="padding:2px 6px;font-size:10px">关闭特效</button>
       <button onclick="document.getElementById('routePanel').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px">×</button>
@@ -383,12 +404,12 @@
   <div id="superAdminRouteEdit" style="display:none;margin-top:8px;border-top:1px dashed var(--glass-border);padding-top:6px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div style="font-size:10px;color:var(--gold-bright)" id="routeEditTitle">⚙ 管理员路线修改</div>
-      <button onclick="APP.resetRouteForm()" class="route-btn" style="color:var(--gold-bright)">➕ 新建</button>
+      <button onclick="APP.resetRouteForm()" class="route-btn" style="color:var(--gold-bright)" id="uiBtnNewRoute">➕ 新建</button>
     </div>
     <input type="hidden" id="editRouteId">
     <input type="text" id="editRouteName" class="input-style" placeholder="路线名称" style="margin-bottom:6px">
     <input type="text" id="editRoutePts" class="input-style" placeholder="关联站点ID (例: gz, mlc, sh)" style="margin-bottom:6px">
-    <button onclick="APP.saveRouteConfig()" class="btn-gold" style="width:100%;font-size:11px">保存配置</button>
+    <button onclick="APP.saveRouteConfig()" class="btn-gold" style="width:100%;font-size:11px" id="uiBtnSaveRoute">保存配置</button>
   </div>
 </div>
 
@@ -396,7 +417,7 @@
   <div class="tl-hd">
     <button id="btnPlay" style="background:var(--gold-bright);border:none;width:32px;height:32px;border-radius:50%;font-weight:bold;font-size:14px">▶</button>
     <div class="tl-info">
-      <div class="y-val">公元 <span id="tYear">2026</span> 年</div>
+      <div class="y-val"><span id="tlADPrefix">公元</span> <span id="tYear">2026</span> <span id="tlADSuffix">年</span></div>
       <div class="e-val" id="tEraText">现代宣教时期</div>
     </div>
     <button id="btnCloseTl" style="background:none;border:none;color:#fff;font-size:18px">×</button>
@@ -414,8 +435,8 @@
     <h3 id="dWTitle" style="color:var(--gold-bright);font-size:15px">详情</h3>
     <div style="display:flex;align-items:center;gap:6px">
       <div id="drawerAdminBtns" style="display:none;gap:4px">
-        <button onclick="APP.editCurrentPointFromDrawer()" class="route-btn" style="color:var(--gold-bright)">✏️ 编辑</button>
-        <button onclick="APP.deleteCurrentPointFromDrawer()" class="route-btn" style="color:#e74c3c">🗑️ 删除</button>
+        <button onclick="APP.editCurrentPointFromDrawer()" class="route-btn" style="color:var(--gold-bright)" id="uiDrawerEdit">✏️ 编辑</button>
+        <button onclick="APP.deleteCurrentPointFromDrawer()" class="route-btn" style="color:#e74c3c" id="uiDrawerDelete">🗑️ 删除</button>
       </div>
       <button onclick="document.getElementById('drawer').classList.remove('open')" style="background:none;border:none;color:#fff;font-size:18px">×</button>
     </div>
@@ -425,19 +446,19 @@
 
 <div id="authModal" class="modal">
   <div class="modal-box" style="width:min(360px,90vw)">
-    <div class="modal-hd"><h3 style="color:var(--gold-bright);font-size:14px">会员登录 / 注册</h3><button onclick="document.getElementById('authModal').style.display='none'" style="background:none;border:none;color:#fff">×</button></div>
+    <div class="modal-hd"><h3 style="color:var(--gold-bright);font-size:14px" id="uiAuthModalTitle">会员登录 / 注册</h3><button onclick="document.getElementById('authModal').style.display='none'" style="background:none;border:none;color:#fff">×</button></div>
     <div class="modal-bd">
       <form id="authForm" style="display:flex;flex-direction:column;gap:10px">
         <input type="email" id="authEmail" class="input-style" placeholder="邮箱账号" required>
         <input type="password" id="authPass" class="input-style" placeholder="密码" required>
         
         <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--inkd);cursor:pointer;">
-          <input type="checkbox" id="rememberMe" style="accent-color:var(--gold);"> 记住账号密码（下次自动填充）
+          <input type="checkbox" id="rememberMe" style="accent-color:var(--gold);"> <span id="uiRememberMe">记住账号密码（下次自动填充）</span>
         </label>
 
         <div style="display:flex;gap:8px;margin-top:6px">
-          <button type="button" onclick="APP.handleAuth('login')" class="btn-gold" style="flex:1">登录</button>
-          <button type="button" onclick="APP.handleAuth('register')" style="flex:1;background:none;border:1px solid var(--glass-border);color:var(--ink)" class="btn-gold">注册会员</button>
+          <button type="button" onclick="APP.handleAuth('login')" class="btn-gold" style="flex:1" id="uiBtnLogin">登录</button>
+          <button type="button" onclick="APP.handleAuth('register')" style="flex:1;background:none;border:1px solid var(--glass-border);color:var(--ink)" class="btn-gold" id="uiBtnRegister">注册会员</button>
         </div>
       </form>
     </div>
@@ -533,6 +554,102 @@ window.addEventListener('DOMContentLoaded', () => {
   const isCloudMode = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+  // 🌐 全局中英文对照字典
+  const I18N = {
+    zh: {
+      title: "光之足迹",
+      subTitle: "MISSIONARY ATLAS",
+      sbTitle: "拓荒者足迹",
+      sbSubTitle: "智慧宣教历史轨迹记录",
+      langSwitchTitle: "🌐 界面语言 / Language",
+      mapModeTitle: "🗺️ 切换地图模式",
+      modeNormal: "正常模式",
+      modeDarkGold: "黑金模式",
+      modeExplore: "探索模式",
+      navSidebar: "目录",
+      navRoute: "路线规划",
+      navTimeline: "时空轴",
+      navAuth: "登录",
+      navSubmit: "提交点位",
+      navAdmin: "审核后台",
+      badgeADPrefix: "公元",
+      badgeADSuffix: "年",
+      badgePointsLabel: "点位:",
+      badgeUnitLabel: "个",
+      pwaTitle: "安装“拓荒者足迹” APP",
+      pwaDesc: "体验更流畅的全屏宣教历史地图",
+      pwaBtn: "立即安装",
+      routePanelTitle: "✦ 宣教路线规划与流光",
+      routeAnimOn: "开启特效",
+      routeAnimOff: "关闭特效",
+      routeContains: "包含站点",
+      routeEditTitle: "⚙ 管理员路线修改",
+      btnNewRoute: "➕ 新建",
+      btnSaveRoute: "保存配置",
+      drawerDetailTitle: "详情",
+      pioneerLabel: "✦ 先驱人物：",
+      navRouteBtn: "🧭 一键导航路线",
+      navAmapBtn: "🗺️ 高德地图直达",
+      drawerEdit: "✏️ 编辑",
+      drawerDelete: "🗑️ 删除",
+      authModalTitle: "会员登录 / 注册",
+      rememberMe: "记住账号密码（下次自动填充）",
+      btnLogin: "登录",
+      btnRegister: "注册会员",
+      dataCenterTitle: "宣教数据中心",
+      tabSubmit: "提交/修改坐标点位",
+      tabAudit: "超级审核管理后台",
+      loadingCountries: "✦ 正在载入全球国界与宣教数据...",
+      countriesLoaded: "✦ 全球国界与宣教数据已载入"
+    },
+    en: {
+      title: "Traces of Light",
+      subTitle: "MISSIONARY ATLAS",
+      sbTitle: "Pioneer Footprints",
+      sbSubTitle: "Missionary History & Heritage Atlas",
+      langSwitchTitle: "🌐 Interface Language",
+      mapModeTitle: "🗺️ Map Display Modes",
+      modeNormal: "Light Mode",
+      modeDarkGold: "Dark Gold",
+      modeExplore: "Spotlight",
+      navSidebar: "Menu",
+      navRoute: "Routes",
+      navTimeline: "Timeline",
+      navAuth: "Login",
+      navSubmit: "Add Point",
+      navAdmin: "Admin Console",
+      badgeADPrefix: "AD",
+      badgeADSuffix: "",
+      badgePointsLabel: "Sites:",
+      badgeUnitLabel: "",
+      pwaTitle: "Install 'Pioneer Footprints' App",
+      pwaDesc: "Experience seamless full-screen missionary atlas",
+      pwaBtn: "Install Now",
+      routePanelTitle: "✦ Missionary Routes & Flow Paths",
+      routeAnimOn: "Enable FX",
+      routeAnimOff: "Disable FX",
+      routeContains: "Key Sites",
+      routeEditTitle: "⚙ Route Management",
+      btnNewRoute: "➕ New",
+      btnSaveRoute: "Save Route",
+      drawerDetailTitle: "Historical Site Detail",
+      pioneerLabel: "✦ Pioneer Missionary: ",
+      navRouteBtn: "🧭 Turn-by-Turn Navigation",
+      navAmapBtn: "🗺️ Open Web Maps Direct",
+      drawerEdit: "✏️ Edit",
+      drawerDelete: "🗑️ Delete",
+      authModalTitle: "Member Login / Register",
+      rememberMe: "Remember my credentials",
+      btnLogin: "Login",
+      btnRegister: "Register",
+      dataCenterTitle: "Missionary Data Center",
+      tabSubmit: "Submit / Edit Coordinates",
+      tabAudit: "Super Admin Audit Portal",
+      loadingCountries: "✦ Loading global boundaries & mission records...",
+      countriesLoaded: "✦ Global missionary & boundary data loaded"
+    }
+  };
+
   // 🔦 手电筒探照灯位置更新
   const flashlight = document.getElementById('flashlight');
   const updateFlashlight = (x, y) => {
@@ -547,6 +664,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   window.APP = {
+    lang: 'zh', // 语言默认: 'zh' 或 'en'
     user: null,
     isSuperAdmin: false,
     currentMapMode: 'darkGold', // 模式: 'normal', 'darkGold', 'explore'
@@ -558,36 +676,104 @@ window.addEventListener('DOMContentLoaded', () => {
     activeRouteId: 'r4',
     currentPoint: null,
     points: [
-      {id:'xian_daqin', n:'西安 · 大秦寺塔', w:'阿罗本', y:635, la:34.05, ln:108.88, d:'635年阿罗本抵长安，唐太宗敕建大秦寺，开启福音首次系统入华。', status:'approved', vr360_url:'https://pannellum.org/images/alma.jpg'},
-      {id:'turpan', n:'吐鲁番 · 高昌古城教堂遗址', w:'西域景教僧侣', y:700, la:42.85, ln:89.52, d:'古代丝绸之路景教重镇，出土大量叙利亚文圣经残页与壁画。', status:'approved'},
-      {id:'zhaoqing', n:'肇庆 · 娗香阁', w:'利玛窦', y:1583, la:23.05, ln:112.47, d:'1583年利玛窦由澳门入境肇庆，建立中国大陆第一座天主教堂。', status:'approved'},
-      {id:'macau', n:'澳门 · 大三巴', w:'范礼安 / 罗明坚', y:1594, la:22.197, ln:113.54, d:'远东第一所西式大学，明清时期宣教士进入大陆的前哨基地。', status:'approved'},
-      {id:'bj', n:'北京 · 利玛窦墓', w:'利玛窦', y:1601, la:39.9, ln:116.4, d:'1601年利玛窦入京觐见万历帝，以学术科学架起交流桥梁。', status:'approved'},
-      {id:'shanghai_xujiahui', n:'上海 · 徐家汇圣母院', w:'徐光启 / 利玛窦', y:1608, la:31.19, ln:121.43, d:'明代内阁重臣徐光启受洗后建立的宣教与西学东渐中心。', status:'approved'},
-      {id:'gz', n:'广州 · 十三行', w:'马礼逊 (Robert Morrison)', y:1807, la:23.13, ln:113.26, d:'1807年马礼逊抵穗隐居译经，按立第一位华人牧师。', status:'approved'},
-      {id:'mlc', n:'马六甲 · 英华书院', w:'米怜 (William Milne)', y:1818, la:2.2, ln:102.25, d:'1818年创办英华书院，集教育、印刷与宣教于一体。', status:'approved'},
-      {id:'sh', n:'上海 · 墨海书馆', w:'麦都思 (Walter Henry Medhurst)', y:1843, la:31.23, ln:121.47, d:'1843年设墨海书馆，上海逐步成为宣教与出版枢纽。', status:'approved'},
-      {id:'fuzhou', n:'福州 · 仓山保福堂', w:'麦利和', y:1847, la:26.04, ln:119.31, d:'美以美会在华宣教大本营，创办学校并推动福建各地事工。', status:'approved'},
-      {id:'ningbo', n:'宁波 · 桥头街礼拜堂', w:'戴德生 (Hudson Taylor)', y:1854, la:29.87, ln:121.54, d:'1854年戴德生抵宁波换穿华人服饰布道，为创内地会奠基。', status:'approved'},
-      {id:'hz', n:'杭州 · 天水堂', w:'戴德生', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', status:'approved'},
-      {id:'wenzhou', n:'温州 · 城西堂', w:'曹雅直 (George Stott)', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', status:'approved'},
-      {id:'taiyuan', n:'太原 · 浸信会宣教站', w:'李提摩太 (Timothy Richard)', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', status:'approved'},
-      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', w:'李德立 (Edward Selby Little)', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', status:'approved'},
-      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', w:'李立生 (Daniel Nelson)', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', status:'approved'},
-      {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', w:'伯格理 (Samuel Pollard)', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', status:'approved'},
-      {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', w:'倪柝声', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', status:'approved'},
-      {id:'moganshan', n:'德清 · 莫干山疗养古堡', w:'梅滕更 (Duncan Main)', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', status:'approved'},
-      {id:'dali', n:'大理 · 崇圣寺旁宣教点', w:'富能仁 (James O. Fraser)', y:1910, la:25.70, ln:100.15, d:'富能仁深入滇西北山区创制傈僳文字，促成滇西北少数民族大规模归主。', status:'approved'},
-      {id:'baoshan_qinghua', n:'保山 · 清华教堂（富能仁墓）', w:'富能仁 (James O. Fraser)', y:1938, la:25.1012, ln:99.1585, d:'傈僳族使徒富能仁牧师1938年于保山安息。其遗骨安葬于保山市隆阳区清华教堂院内。', status:'approved'},
-      {id:'wuding_sapushan', n:'武定 · 洒普山', w:'王志明 (Wang Zhiming)', y:1944, la:25.53, ln:102.40, d:'滇北苗族教会领袖。王志明牧师一生服事少数民族同胞，其雕像1998年立于英国伦敦西敏寺大教堂。', status:'approved'}
+      {id:'xian_daqin', n:'西安 · 大秦寺塔', n_en:'Xi\'an · Daqin Pagoda', w:'阿罗本', w_en:'Alopen', y:635, la:34.05, ln:108.88, d:'635年阿罗本抵长安，唐太宗敕建大秦寺，开启福音首次系统入华。', d_en:'Alopen arrived in Chang\'an in 635 AD. Emperor Taizong issued an edict to construct the Daqin Monastery, marking the first recorded entry of Christianity into China.', status:'approved', vr360_url:'https://pannellum.org/images/alma.jpg'},
+      {id:'turpan', n:'吐鲁番 · 高昌古城教堂遗址', n_en:'Turpan · Gaochang Church Ruins', w:'西域景教僧侣', w_en:'Nestorian Monks', y:700, la:42.85, ln:89.52, d:'古代丝绸之路景教重镇，出土大量叙利亚文圣经残页与壁画。', d_en:'An ancient Silk Road Nestorian hub where numerous Syriac Bible manuscripts and frescoes were discovered.', status:'approved'},
+      {id:'zhaoqing', n:'肇庆 · 娗香阁', n_en:'Zhaoqing · Xianxiang Pavilion', w:'利玛窦', w_en:'Matteo Ricci', y:1583, la:23.05, ln:112.47, d:'1583年利玛窦由澳门入境肇庆，建立中国大陆第一座天主教堂。', d_en:'In 1583, Matteo Ricci entered Zhaoqing from Macao, founding the first Catholic church in mainland China.', status:'approved'},
+      {id:'macau', n:'澳门 · 大三巴', n_en:'Macao · Ruins of St. Paul\'s', w:'范礼安 / 罗明坚', w_en:'Alessandro Valignano / Michele Ruggieri', y:1594, la:22.197, ln:113.54, d:'远东第一所西式大学，明清时期宣教士进入大陆的前哨基地。', d_en:'The first Western-style university in the Far East and a vital missionary springboard during the Ming and Qing dynasties.', status:'approved'},
+      {id:'bj', n:'北京 · 利玛窦墓', n_en:'Beijing · Tomb of Matteo Ricci', w:'利玛窦', w_en:'Matteo Ricci', y:1601, la:39.9, ln:116.4, d:'1601年利玛窦入京觐见万历帝，以学术科学架起交流桥梁。', d_en:'In 1601, Matteo Ricci arrived in Beijing to meet Emperor Wanli, bridging East and West through science and scholarship.', status:'approved'},
+      {id:'shanghai_xujiahui', n:'上海 · 徐家汇圣母院', n_en:'Shanghai · Xujiahui Convent', w:'徐光启 / 利玛窦', w_en:'Xu Guangqi / Matteo Ricci', y:1608, la:31.19, ln:121.43, d:'明代内阁重臣徐光启受洗后建立的宣教与西学东渐中心。', d_en:'Established following the baptism of Ming official Xu Guangqi, becoming a major hub for science and faith.', status:'approved'},
+      {id:'gz', n:'广州 · 十三行', n_en:'Guangzhou · Thirteen Factories', w:'马礼逊 (Robert Morrison)', w_en:'Robert Morrison', y:1807, la:23.13, ln:113.26, d:'1807年马礼逊抵穗隐居译经，按立第一位华人牧师。', d_en:'Arriving in 1807, Robert Morrison translated the Chinese Bible here and ordained Liang Fa, the first Chinese Protestant pastor.', status:'approved'},
+      {id:'mlc', n:'马六甲 · 英华书院', n_en:'Malacca · Anglo-Chinese College', w:'米怜 (William Milne)', w_en:'William Milne', y:1818, la:2.2, ln:102.25, d:'1818年创办英华书院，集教育、印刷与宣教于一体。', d_en:'Founded in 1818 to combine education, printing, and evangelism for Southeast Asia and China.', status:'approved'},
+      {id:'sh', n:'上海 · 墨海书馆', n_en:'Shanghai · London Missionary Society Press', w:'麦都思 (Walter Henry Medhurst)', w_en:'Walter Henry Medhurst', y:1843, la:31.23, ln:121.47, d:'1843年设墨海书馆，上海逐步成为宣教与出版枢纽。', d_en:'Established in 1843, turning Shanghai into a prominent center for printing and modern publishing in China.', status:'approved'},
+      {id:'fuzhou', n:'福州 · 仓山保福堂', n_en:'Fuzhou · Cangshan Church', w:'麦利和', w_en:'Robert Samuel Maclay', y:1847, la:26.04, ln:119.31, d:'美以美会在华宣教大本营，创办学校并推动福建各地事工。', d_en:'The headquarters of the Methodist Episcopal Mission in China, establishing schools and medical ministries in Fujian.', status:'approved'},
+      {id:'ningbo', n:'宁波 · 桥头街礼拜堂', n_en:'Ningbo · Qiaotou Street Church', w:'戴德生 (Hudson Taylor)', w_en:'Hudson Taylor', y:1854, la:29.87, ln:121.54, d:'1854年戴德生抵宁波换穿华人服饰布道，为创内地会奠基。', d_en:'In 1854, Hudson Taylor adopted Chinese attire in Ningbo, laying foundational strategies for the China Inland Mission.', status:'approved'},
+      {id:'hz', n:'杭州 · 天水堂', n_en:'Hangzhou · Tianshui Church', w:'戴德生', w_en:'Hudson Taylor', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', d_en:'In 1866, Taylor led the Lammermuir Party to Hangzhou, starting deep pioneer inland missions.', status:'approved'},
+      {id:'wenzhou', n:'温州 · 城西堂', n_en:'Wenzhou · Chengxi Church', w:'曹雅直 (George Stott)', w_en:'George Stott', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', d_en:'George Stott, a one-legged pioneer, arrived in Wenzhou in 1867 to start schools, triggering spiritual revival across Wenzhou.', status:'approved'},
+      {id:'taiyuan', n:'太原 · 浸信会宣教站', n_en:'Taiyuan · Baptist Mission Station', w:'李提摩太 (Timothy Richard)', w_en:'Timothy Richard', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', d_en:'During the severe 1877 famine, Timothy Richard provided relief, preached, and later helped establish modern education in Shanxi.', status:'approved'},
+      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', n_en:'Jiujiang · Lushan Guling Estate', w:'李德立 (Edward Selby Little)', w_en:'Edward Selby Little', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', d_en:'In 1895, Little pioneered the Guling mountain sanctuary, where international mission boards built churches and schools.', status:'approved'},
+      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', n_en:'Xinyang · Mount Jigong Lutheran Site', w:'李立生 (Daniel Nelson)', w_en:'Daniel Nelson', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', d_en:'Developed in 1902 by Daniel Nelson. In 1920, multiple international Lutheran missions united here to form the Lutheran Church of China.', status:'approved'},
+      {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', n_en:'Bijie · Shimankan Miracle Site', w:'伯格理 (Samuel Pollard)', w_en:'Samuel Pollard', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', d_en:'In 1904, Samuel Pollard ventured into Shimankan, creating a written Miao script, building schools, and bringing literacy and health.', status:'approved'},
+      {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', n_en:'Fuzhou · Guling Deacon House', w:'倪柝声', w_en:'Watchman Nee', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', d_en:'Originally a missionary summer retreat. Watchman Nee hosted two profound nationwide church leader trainings here in 1948–1949.', status:'approved'},
+      {id:'moganshan', n:'德清 · 莫干山疗养古堡', w:'梅滕更 (Duncan Main)', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', d_en:'In 1910, Dr. Duncan Main, director of Hangzhou Guangji Hospital, built a sanatorium castle here for medical rest.', status:'approved'},
+      {id:'dali', n:'大理 · 崇圣寺旁宣教点', n_en:'Dali · Lisu Pioneer Station', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1910, la:25.70, ln:100.15, d:'富能仁深入滇西北山区创制傈僳文字，促成滇西北少数民族大规模归主。', d_en:'Fraser invented the written Lisu script in Northwest Yunnan, initiating a massive spiritual turning among ethnic minority tribes.', status:'approved'},
+      {id:'baoshan_qinghua', n:'保山 · 清华教堂（富能仁墓）', n_en:'Baoshan · Qinghua Church (Fraser\'s Tomb)', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1938, la:25.1012, ln:99.1585, d:'傈僳族使徒富能仁牧师1938年于保山安息。其遗骨安葬于保山市隆阳区清华教堂院内。', d_en:'Apostle to the Lisu people, James O. Fraser entered eternal rest in 1938. His memorial lies at Qinghua Church in Baoshan.', status:'approved'},
+      {id:'wuding_sapushan', n:'武定 · 洒普山', n_en:'Wuding · Sapushan Hill', w:'王志明 (Wang Zhiming)', w_en:'Pastor Wang Zhiming', y:1944, la:25.53, ln:102.40, d:'滇北苗族教会领袖。王志明牧师一生服事少数民族同胞，其雕像1998年立于英国伦敦西敏寺大教堂。', d_en:'Leader of Miao churches in Northern Yunnan. Honored in 1998 with a permanent statue on the West Front of Westminster Abbey, London.', status:'approved'}
     ],
     routes: [
-      { id: 'r1', name: '马礼逊译经与东亚传播线', pts: ['gz', 'mlc', 'sh'] },
-      { id: 'r2', name: '利玛窦西学东渐与京畿线', pts: ['macau', 'zhaoqing', 'shanghai_xujiahui', 'bj'] },
-      { id: 'r3', name: '戴德生内地会内陆拓荒线', pts: ['ningbo', 'hz', 'wenzhou', 'taiyuan'] },
-      { id: 'r4', name: '西南少数民族拓荒与文化复兴线', pts: ['dali', 'baoshan_qinghua', 'shimankan', 'wuding_sapushan'] },
-      { id: 'r5', name: '四大名山宣教避暑与研讨线', pts: ['jigongshan', 'lushan_guling', 'fuzhou_guling', 'moganshan'] }
+      { id: 'r1', name: '马礼逊译经与东亚传播线', name_en: 'Morrison Translation & East Asia Route', pts: ['gz', 'mlc', 'sh'] },
+      { id: 'r2', name: '利玛窦西学东渐与京畿线', name_en: 'Matteo Ricci Science & Capital Route', pts: ['macau', 'zhaoqing', 'shanghai_xujiahui', 'bj'] },
+      { id: 'r3', name: '戴德生内地会内陆拓荒线', name_en: 'Hudson Taylor CIM Inland Trail', pts: ['ningbo', 'hz', 'wenzhou', 'taiyuan'] },
+      { id: 'r4', name: '西南少数民族拓荒与文化复兴线', name_en: 'Southwest Tribal Frontier & Literacy Route', pts: ['dali', 'baoshan_qinghua', 'shimankan', 'wuding_sapushan'] },
+      { id: 'r5', name: '四大名山宣教避暑与研讨线', name_en: 'Mountain Sanctuaries & Conference Trail', pts: ['jigongshan', 'lushan_guling', 'fuzhou_guling', 'moganshan'] }
     ]
+  };
+
+  // 🌐 语言设置方法
+  APP.setLanguage = (lang) => {
+    APP.lang = lang;
+    document.getElementById('btnLangZh').classList.toggle('active', lang === 'zh');
+    document.getElementById('btnLangEn').classList.toggle('active', lang === 'en');
+
+    const dict = I18N[lang];
+    if (!dict) return;
+
+    // 1. 更新全局静态界面文本
+    document.getElementById('uiMainTitle').innerText = dict.title;
+    document.getElementById('sbTitle').innerText = dict.sbTitle;
+    document.getElementById('sbSubTitle').innerText = dict.sbSubTitle;
+    document.getElementById('uiLangSwitchTitle').innerText = dict.langSwitchTitle;
+    document.getElementById('uiMapModeTitle').innerText = dict.mapModeTitle;
+    document.getElementById('uiModeNormal').innerText = dict.modeNormal;
+    document.getElementById('uiModeDarkGold').innerText = dict.modeDarkGold;
+    document.getElementById('uiModeExplore').innerText = dict.modeExplore;
+    
+    document.getElementById('uiNavSidebar').innerText = dict.navSidebar;
+    document.getElementById('uiNavRoute').innerText = dict.navRoute;
+    document.getElementById('uiNavTimeline').innerText = dict.navTimeline;
+    document.getElementById('uiNavAuth').innerText = dict.navAuth;
+    document.getElementById('uiNavSubmit').innerText = dict.navSubmit;
+    document.getElementById('uiNavAdmin').innerText = dict.navAdmin;
+
+    document.getElementById('uiMNavRoute').innerText = dict.navRoute;
+    document.getElementById('uiMNavTimeline').innerText = dict.navTimeline;
+    document.getElementById('uiMNavAuth').innerText = dict.navAuth;
+    document.getElementById('uiMNavSubmit').innerText = dict.navSubmit;
+    document.getElementById('uiMNavAdmin').innerText = dict.navAdmin;
+
+    document.getElementById('badgeADPrefix').innerText = dict.badgeADPrefix;
+    document.getElementById('badgeADSuffix').innerText = dict.badgeADSuffix;
+    document.getElementById('badgePointsLabel').innerText = dict.badgePointsLabel;
+    document.getElementById('badgeUnitLabel').innerText = dict.badgeUnitLabel;
+
+    document.getElementById('tlADPrefix').innerText = dict.badgeADPrefix;
+    document.getElementById('tlADSuffix').innerText = dict.badgeADSuffix;
+
+    document.getElementById('installTitle').innerText = dict.pwaTitle;
+    document.getElementById('installDesc').innerText = dict.pwaDesc;
+    document.getElementById('btnInstallPwa').innerText = dict.pwaBtn;
+
+    document.getElementById('uiRoutePanelTitle').innerText = dict.routePanelTitle;
+    document.getElementById('btnToggleRouteAnim').innerText = APP.enableRouteAnim ? dict.routeAnimOff : dict.routeAnimOn;
+    document.getElementById('routeEditTitle').innerText = dict.routeEditTitle;
+    document.getElementById('uiBtnNewRoute').innerText = dict.btnNewRoute;
+    document.getElementById('uiBtnSaveRoute').innerText = dict.btnSaveRoute;
+
+    document.getElementById('uiDrawerEdit').innerText = dict.drawerEdit;
+    document.getElementById('uiDrawerDelete').innerText = dict.drawerDelete;
+
+    document.getElementById('uiAuthModalTitle').innerText = dict.authModalTitle;
+    document.getElementById('uiRememberMe').innerText = dict.rememberMe;
+    document.getElementById('uiBtnLogin').innerText = dict.btnLogin;
+    document.getElementById('uiBtnRegister').innerText = dict.btnRegister;
+
+    document.getElementById('modalTitle').innerText = dict.dataCenterTitle;
+    document.getElementById('tab1Btn').innerText = dict.tabSubmit;
+    document.getElementById('tab2Btn').innerText = dict.tabAudit;
+
+    // 2. 重新渲染点位、侧边栏和路线
+    APP.renderAll();
+    if (APP.currentPoint) APP.openDrawer(APP.currentPoint);
+    if (APP.activeRouteId) APP.renderRouteList();
   };
 
   const HOME_VIEW = { center: [35, 104], zoom: 4 };
@@ -602,14 +788,12 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnModeDarkGold').classList.toggle('active', mode === 'darkGold');
     document.getElementById('btnModeExplore').classList.toggle('active', mode === 'explore');
 
-    // 1. 设置手电筒探照模式
     if (mode === 'explore') {
       flashlight.classList.add('active');
     } else {
       flashlight.classList.remove('active');
     }
 
-    // 2. 移除旧瓦片图层并重新载入对应风格
     if (APP.tileLayer) map.removeLayer(APP.tileLayer);
 
     const isNormal = mode === 'normal';
@@ -619,7 +803,6 @@ window.addEventListener('DOMContentLoaded', () => {
       subdomains: ['1', '2', '3', '4'], maxZoom: 18, className: tileClass
     }).addTo(map);
 
-    // 3. 正常白色背景模式下，十字架反转为深色
     document.body.classList.toggle('normal-mode-active', isNormal);
   };
 
@@ -627,12 +810,12 @@ window.addEventListener('DOMContentLoaded', () => {
   APP.setMapMode('darkGold');
 
   APP.ERAS = [
-    { y: 635, n: '唐朝景教时期' },
-    { y: 1580, n: '明末天主教传播' },
-    { y: 1807, n: '晚清福音入华' },
-    { y: 1865, n: '内地会内陆拓荒' },
-    { y: 1900, n: '民国教务蓬勃时期' },
-    { y: 2026, n: '现代宣教时代' }
+    { y: 635, n: '唐朝景教时期', n_en: 'Tang Dynasty Nestorian Era' },
+    { y: 1580, n: '明末天主教传播', n_en: 'Late Ming Catholic Era' },
+    { y: 1807, n: '晚清福音入华', n_en: 'Late Qing Protestant Arrival' },
+    { y: 1865, n: '内地会内陆拓荒', n_en: 'China Inland Mission Era' },
+    { y: 1900, n: '民国教务蓬勃时期', n_en: 'Republican Flourishing Era' },
+    { y: 2026, n: '现代宣教时代', n_en: 'Contemporary Mission Era' }
   ];
 
   document.getElementById('btnLogoHome').onclick = () => {
@@ -670,7 +853,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (isIos) {
       if (bar) bar.style.display = 'flex';
-      installDesc.innerText = '点击 Safari 底部分享 ⎋ 选“添加到主屏幕”';
+      installDesc.innerText = APP.lang === 'en' ? 'Tap Share ⎋ and select "Add to Home Screen"' : '点击 Safari 底部分享 ⎋ 选“添加到主屏幕”';
     }
 
     if (btnClosePwa) {
@@ -688,9 +871,9 @@ window.addEventListener('DOMContentLoaded', () => {
           if (outcome === 'accepted') bar.style.display = 'none';
           deferredPrompt = null;
         } else if (isIos) {
-          alert('🍎 苹果 iOS 安装指引：\n请点击 Safari 浏览器底部的“分享”图标 ⎋，向上滑动并选择“添加到主屏幕”，即可像原生 APP 一样在桌面启动！');
+          alert('🍎 iOS Installation:\nTap Share ⎋ in Safari, then scroll down and choose "Add to Home Screen".');
         } else {
-          alert('💡 电脑/安卓客户端添加到桌面：\n点击浏览器地址栏右侧的“安装”小图标，或点击浏览器菜单选择“添加到主屏幕”/“安装应用”即可！');
+          alert('💡 Desktop / Android:\nClick the Install icon on the right side of the address bar or browser menu!');
         }
       };
     }
@@ -735,7 +918,7 @@ window.addEventListener('DOMContentLoaded', () => {
       'Australia':['澳大利亚','1788年建立圣公会，后为太平洋差传基地。'],
       'Canada':['加拿大','17世纪耶稣会士赴新法兰西，于原住民中布道。']
     };
-    const DEF = n => ['', n+'：该国宣教史料持续整理中，后续可通过后台录入补充本地教会见证。'];
+    const DEF = n => ['', n+'：该国宣教史料持续整理中。'];
 
     const baseStyle = () => ({ color:'rgba(212,175,106,.28)', weight:.6, fillColor:'#d4af6a', fillOpacity:.04 });
     const hovStyle = () => ({ color:'#f5d78e', weight:1.5, fillColor:'#d4af6a', fillOpacity:.16 });
@@ -750,7 +933,7 @@ window.addEventListener('DOMContentLoaded', () => {
         try{ const r = await fetch(u); if(r.ok){ gj = await r.json(); break; } }catch(e){}
       }
       if(!gj){
-        badge.textContent = '✦ 国界数据加载失败（需联网），不影响后续点位功能';
+        badge.textContent = '✦ 国界数据加载失败';
         badge.classList.add('ok');
         setTimeout(()=>badge.classList.add('bye'), 5000);
         return;
@@ -783,13 +966,16 @@ window.addEventListener('DOMContentLoaded', () => {
       }).addTo(map);
 
       APP.countries = layer;
-      badge.textContent = '✦ 全球国界与宣教数据已载入';
+      badge.textContent = I18N[APP.lang].countriesLoaded;
       badge.classList.add('ok');
       setTimeout(()=>badge.classList.add('bye'), 3500);
     })();
   })();
 
-  const mkHtml = p => `<div class="mk" id="mk_${p.id}"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${p.n.split('·')[0].trim()}</div></div>`;
+  const mkHtml = p => {
+    const title = (APP.lang === 'en' && p.n_en) ? p.n_en : p.n;
+    return `<div class="mk" id="mk_${p.id}"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${title.split('·')[0].trim()}</div></div>`;
+  };
 
   APP.renderAll = () => {
     Object.values(APP.markers).forEach(m => map.removeLayer(m));
@@ -802,9 +988,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const activePoints = APP.points.filter(p => p.status === 'approved');
 
     activePoints.forEach((p, idx) => {
+      const pName = (APP.lang === 'en' && p.n_en) ? p.n_en : p.n;
       const icon = L.divIcon({ className:'mkw', html:mkHtml(p), iconSize:[44,44], iconAnchor:[22,22] });
       const m = L.marker([p.la, p.ln], {icon}).addTo(map);
-      m.bindTooltip(`<b>${p.n}</b> (${p.y}年)`, {direction:'top'});
+      
+      const yearLabel = APP.lang === 'en' ? `AD ${p.y}` : `${p.y}年`;
+      m.bindTooltip(`<b>${pName}</b> (${yearLabel})`, {direction:'top'});
       m.on('click', () => {
         map.flyTo([p.la, p.ln], 8, {duration:1.2});
         APP.openDrawer(p);
@@ -813,7 +1002,7 @@ window.addEventListener('DOMContentLoaded', () => {
       APP.visibleState[p.id] = true;
 
       const li = document.createElement('li');
-      li.innerHTML = `<span class="num">${String(idx + 1).padStart(2,'0')}</span><span class="name">${p.n} (${p.y}年)</span>`;
+      li.innerHTML = `<span class="num">${String(idx + 1).padStart(2,'0')}</span><span class="name">${pName} (${yearLabel})</span>`;
       li.onclick = () => {
         map.flyTo([p.la, p.ln], 8, {duration:1.2});
         APP.openDrawer(p);
@@ -823,6 +1012,19 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     APP.renderRouteList();
+    APP.renderEras();
+  };
+
+  APP.renderEras = () => {
+    const erasContainer = document.getElementById('tErasContainer');
+    erasContainer.innerHTML = APP.ERAS.map(e => {
+      const eraName = (APP.lang === 'en' && e.n_en) ? e.n_en : e.n;
+      return `<div class="tl-era-chip" data-y="${e.y}">${eraName}</div>`;
+    }).join('');
+
+    document.querySelectorAll('.tl-era-chip').forEach(chip => {
+      chip.onclick = () => APP.updateTimeline(parseInt(chip.dataset.y));
+    });
   };
 
   APP.openNavigation = (lat, lng, name) => {
@@ -831,33 +1033,41 @@ window.addEventListener('DOMContentLoaded', () => {
     const appleUrl = `https://maps.apple.com/?q=${encodedName}&ll=${lat},${lng}`;
 
     const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
-    if (confirm(`准备导航至：${name}\n点击【确定】唤醒专业地图导航。`)) {
+    const msg = APP.lang === 'en' ? `Navigate to: ${name}` : `准备导航至：${name}\n点击【确定】唤醒专业地图导航。`;
+    if (confirm(msg)) {
       window.open(isAppleDevice ? appleUrl : gaodeUrl, '_blank');
     }
   };
 
   APP.openDrawer = (p) => {
     APP.currentPoint = p;
-    document.getElementById('dWTitle').innerText = p.n;
+    const pName = (APP.lang === 'en' && p.n_en) ? p.n_en : p.n;
+    const pWho = (APP.lang === 'en' && p.w_en) ? p.w_en : p.w;
+    const pDesc = (APP.lang === 'en' && p.d_en) ? p.d_en : p.d;
+    const dict = I18N[APP.lang];
+
+    document.getElementById('dWTitle').innerText = pName;
 
     const adminBtns = document.getElementById('drawerAdminBtns');
     if(adminBtns) adminBtns.style.display = APP.isSuperAdmin ? 'flex' : 'none';
 
+    const yearLabel = APP.lang === 'en' ? `AD ${p.y}` : `${p.y}年`;
+
     let html = `
-      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px">✦ 先驱人物：${p.w} (${p.y}年)</div>
-      <p style="font-size:12px;line-height:1.7;color:var(--inkd);margin-bottom:12px">${p.d}</p>
+      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px">${dict.pioneerLabel}${pWho} (${yearLabel})</div>
+      <p style="font-size:12px;line-height:1.7;color:var(--inkd);margin-bottom:12px">${pDesc}</p>
       
       <div class="nav-btn-group">
-        <a class="nav-btn" href="javascript:void(0)" onclick="APP.openNavigation(${p.la}, ${p.ln}, '${p.n}')">🧭 一键导航路线</a>
-        <a class="nav-btn" style="border-color:var(--glass-border);color:var(--ink)" href="https://uri.amap.com/marker?position=${p.ln},${p.la}&name=${encodeURIComponent(p.n)}" target="_blank">🗺️ 高德地图直达</a>
+        <a class="nav-btn" href="javascript:void(0)" onclick="APP.openNavigation(${p.la}, ${p.ln}, '${pName}')">${dict.navRouteBtn}</a>
+        <a class="nav-btn" style="border-color:var(--glass-border);color:var(--ink)" href="https://uri.amap.com/marker?position=${p.ln},${p.la}&name=${encodeURIComponent(pName)}" target="_blank">${dict.navAmapBtn}</a>
       </div>
     `;
 
-    if(p.img) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🖼️ 现场图景</div><img src="${p.img}" style="width:100%;max-height:200px;object-fit:cover;border-radius:4px"></div>`;
-    if(p.audio_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎵 原声解说 / 录音</div><audio controls style="width:100%;height:32px"><source src="${p.audio_url}"></audio></div>`;
-    if(p.video_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎬 历史影像 / 纪录片</div><video controls style="width:100%;max-height:220px"><source src="${p.video_url}"></video></div>`;
-    if(p.vr360_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 VR 360° 沉浸全景</div><div id="vr-panorama"></div></div>`;
-    if(p.doc_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">📄 关联考证文档</div><iframe src="${p.doc_url}" style="width:100%;height:220px;border:none"></iframe></div>`;
+    if(p.img) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🖼️ Photo</div><img src="${p.img}" style="width:100%;max-height:200px;object-fit:cover;border-radius:4px"></div>`;
+    if(p.audio_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎵 Audio Guide</div><audio controls style="width:100%;height:32px"><source src="${p.audio_url}"></audio></div>`;
+    if(p.video_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎬 Documentary / Video</div><video controls style="width:100%;max-height:220px"><source src="${p.video_url}"></video></div>`;
+    if(p.vr360_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 VR 360° Panorama</div><div id="vr-panorama"></div></div>`;
+    if(p.doc_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">📄 Document / Archive</div><iframe src="${p.doc_url}" style="width:100%;height:220px;border:none"></iframe></div>`;
 
     document.getElementById('dWBody').innerHTML = html;
     document.getElementById('drawer').classList.add('open');
@@ -890,29 +1100,37 @@ window.addEventListener('DOMContentLoaded', () => {
 
   APP.renderRouteList = () => {
     const rContainer = document.getElementById('routeList');
-    rContainer.innerHTML = APP.routes.map(r => `
-      <div class="route-item ${APP.activeRouteId === r.id ? 'active' : ''}" onclick="APP.selectRoute('${r.id}')">
-        <div>
-          <div style="font-size:12px;color:var(--gold-bright);font-weight:bold">${r.name}</div>
-          <div style="font-size:10px;color:var(--inkd);margin-top:2px">包含站点: ${r.pts.join(' ➔ ')}</div>
-        </div>
-        ${APP.isSuperAdmin ? `
-          <div class="route-actions" onclick="event.stopPropagation()">
-            <button class="route-btn" onclick="APP.editRoute('${r.id}')">编辑</button>
-            <button class="route-btn" style="color:#e74c3c" onclick="APP.deleteRoute('${r.id}')">删除</button>
+    const dict = I18N[APP.lang];
+
+    rContainer.innerHTML = APP.routes.map(r => {
+      const rName = (APP.lang === 'en' && r.name_en) ? r.name_en : r.name;
+      return `
+        <div class="route-item ${APP.activeRouteId === r.id ? 'active' : ''}" onclick="APP.selectRoute('${r.id}')">
+          <div>
+            <div style="font-size:12px;color:var(--gold-bright);font-weight:bold">${rName}</div>
+            <div style="font-size:10px;color:var(--inkd);margin-top:2px">${dict.routeContains}: ${r.pts.join(' ➔ ')}</div>
           </div>
-        ` : ''}
-      </div>
-    `).join('');
+          ${APP.isSuperAdmin ? `
+            <div class="route-actions" onclick="event.stopPropagation()">
+              <button class="route-btn" onclick="APP.editRoute('${r.id}')">Edit</button>
+              <button class="route-btn" style="color:#e74c3c" onclick="APP.deleteRoute('${r.id}')">Delete</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
 
     APP.updateMobileRouteCard();
   };
 
   APP.updateMobileRouteCard = () => {
     const curRoute = APP.routes.find(r => r.id === APP.activeRouteId) || APP.routes[0];
+    const dict = I18N[APP.lang];
+
     if(curRoute) {
-      document.getElementById('mRouteTitle').innerText = curRoute.name;
-      document.getElementById('mRoutePts').innerText = `包含站点: ${curRoute.pts.join(' ➔ ')}`;
+      const rName = (APP.lang === 'en' && curRoute.name_en) ? curRoute.name_en : curRoute.name;
+      document.getElementById('mRouteTitle').innerText = rName;
+      document.getElementById('mRoutePts').innerText = `${dict.routeContains}: ${curRoute.pts.join(' ➔ ')}`;
     }
   };
 
@@ -1015,7 +1233,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btnToggleRouteAnim').onclick = () => {
     APP.enableRouteAnim = !APP.enableRouteAnim;
-    document.getElementById('btnToggleRouteAnim').innerText = APP.enableRouteAnim ? '关闭特效' : '开启特效';
+    const dict = I18N[APP.lang];
+    document.getElementById('btnToggleRouteAnim').innerText = APP.enableRouteAnim ? dict.routeAnimOff : dict.routeAnimOn;
     if(APP.activeRouteId) APP.drawRoute(APP.activeRouteId);
   };
 
@@ -1032,12 +1251,12 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('editRouteId').value = r.id;
     document.getElementById('editRouteName').value = r.name;
     document.getElementById('editRoutePts').value = r.pts.join(', ');
-    document.getElementById('routeEditTitle').innerText = '⚙ 编辑路线: ' + r.name;
+    document.getElementById('routeEditTitle').innerText = '⚙ Edit Route: ' + r.name;
   };
 
   APP.deleteRoute = (rid) => {
-    if(!APP.isSuperAdmin) return alert('权限不足！只有超级管理员可以删除路线。');
-    if(!confirm('确定要删除这条路线规划吗？')) return;
+    if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
+    if(!confirm('Delete this route?')) return;
 
     APP.routes = APP.routes.filter(r => r.id !== rid);
     if(APP.activeRouteId === rid) {
@@ -1052,16 +1271,16 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('editRouteId').value = '';
     document.getElementById('editRouteName').value = '';
     document.getElementById('editRoutePts').value = '';
-    document.getElementById('routeEditTitle').innerText = '➕ 新建宣教路线';
+    document.getElementById('routeEditTitle').innerText = '➕ New Route';
   };
 
   APP.saveRouteConfig = () => {
-    if(!APP.isSuperAdmin) return alert('只有超级管理员可以修改路线配置！');
+    if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
     const id = document.getElementById('editRouteId').value;
     const name = document.getElementById('editRouteName').value.trim();
     const ptsStr = document.getElementById('editRoutePts').value.trim();
     
-    if(!name || !ptsStr) return alert('请填写入路线名称与站点ID！');
+    if(!name || !ptsStr) return alert('Please enter Route Name and Site IDs!');
 
     const pts = ptsStr.split(',').map(s => s.trim()).filter(Boolean);
 
@@ -1077,7 +1296,7 @@ window.addEventListener('DOMContentLoaded', () => {
     APP.renderRouteList();
     APP.drawRoute(APP.activeRouteId);
     APP.resetRouteForm();
-    alert('路线保存成功！');
+    alert('Route configuration saved!');
   };
 
   const tSlider = document.getElementById('tSlider');
@@ -1088,16 +1307,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
   let isPlaying = false, playTimer = null;
 
-  const erasContainer = document.getElementById('tErasContainer');
-  erasContainer.innerHTML = APP.ERAS.map(e => `<div class="tl-era-chip" data-y="${e.y}">${e.n}</div>`).join('');
-
   APP.updateTimeline = (year, isAutoPlay = false) => {
     tYear.innerText = year;
     tSlider.value = year;
 
-    let activeEraName = '古代宣教探求';
+    let activeEraName = APP.lang === 'en' ? 'Ancient Mission Frontier' : '古代宣教探求';
     for(let i = APP.ERAS.length - 1; i >= 0; i--) {
-      if(year >= APP.ERAS[i].y - 10) { activeEraName = APP.ERAS[i].n; break; }
+      if(year >= APP.ERAS[i].y - 10) { 
+        activeEraName = (APP.lang === 'en' && APP.ERAS[i].n_en) ? APP.ERAS[i].n_en : APP.ERAS[i].n; 
+        break; 
+      }
     }
     tEraText.innerText = activeEraName;
     document.getElementById('eBadgeYear').innerText = year;
@@ -1137,10 +1356,6 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   tSlider.oninput = (e) => APP.updateTimeline(parseInt(e.target.value));
-
-  document.querySelectorAll('.tl-era-chip').forEach(chip => {
-    chip.onclick = () => APP.updateTimeline(parseInt(chip.dataset.y));
-  });
 
   btnPlay.onclick = () => {
     isPlaying = !isPlaying;
@@ -1195,13 +1410,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('authPass').value;
     const isRemember = document.getElementById('rememberMe').checked;
 
-    if(!email || !password) return alert('请填写完整的账号与密码');
+    if(!email || !password) return alert('Please enter email & password!');
 
     if(isCloudMode) {
       const { data, error } = type === 'login' 
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password });
-      if(error) return alert('验证失败: ' + error.message);
+      if(error) return alert('Auth failed: ' + error.message);
       APP.user = data.user;
     } else {
       APP.user = { email, id: 'user_' + Date.now() };
@@ -1217,10 +1432,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     APP.isSuperAdmin = (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
 
-    alert(APP.isSuperAdmin ? '超级管理员登录成功！解锁路线管理与点位审核权限。' : '会员登录成功！解锁点位上传功能。');
+    alert(APP.isSuperAdmin ? 'Super Admin logged in!' : 'Member logged in!');
     
     document.getElementById('authModal').style.display = 'none';
-    const authText = `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(管理员)' : ''}`;
+    const authText = `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(Admin)' : ''}`;
     document.getElementById('bAuth').innerText = authText;
     document.getElementById('mBtnAuth').innerText = authText;
 
@@ -1248,7 +1463,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   
   document.getElementById('bAdmin').onclick = () => {
-    if(!APP.isSuperAdmin) return alert('权限不足！只有超级管理员才可以进入审核管理后台。');
+    if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
     document.getElementById('adminModal').style.display = 'flex';
     APP.switchTab('list');
   };
@@ -1273,7 +1488,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('pointForm').onsubmit = async (e) => {
     e.preventDefault();
-    if(!clickLatLng) return alert('请先在地图上点击拾取坐标！');
+    if(!clickLatLng) return alert('Please click on the map to pick coordinates!');
 
     const editId = document.getElementById('afId').value;
 
@@ -1322,7 +1537,7 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    alert(APP.isSuperAdmin ? '点位数据保存成功！' : '点位已提交！请等待超级管理员审核。');
+    alert('Saved successfully!');
     document.getElementById('adminModal').style.display = 'none';
     document.getElementById('pointForm').reset();
     document.getElementById('afId').value = '';
@@ -1337,17 +1552,17 @@ window.addEventListener('DOMContentLoaded', () => {
       <tr style="border-bottom:1px solid var(--glass-border)">
         <td style="padding:6px"><b>${p.n}</b></td>
         <td>${p.w}</td>
-        <td><span style="color:${p.status==='approved'?'#2ecc71':'var(--gold-bright)'}">${p.status==='approved'?'已上线':'待审核'}</span></td>
+        <td><span style="color:${p.status==='approved'?'#2ecc71':'var(--gold-bright)'}">${p.status==='approved'?'Online':'Pending'}</span></td>
         <td>
-          ${p.status !== 'approved' ? `<button onclick="APP.approvePoint('${p.id}')" style="color:#2ecc71;background:none;border:none">通过</button>` : ''}
-          <button onclick="APP.deletePoint('${p.id}')" style="color:#e74c3c;background:none;border:none;margin-left:4px">删除</button>
+          ${p.status !== 'approved' ? `<button onclick="APP.approvePoint('${p.id}')" style="color:#2ecc71;background:none;border:none">Approve</button>` : ''}
+          <button onclick="APP.deletePoint('${p.id}')" style="color:#e74c3c;background:none;border:none;margin-left:4px">Delete</button>
         </td>
       </tr>
     `).join('');
   };
 
   APP.approvePoint = async (id) => {
-    if(!APP.isSuperAdmin) return alert('只有超级管理员可以执行审核！');
+    if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
     const p = APP.points.find(x => x.id === id);
     if(p) p.status = 'approved';
     if(isCloudMode) {
@@ -1358,8 +1573,8 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   APP.deletePoint = async (id) => {
-    if(!APP.isSuperAdmin) return alert('只有超级管理员可以执行删除！');
-    if(!confirm('确定删除该记录吗？此操作不可逆！')) return;
+    if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
+    if(!confirm('Delete this record?')) return;
     APP.points = APP.points.filter(x => x.id !== id);
     if(isCloudMode) {
       await supabase.from('missionary_points').delete().eq('id', id);
@@ -1368,7 +1583,8 @@ window.addEventListener('DOMContentLoaded', () => {
     APP.renderAuditList();
   };
 
-  APP.renderAll();
+  // 初始化设置语言为中文并启动全量渲染
+  APP.setLanguage('zh');
   APP.updateTimeline(2026);
   APP.loadSavedAuth();
 });

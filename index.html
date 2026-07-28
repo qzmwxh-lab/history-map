@@ -53,19 +53,22 @@
     background: radial-gradient(circle 180px at 50% 50%, rgba(245, 215, 142, 0.22) 0%, rgba(11, 14, 20, 0.55) 50%, rgba(11, 14, 20, 0.88) 100%);
     box-shadow: inset 0 0 160px 45px rgba(0,0,0,.85);
   }
-  .flashlight-overlay.active {
-    opacity: 1; visibility: visible;
+  .flashlight-overlay.active { opacity: 1; visibility: visible; }
+
+  /* 📍 地图坐标拾取交互控制栏 */
+  #pickerBar {
+    position: fixed; top: calc(20px + var(--safe-top)); left: 50%; transform: translateX(-50%); z-index: 1100;
+    background: var(--glass-bg); border: 1px solid var(--gold-bright); border-radius: 30px; padding: 8px 16px;
+    display: none; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(20px);
   }
+  #pickerBar span { font-size: 12px; color: var(--gold-bright); }
+  .picker-btn { background: var(--gold-bright); color: #000; border: none; padding: 4px 12px; border-radius: 14px; font-size: 11px; font-weight: bold; }
+  .picker-btn.cancel { background: rgba(255,255,255,0.1); color: var(--ink); border: 1px solid var(--glass-border); }
 
   .ctip {
-    background: rgba(14, 17, 25, 0.85)!important;
-    border: 1px solid var(--gold-bright)!important;
-    color: var(--ink)!important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6)!important;
-    border-radius: 8px!important;
-    padding: 8px 12px!important;
-    font-size: 12px!important;
-    backdrop-filter: blur(12px);
+    background: rgba(14, 17, 25, 0.85)!important; border: 1px solid var(--gold-bright)!important; color: var(--ink)!important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6)!important; border-radius: 8px!important; padding: 8px 12px!important;
+    font-size: 12px!important; backdrop-filter: blur(12px);
   }
   .ctip b { color: var(--gold-bright); font-size: 13px; display: block; margin-bottom: 4px; border-bottom: 1px dashed var(--glass-border); padding-bottom: 2px; }
   .ctip p { margin: 0; line-height: 1.5; color: var(--inkd); max-width: 220px; white-space: normal; }
@@ -102,7 +105,6 @@
   }
   #topbar > * { pointer-events: auto; flex-shrink: 0; }
   
-  /* ✝️ 顶栏 Logo 的十字架比例调整 */
   .brand { display: flex; align-items: center; gap: 8px; margin-right: auto; cursor: pointer; user-select: none; transition: transform .2s; }
   .brand:active { transform: scale(0.96); }
   .mc { width: 16px; height: 24px; position: relative; filter: drop-shadow(0 0 6px rgba(245,215,142,.8)); }
@@ -130,7 +132,6 @@
   #sidebar h1 { font-family: var(--font-display); font-size: 22px; color: var(--gold-bright); }
   #sidebar .sb-sub { font-size: 10px; color: var(--inkd); }
 
-  /* 🌐 语言切换 UI 模块 */
   .lang-switch-box { padding: 12px 16px; border-bottom: 1px solid var(--glass-border); }
   .lang-switch-title { font-size: 11px; color: var(--gold-bright); margin-bottom: 8px; font-weight: bold; }
   .lang-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -142,7 +143,6 @@
     background: rgba(212, 175, 106, 0.25); border-color: var(--gold-bright); color: var(--gold-bright); font-weight: bold;
   }
 
-  /* 🗺️ 地图模式切换 UI 菜单 */
   .mode-switch-box { padding: 12px 16px; border-bottom: 1px solid var(--glass-border); }
   .mode-switch-title { font-size: 11px; color: var(--gold-bright); margin-bottom: 8px; font-weight: bold; }
   .mode-btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
@@ -184,7 +184,6 @@
   @keyframes bornHalo { 0% { transform: scale(0.2); } 50% { transform: scale(1.6); } 100% { transform: scale(1.0); } }
   @keyframes burst { 0% { opacity: 1; transform: scale(0.3); } 100% { opacity: 0; transform: scale(2.2); } }
 
-  /* ✝️ 地图点位十字架 */
   .mk .cx { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 0 8px rgba(245,215,142,.95)); width: 20px; height: 28px; }
   .mk i { position: absolute; background: linear-gradient(180deg,var(--gold-bright),var(--gold)); border-radius: 2px; display: block; }
   .mk .v { width: 3.5px; height: 28px; left: 50%; top: 0; transform: translateX(-50%); } 
@@ -192,7 +191,6 @@
   .mk .lb { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; color: var(--gold-bright); text-shadow: 0 1px 4px #000; opacity: 0; transition: .3s; }
   .mk:hover .lb { opacity: 1; }
 
-  /* ☀️ 正常白色模式下的深色十字架样式 */
   .normal-mode-active .mk i { background: linear-gradient(180deg, #4a3818, #221808); }
   .normal-mode-active .mk .rp { border-color: rgba(74, 56, 24, 0.6); }
   .normal-mode-active .mk .lb { color: #3a280b; text-shadow: 0 1px 2px rgba(255,255,255,0.9); font-weight: bold; }
@@ -273,26 +271,13 @@
 
   @media (max-width: 768px) {
     .desktop-only { display: none!important; }
-    
-    #routePanel {
-      top: auto; left: 10px; right: 10px; bottom: calc(10px + var(--safe-bottom)); width: auto; max-height: none;
-      padding: 10px 12px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    }
+    #routePanel { top: auto; left: 10px; right: 10px; bottom: calc(10px + var(--safe-bottom)); width: auto; max-height: none; padding: 10px 12px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
     .desktop-route-list { display: none!important; }
-    
-    .mobile-route-carousel {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;
-    }
-    .m-route-card {
-      flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--gold); border-radius: 10px; padding: 8px 10px;
-    }
+    .mobile-route-carousel { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+    .m-route-card { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--gold); border-radius: 10px; padding: 8px 10px; }
     .m-route-title { font-size: 12px; color: var(--gold-bright); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .m-route-pts { font-size: 10px; color: var(--inkd); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .m-nav-arrow {
-      background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--gold-bright);
-      width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;
-    }
-
+    .m-nav-arrow { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--gold-bright); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
     #drawer { top: auto; left: 0; right: 0; bottom: -100%; width: 100%; max-height: 80vh; border-left: none; border-top: 1px solid var(--glass-border); border-radius: 20px 20px 0 0; }
     #drawer.open { bottom: 0; right: 0; }
   }
@@ -301,9 +286,15 @@
 <body>
 
 <div id="map"></div>
-<!-- 🔦 手电筒光效遮罩层 -->
 <div class="flashlight-overlay" id="flashlight"></div>
 <div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
+
+<!-- 📍 地图坐标拾取控制栏 -->
+<div id="pickerBar">
+  <span id="pickerText">📍 点击地图选择坐标位置...</span>
+  <button class="picker-btn" id="btnConfirmPick">确定选中</button>
+  <button class="picker-btn cancel" id="btnCancelPick">取消</button>
+</div>
 
 <!-- 📱 智能“添加到主屏幕”安装引导条 -->
 <div id="smartInstallBar">
@@ -349,7 +340,6 @@
     <button onclick="document.getElementById('sidebar').classList.remove('open')" style="background:none;border:none;color:#fff;font-size:20px">×</button>
   </div>
 
-  <!-- 🌐 语言切换控制模块 -->
   <div class="lang-switch-box">
     <div class="lang-switch-title" id="uiLangSwitchTitle">🌐 界面语言 / Language</div>
     <div class="lang-btn-group">
@@ -358,7 +348,6 @@
     </div>
   </div>
 
-  <!-- 🗺️ 切换地图模式 -->
   <div class="mode-switch-box">
     <div class="mode-switch-title" id="uiMapModeTitle">🗺️ 切换地图模式</div>
     <div class="mode-btn-group">
@@ -485,7 +474,7 @@
         </div>
         <div style="display:flex;gap:8px">
           <input type="number" id="afY" class="input-style" placeholder="年份 (例: 1807)" required>
-          <input type="text" id="afC" class="input-style" placeholder="点击地图拾取坐标" readonly style="color:var(--gold-bright)">
+          <input type="text" id="afC" class="input-style" placeholder="📍 点击地图拾取坐标" readonly style="color:var(--gold-bright);cursor:pointer;background:rgba(212,175,106,0.15);border-color:var(--gold)">
         </div>
         <textarea id="afD" class="input-style" placeholder="历史简介考证故事..." style="height:50px"></textarea>
 
@@ -538,7 +527,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// 注册离线 Service Worker 支持 PWA 离线运行
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -554,103 +542,37 @@ window.addEventListener('DOMContentLoaded', () => {
   const isCloudMode = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-  // 🌐 全局中英文对照字典
   const I18N = {
     zh: {
-      title: "光之足迹",
-      subTitle: "MISSIONARY ATLAS",
-      sbTitle: "拓荒者足迹",
-      sbSubTitle: "智慧宣教历史轨迹记录",
-      langSwitchTitle: "🌐 界面语言 / Language",
-      mapModeTitle: "🗺️ 切换地图模式",
-      modeNormal: "正常模式",
-      modeDarkGold: "黑金模式",
-      modeExplore: "探索模式",
-      navSidebar: "目录",
-      navRoute: "路线规划",
-      navTimeline: "时空轴",
-      navAuth: "登录",
-      navSubmit: "提交点位",
-      navAdmin: "审核后台",
-      badgeADPrefix: "公元",
-      badgeADSuffix: "年",
-      badgePointsLabel: "点位:",
-      badgeUnitLabel: "个",
-      pwaTitle: "安装“拓荒者足迹” APP",
-      pwaDesc: "体验更流畅的全屏宣教历史地图",
-      pwaBtn: "立即安装",
-      routePanelTitle: "✦ 宣教路线规划与流光",
-      routeAnimOn: "开启特效",
-      routeAnimOff: "关闭特效",
-      routeContains: "包含站点",
-      routeEditTitle: "⚙ 管理员路线修改",
-      btnNewRoute: "➕ 新建",
-      btnSaveRoute: "保存配置",
-      drawerDetailTitle: "详情",
-      pioneerLabel: "✦ 先驱人物：",
-      navRouteBtn: "🧭 一键导航路线",
-      navAmapBtn: "🗺️ 高德地图直达",
-      drawerEdit: "✏️ 编辑",
-      drawerDelete: "🗑️ 删除",
-      authModalTitle: "会员登录 / 注册",
-      rememberMe: "记住账号密码（下次自动填充）",
-      btnLogin: "登录",
-      btnRegister: "注册会员",
-      dataCenterTitle: "宣教数据中心",
-      tabSubmit: "提交/修改坐标点位",
-      tabAudit: "超级审核管理后台",
-      loadingCountries: "✦ 正在载入全球国界与宣教数据...",
-      countriesLoaded: "✦ 全球国界与宣教数据已载入"
+      title: "光之足迹", subTitle: "MISSIONARY ATLAS", sbTitle: "拓荒者足迹", sbSubTitle: "智慧宣教历史轨迹记录",
+      langSwitchTitle: "🌐 界面语言 / Language", mapModeTitle: "🗺️ 切换地图模式", modeNormal: "正常模式", modeDarkGold: "黑金模式", modeExplore: "探索模式",
+      navSidebar: "目录", navRoute: "路线规划", navTimeline: "时空轴", navAuth: "登录", navSubmit: "提交点位", navAdmin: "审核后台",
+      badgeADPrefix: "公元", badgeADSuffix: "年", badgePointsLabel: "点位:", badgeUnitLabel: "个",
+      pwaTitle: "安装“拓荒者足迹” APP", pwaDesc: "体验更流畅的全屏宣教历史地图", pwaBtn: "立即安装",
+      routePanelTitle: "✦ 宣教路线规划与流光", routeAnimOn: "开启特效", routeAnimOff: "关闭特效", routeContains: "包含站点",
+      routeEditTitle: "⚙ 管理员路线修改", btnNewRoute: "➕ 新建", btnSaveRoute: "保存配置",
+      drawerDetailTitle: "详情", pioneerLabel: "✦ 先驱人物：", navRouteBtn: "🧭 一键导航路线", navAmapBtn: "🗺️ 高德地图直达",
+      drawerEdit: "✏️ 编辑", drawerDelete: "🗑️ 删除", authModalTitle: "会员登录 / 注册", rememberMe: "记住账号密码（下次自动填充）",
+      btnLogin: "登录", btnRegister: "注册会员", dataCenterTitle: "宣教数据中心", tabSubmit: "提交/修改坐标点位", tabAudit: "超级审核管理后台",
+      loadingCountries: "✦ 正在载入全球国界与宣教数据...", countriesLoaded: "✦ 全球国界与宣教数据已载入",
+      pickerTip: "📍 请在地图上点击选择点位位置...", pickerConfirm: "确定选中", pickerCancel: "取消"
     },
     en: {
-      title: "Traces of Light",
-      subTitle: "MISSIONARY ATLAS",
-      sbTitle: "Pioneer Footprints",
-      sbSubTitle: "Missionary History & Heritage Atlas",
-      langSwitchTitle: "🌐 Interface Language",
-      mapModeTitle: "🗺️ Map Display Modes",
-      modeNormal: "Light Mode",
-      modeDarkGold: "Dark Gold",
-      modeExplore: "Spotlight",
-      navSidebar: "Menu",
-      navRoute: "Routes",
-      navTimeline: "Timeline",
-      navAuth: "Login",
-      navSubmit: "Add Point",
-      navAdmin: "Admin Console",
-      badgeADPrefix: "AD",
-      badgeADSuffix: "",
-      badgePointsLabel: "Sites:",
-      badgeUnitLabel: "",
-      pwaTitle: "Install 'Pioneer Footprints' App",
-      pwaDesc: "Experience seamless full-screen missionary atlas",
-      pwaBtn: "Install Now",
-      routePanelTitle: "✦ Missionary Routes & Flow Paths",
-      routeAnimOn: "Enable FX",
-      routeAnimOff: "Disable FX",
-      routeContains: "Key Sites",
-      routeEditTitle: "⚙ Route Management",
-      btnNewRoute: "➕ New",
-      btnSaveRoute: "Save Route",
-      drawerDetailTitle: "Historical Site Detail",
-      pioneerLabel: "✦ Pioneer Missionary: ",
-      navRouteBtn: "🧭 Turn-by-Turn Navigation",
-      navAmapBtn: "🗺️ Open Web Maps Direct",
-      drawerEdit: "✏️ Edit",
-      drawerDelete: "🗑️ Delete",
-      authModalTitle: "Member Login / Register",
-      rememberMe: "Remember my credentials",
-      btnLogin: "Login",
-      btnRegister: "Register",
-      dataCenterTitle: "Missionary Data Center",
-      tabSubmit: "Submit / Edit Coordinates",
-      tabAudit: "Super Admin Audit Portal",
-      loadingCountries: "✦ Loading global boundaries & mission records...",
-      countriesLoaded: "✦ Global missionary & boundary data loaded"
+      title: "Traces of Light", subTitle: "MISSIONARY ATLAS", sbTitle: "Pioneer Footprints", sbSubTitle: "Missionary History & Heritage Atlas",
+      langSwitchTitle: "🌐 Interface Language", mapModeTitle: "🗺️ Map Display Modes", modeNormal: "Light Mode", modeDarkGold: "Dark Gold", modeExplore: "Spotlight",
+      navSidebar: "Menu", navRoute: "Routes", navTimeline: "Timeline", navAuth: "Login", navSubmit: "Add Point", navAdmin: "Admin Console",
+      badgeADPrefix: "AD", badgeADSuffix: "", badgePointsLabel: "Sites:", badgeUnitLabel: "",
+      pwaTitle: "Install 'Pioneer Footprints' App", pwaDesc: "Experience seamless full-screen missionary atlas", pwaBtn: "Install Now",
+      routePanelTitle: "✦ Missionary Routes & Flow Paths", routeAnimOn: "Enable FX", routeAnimOff: "Disable FX", routeContains: "Key Sites",
+      routeEditTitle: "⚙ Route Management", btnNewRoute: "➕ New", btnSaveRoute: "Save Route",
+      drawerDetailTitle: "Historical Site Detail", pioneerLabel: "✦ Pioneer Missionary: ", navRouteBtn: "🧭 Turn-by-Turn Navigation", navAmapBtn: "🗺️ Open Web Maps Direct",
+      drawerEdit: "✏️ Edit", drawerDelete: "🗑️ Delete", authModalTitle: "Member Login / Register", rememberMe: "Remember my credentials",
+      btnLogin: "Login", btnRegister: "Register", dataCenterTitle: "Missionary Data Center", tabSubmit: "Submit / Edit Coordinates", tabAudit: "Super Admin Audit Portal",
+      loadingCountries: "✦ Loading global boundaries & mission records...", countriesLoaded: "✦ Global missionary & boundary data loaded",
+      pickerTip: "📍 Click on the map to select coordinates...", pickerConfirm: "Confirm", pickerCancel: "Cancel"
     }
   };
 
-  // 🔦 手电筒探照灯位置更新
   const flashlight = document.getElementById('flashlight');
   const updateFlashlight = (x, y) => {
     flashlight.style.background = `radial-gradient(circle 220px at ${x}px ${y}px, rgba(245, 215, 142, 0.22) 0%, rgba(11, 14, 20, 0.55) 50%, rgba(11, 14, 20, 0.88) 100%)`;
@@ -658,46 +580,36 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('mousemove', (e) => updateFlashlight(e.clientX, e.clientY));
   window.addEventListener('touchmove', (e) => {
-    if (e.touches.length > 0) {
-      updateFlashlight(e.touches[0].clientX, e.touches[0].clientY);
-    }
+    if (e.touches.length > 0) updateFlashlight(e.touches[0].clientX, e.touches[0].clientY);
   });
 
   window.APP = {
-    lang: 'zh', // 语言默认: 'zh' 或 'en'
-    user: null,
-    isSuperAdmin: false,
-    currentMapMode: 'darkGold', // 模式: 'normal', 'darkGold', 'explore'
-    tileLayer: null,
-    markers: {},
-    visibleState: {},
-    routeAnimFrame: null,
-    enableRouteAnim: true,
-    activeRouteId: 'r4',
-    currentPoint: null,
+    lang: 'zh', user: null, isSuperAdmin: false, currentMapMode: 'darkGold', tileLayer: null,
+    markers: {}, visibleState: {}, routeAnimFrame: null, enableRouteAnim: true, activeRouteId: 'r4', currentPoint: null,
+    tempPickerMarker: null, isPickingCoordinate: false, pickedLatLng: null,
     points: [
-      {id:'xian_daqin', n:'西安 · 大秦寺塔', n_en:'Xi\'an · Daqin Pagoda', w:'阿罗本', w_en:'Alopen', y:635, la:34.05, ln:108.88, d:'635年阿罗本抵长安，唐太宗敕建大秦寺，开启福音首次系统入华。', d_en:'Alopen arrived in Chang\'an in 635 AD. Emperor Taizong issued an edict to construct the Daqin Monastery, marking the first recorded entry of Christianity into China.', status:'approved', vr360_url:'https://pannellum.org/images/alma.jpg'},
-      {id:'turpan', n:'吐鲁番 · 高昌古城教堂遗址', n_en:'Turpan · Gaochang Church Ruins', w:'西域景教僧侣', w_en:'Nestorian Monks', y:700, la:42.85, ln:89.52, d:'古代丝绸之路景教重镇，出土大量叙利亚文圣经残页与壁画。', d_en:'An ancient Silk Road Nestorian hub where numerous Syriac Bible manuscripts and frescoes were discovered.', status:'approved'},
-      {id:'zhaoqing', n:'肇庆 · 娗香阁', n_en:'Zhaoqing · Xianxiang Pavilion', w:'利玛窦', w_en:'Matteo Ricci', y:1583, la:23.05, ln:112.47, d:'1583年利玛窦由澳门入境肇庆，建立中国大陆第一座天主教堂。', d_en:'In 1583, Matteo Ricci entered Zhaoqing from Macao, founding the first Catholic church in mainland China.', status:'approved'},
-      {id:'macau', n:'澳门 · 大三巴', n_en:'Macao · Ruins of St. Paul\'s', w:'范礼安 / 罗明坚', w_en:'Alessandro Valignano / Michele Ruggieri', y:1594, la:22.197, ln:113.54, d:'远东第一所西式大学，明清时期宣教士进入大陆的前哨基地。', d_en:'The first Western-style university in the Far East and a vital missionary springboard during the Ming and Qing dynasties.', status:'approved'},
-      {id:'bj', n:'北京 · 利玛窦墓', n_en:'Beijing · Tomb of Matteo Ricci', w:'利玛窦', w_en:'Matteo Ricci', y:1601, la:39.9, ln:116.4, d:'1601年利玛窦入京觐见万历帝，以学术科学架起交流桥梁。', d_en:'In 1601, Matteo Ricci arrived in Beijing to meet Emperor Wanli, bridging East and West through science and scholarship.', status:'approved'},
-      {id:'shanghai_xujiahui', n:'上海 · 徐家汇圣母院', n_en:'Shanghai · Xujiahui Convent', w:'徐光启 / 利玛窦', w_en:'Xu Guangqi / Matteo Ricci', y:1608, la:31.19, ln:121.43, d:'明代内阁重臣徐光启受洗后建立的宣教与西学东渐中心。', d_en:'Established following the baptism of Ming official Xu Guangqi, becoming a major hub for science and faith.', status:'approved'},
-      {id:'gz', n:'广州 · 十三行', n_en:'Guangzhou · Thirteen Factories', w:'马礼逊 (Robert Morrison)', w_en:'Robert Morrison', y:1807, la:23.13, ln:113.26, d:'1807年马礼逊抵穗隐居译经，按立第一位华人牧师。', d_en:'Arriving in 1807, Robert Morrison translated the Chinese Bible here and ordained Liang Fa, the first Chinese Protestant pastor.', status:'approved'},
-      {id:'mlc', n:'马六甲 · 英华书院', n_en:'Malacca · Anglo-Chinese College', w:'米怜 (William Milne)', w_en:'William Milne', y:1818, la:2.2, ln:102.25, d:'1818年创办英华书院，集教育、印刷与宣教于一体。', d_en:'Founded in 1818 to combine education, printing, and evangelism for Southeast Asia and China.', status:'approved'},
-      {id:'sh', n:'上海 · 墨海书馆', n_en:'Shanghai · London Missionary Society Press', w:'麦都思 (Walter Henry Medhurst)', w_en:'Walter Henry Medhurst', y:1843, la:31.23, ln:121.47, d:'1843年设墨海书馆，上海逐步成为宣教与出版枢纽。', d_en:'Established in 1843, turning Shanghai into a prominent center for printing and modern publishing in China.', status:'approved'},
-      {id:'fuzhou', n:'福州 · 仓山保福堂', n_en:'Fuzhou · Cangshan Church', w:'麦利和', w_en:'Robert Samuel Maclay', y:1847, la:26.04, ln:119.31, d:'美以美会在华宣教大本营，创办学校并推动福建各地事工。', d_en:'The headquarters of the Methodist Episcopal Mission in China, establishing schools and medical ministries in Fujian.', status:'approved'},
-      {id:'ningbo', n:'宁波 · 桥头街礼拜堂', n_en:'Ningbo · Qiaotou Street Church', w:'戴德生 (Hudson Taylor)', w_en:'Hudson Taylor', y:1854, la:29.87, ln:121.54, d:'1854年戴德生抵宁波换穿华人服饰布道，为创内地会奠基。', d_en:'In 1854, Hudson Taylor adopted Chinese attire in Ningbo, laying foundational strategies for the China Inland Mission.', status:'approved'},
-      {id:'hz', n:'杭州 · 天水堂', n_en:'Hangzhou · Tianshui Church', w:'戴德生', w_en:'Hudson Taylor', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', d_en:'In 1866, Taylor led the Lammermuir Party to Hangzhou, starting deep pioneer inland missions.', status:'approved'},
-      {id:'wenzhou', n:'温州 · 城西堂', n_en:'Wenzhou · Chengxi Church', w:'曹雅直 (George Stott)', w_en:'George Stott', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', d_en:'George Stott, a one-legged pioneer, arrived in Wenzhou in 1867 to start schools, triggering spiritual revival across Wenzhou.', status:'approved'},
-      {id:'taiyuan', n:'太原 · 浸信会宣教站', n_en:'Taiyuan · Baptist Mission Station', w:'李提摩太 (Timothy Richard)', w_en:'Timothy Richard', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', d_en:'During the severe 1877 famine, Timothy Richard provided relief, preached, and later helped establish modern education in Shanxi.', status:'approved'},
-      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', n_en:'Jiujiang · Lushan Guling Estate', w:'李德立 (Edward Selby Little)', w_en:'Edward Selby Little', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', d_en:'In 1895, Little pioneered the Guling mountain sanctuary, where international mission boards built churches and schools.', status:'approved'},
-      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', n_en:'Xinyang · Mount Jigong Lutheran Site', w:'李立生 (Daniel Nelson)', w_en:'Daniel Nelson', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', d_en:'Developed in 1902 by Daniel Nelson. In 1920, multiple international Lutheran missions united here to form the Lutheran Church of China.', status:'approved'},
-      {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', n_en:'Bijie · Shimankan Miracle Site', w:'伯格理 (Samuel Pollard)', w_en:'Samuel Pollard', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', d_en:'In 1904, Samuel Pollard ventured into Shimankan, creating a written Miao script, building schools, and bringing literacy and health.', status:'approved'},
-      {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', n_en:'Fuzhou · Guling Deacon House', w:'倪柝声', w_en:'Watchman Nee', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', d_en:'Originally a missionary summer retreat. Watchman Nee hosted two profound nationwide church leader trainings here in 1948–1949.', status:'approved'},
-      {id:'moganshan', n:'德清 · 莫干山疗养古堡', w:'梅滕更 (Duncan Main)', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', d_en:'In 1910, Dr. Duncan Main, director of Hangzhou Guangji Hospital, built a sanatorium castle here for medical rest.', status:'approved'},
-      {id:'dali', n:'大理 · 崇圣寺旁宣教点', n_en:'Dali · Lisu Pioneer Station', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1910, la:25.70, ln:100.15, d:'富能仁深入滇西北山区创制傈僳文字，促成滇西北少数民族大规模归主。', d_en:'Fraser invented the written Lisu script in Northwest Yunnan, initiating a massive spiritual turning among ethnic minority tribes.', status:'approved'},
-      {id:'baoshan_qinghua', n:'保山 · 清华教堂（富能仁墓）', n_en:'Baoshan · Qinghua Church (Fraser\'s Tomb)', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1938, la:25.1012, ln:99.1585, d:'傈僳族使徒富能仁牧师1938年于保山安息。其遗骨安葬于保山市隆阳区清华教堂院内。', d_en:'Apostle to the Lisu people, James O. Fraser entered eternal rest in 1938. His memorial lies at Qinghua Church in Baoshan.', status:'approved'},
-      {id:'wuding_sapushan', n:'武定 · 洒普山', n_en:'Wuding · Sapushan Hill', w:'王志明 (Wang Zhiming)', w_en:'Pastor Wang Zhiming', y:1944, la:25.53, ln:102.40, d:'滇北苗族教会领袖。王志明牧师一生服事少数民族同胞，其雕像1998年立于英国伦敦西敏寺大教堂。', d_en:'Leader of Miao churches in Northern Yunnan. Honored in 1998 with a permanent statue on the West Front of Westminster Abbey, London.', status:'approved'}
+      {id:'xian_daqin', n:'西安 · 大秦寺塔', n_en:'Xi\'an · Daqin Pagoda', w:'阿罗本', w_en:'Alopen', y:635, la:34.05, ln:108.88, d:'635年阿罗本抵长安，唐太宗敕建大秦寺，开启福音首次系统入华。', d_en:'Alopen arrived in Chang\'an in 635 AD. Emperor Taizong issued an edict to construct the Daqin Monastery.', status:'approved', vr360_url:'https://pannellum.org/images/alma.jpg'},
+      {id:'turpan', n:'吐鲁番 · 高昌古城教堂遗址', n_en:'Turpan · Gaochang Church Ruins', w:'西域景教僧侣', w_en:'Nestorian Monks', y:700, la:42.85, ln:89.52, d:'古代丝绸之路景教重镇，出土大量叙利亚文圣经残页与壁画。', d_en:'An ancient Silk Road Nestorian hub.', status:'approved'},
+      {id:'zhaoqing', n:'肇庆 · 娗香阁', n_en:'Zhaoqing · Xianxiang Pavilion', w:'利玛窦', w_en:'Matteo Ricci', y:1583, la:23.05, ln:112.47, d:'1583年利玛窦由澳门入境肇庆，建立中国大陆第一座天主教堂。', d_en:'In 1583, Matteo Ricci entered Zhaoqing.', status:'approved'},
+      {id:'macau', n:'澳门 · 大三巴', n_en:'Macao · Ruins of St. Paul\'s', w:'范礼安 / 罗明坚', w_en:'Alessandro Valignano / Michele Ruggieri', y:1594, la:22.197, ln:113.54, d:'远东第一所西式大学，明清时期宣教士进入大陆的前哨基地。', d_en:'The first Western-style university in the Far East.', status:'approved'},
+      {id:'bj', n:'北京 · 利玛窦墓', n_en:'Beijing · Tomb of Matteo Ricci', w:'利玛窦', w_en:'Matteo Ricci', y:1601, la:39.9, ln:116.4, d:'1601年利玛窦入京觐见万历帝，以学术科学架起交流桥梁。', d_en:'In 1601, Matteo Ricci arrived in Beijing.', status:'approved'},
+      {id:'shanghai_xujiahui', n:'上海 · 徐家汇圣母院', n_en:'Shanghai · Xujiahui Convent', w:'徐光启 / 利玛窦', w_en:'Xu Guangqi / Matteo Ricci', y:1608, la:31.19, ln:121.43, d:'明代内阁重臣徐光启受洗后建立的宣教与西学东渐中心。', d_en:'Established following the baptism of Xu Guangqi.', status:'approved'},
+      {id:'gz', n:'广州 · 十三行', n_en:'Guangzhou · Thirteen Factories', w:'马礼逊 (Robert Morrison)', w_en:'Robert Morrison', y:1807, la:23.13, ln:113.26, d:'1807年马礼逊抵穗隐居译经，按立第一位华人牧师。', d_en:'Arriving in 1807, Robert Morrison translated the Chinese Bible here.', status:'approved'},
+      {id:'mlc', n:'马六甲 · 英华书院', n_en:'Malacca · Anglo-Chinese College', w:'米怜 (William Milne)', w_en:'William Milne', y:1818, la:2.2, ln:102.25, d:'1818年创办英华书院，集教育、印刷与宣教于一体。', d_en:'Founded in 1818 to combine education and evangelism.', status:'approved'},
+      {id:'sh', n:'上海 · 墨海书馆', n_en:'Shanghai · London Missionary Society Press', w:'麦都思 (Walter Henry Medhurst)', w_en:'Walter Henry Medhurst', y:1843, la:31.23, ln:121.47, d:'1843年设墨海书馆，上海逐步成为宣教与出版枢纽。', d_en:'Established in 1843, turning Shanghai into a printing center.', status:'approved'},
+      {id:'fuzhou', n:'福州 · 仓山保福堂', n_en:'Fuzhou · Cangshan Church', w:'麦利和', w_en:'Robert Samuel Maclay', y:1847, la:26.04, ln:119.31, d:'美以美会在华宣教大本营，创办学校并推动福建各地事工。', d_en:'Headquarters of the Methodist Episcopal Mission.', status:'approved'},
+      {id:'ningbo', n:'宁波 · 桥头街礼拜堂', n_en:'Ningbo · Qiaotou Street Church', w:'戴德生 (Hudson Taylor)', w_en:'Hudson Taylor', y:1854, la:29.87, ln:121.54, d:'1854年戴德生抵宁波换穿华人服饰布道，为创内地会奠基。', d_en:'In 1854, Hudson Taylor adopted Chinese attire.', status:'approved'},
+      {id:'hz', n:'杭州 · 天水堂', n_en:'Hangzhou · Tianshui Church', w:'戴德生', w_en:'Hudson Taylor', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', d_en:'In 1866, Taylor led the Lammermuir Party to Hangzhou.', status:'approved'},
+      {id:'wenzhou', n:'温州 · 城西堂', n_en:'Wenzhou · Chengxi Church', w:'曹雅直 (George Stott)', w_en:'George Stott', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', d_en:'George Stott arrived in Wenzhou in 1867.', status:'approved'},
+      {id:'taiyuan', n:'太原 · 浸信会宣教站', n_en:'Taiyuan · Baptist Mission Station', w:'李提摩太 (Timothy Richard)', w_en:'Timothy Richard', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', d_en:'During the 1877 famine, Timothy Richard provided relief.', status:'approved'},
+      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', n_en:'Jiujiang · Lushan Guling Estate', w:'李德立 (Edward Selby Little)', w_en:'Edward Selby Little', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', d_en:'In 1895, Little pioneered Guling estate.', status:'approved'},
+      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', n_en:'Xinyang · Mount Jigong Lutheran Site', w:'李立生 (Daniel Nelson)', w_en:'Daniel Nelson', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', d_en:'Developed in 1902 by Daniel Nelson.', status:'approved'},
+      {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', n_en:'Bijie · Shimankan Miracle Site', w:'伯格理 (Samuel Pollard)', w_en:'Samuel Pollard', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', d_en:'In 1904, Samuel Pollard created a written Miao script.', status:'approved'},
+      {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', n_en:'Fuzhou · Guling Deacon House', w:'倪柝声', w_en:'Watchman Nee', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', d_en:'Watchman Nee hosted trainings here.', status:'approved'},
+      {id:'moganshan', n:'德清 · 莫干山疗养古堡', n_en:'Dengqing · Moganshan Sanatorium', w:'梅滕更 (Duncan Main)', w_en:'Duncan Main', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', d_en:'In 1910, Dr. Duncan Main built a sanatorium castle.', status:'approved'},
+      {id:'dali', n:'大理 · 崇圣寺旁宣教点', n_en:'Dali · Lisu Pioneer Station', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1910, la:25.70, ln:100.15, d:'富能仁深入滇西北山区创制傈僳文字，促成滇西北少数民族大规模归主。', d_en:'Fraser invented the written Lisu script.', status:'approved'},
+      {id:'baoshan_qinghua', n:'保山 · 清华教堂（富能仁墓）', n_en:'Baoshan · Qinghua Church (Fraser\'s Tomb)', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1938, la:25.1012, ln:99.1585, d:'傈僳族使徒富能仁牧师1938年于保山安息。其遗骨安葬于保山市隆阳区清华教堂院内。', d_en:'James O. Fraser entered rest in 1938.', status:'approved'},
+      {id:'wuding_sapushan', n:'武定 · 洒普山', n_en:'Wuding · Sapushan Hill', w:'王志明 (Wang Zhiming)', w_en:'Pastor Wang Zhiming', y:1944, la:25.53, ln:102.40, d:'滇北苗族教会领袖。王志明牧师一生服事少数民族同胞，其雕像1998年立于英国伦敦西敏寺大教堂。', d_en:'Leader of Miao churches in Northern Yunnan.', status:'approved'}
     ],
     routes: [
       { id: 'r1', name: '马礼逊译经与东亚传播线', name_en: 'Morrison Translation & East Asia Route', pts: ['gz', 'mlc', 'sh'] },
@@ -708,16 +620,13 @@ window.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
-  // 🌐 语言设置方法
   APP.setLanguage = (lang) => {
     APP.lang = lang;
     document.getElementById('btnLangZh').classList.toggle('active', lang === 'zh');
     document.getElementById('btnLangEn').classList.toggle('active', lang === 'en');
-
     const dict = I18N[lang];
     if (!dict) return;
 
-    // 1. 更新全局静态界面文本
     document.getElementById('uiMainTitle').innerText = dict.title;
     document.getElementById('sbTitle').innerText = dict.sbTitle;
     document.getElementById('sbSubTitle').innerText = dict.sbSubTitle;
@@ -726,51 +635,41 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('uiModeNormal').innerText = dict.modeNormal;
     document.getElementById('uiModeDarkGold').innerText = dict.modeDarkGold;
     document.getElementById('uiModeExplore').innerText = dict.modeExplore;
-    
     document.getElementById('uiNavSidebar').innerText = dict.navSidebar;
     document.getElementById('uiNavRoute').innerText = dict.navRoute;
     document.getElementById('uiNavTimeline').innerText = dict.navTimeline;
     document.getElementById('uiNavAuth').innerText = dict.navAuth;
     document.getElementById('uiNavSubmit').innerText = dict.navSubmit;
     document.getElementById('uiNavAdmin').innerText = dict.navAdmin;
-
     document.getElementById('uiMNavRoute').innerText = dict.navRoute;
     document.getElementById('uiMNavTimeline').innerText = dict.navTimeline;
     document.getElementById('uiMNavAuth').innerText = dict.navAuth;
     document.getElementById('uiMNavSubmit').innerText = dict.navSubmit;
     document.getElementById('uiMNavAdmin').innerText = dict.navAdmin;
-
     document.getElementById('badgeADPrefix').innerText = dict.badgeADPrefix;
     document.getElementById('badgeADSuffix').innerText = dict.badgeADSuffix;
     document.getElementById('badgePointsLabel').innerText = dict.badgePointsLabel;
     document.getElementById('badgeUnitLabel').innerText = dict.badgeUnitLabel;
-
     document.getElementById('tlADPrefix').innerText = dict.badgeADPrefix;
     document.getElementById('tlADSuffix').innerText = dict.badgeADSuffix;
-
     document.getElementById('installTitle').innerText = dict.pwaTitle;
     document.getElementById('installDesc').innerText = dict.pwaDesc;
     document.getElementById('btnInstallPwa').innerText = dict.pwaBtn;
-
     document.getElementById('uiRoutePanelTitle').innerText = dict.routePanelTitle;
     document.getElementById('btnToggleRouteAnim').innerText = APP.enableRouteAnim ? dict.routeAnimOff : dict.routeAnimOn;
     document.getElementById('routeEditTitle').innerText = dict.routeEditTitle;
     document.getElementById('uiBtnNewRoute').innerText = dict.btnNewRoute;
     document.getElementById('uiBtnSaveRoute').innerText = dict.btnSaveRoute;
-
     document.getElementById('uiDrawerEdit').innerText = dict.drawerEdit;
     document.getElementById('uiDrawerDelete').innerText = dict.drawerDelete;
-
     document.getElementById('uiAuthModalTitle').innerText = dict.authModalTitle;
     document.getElementById('uiRememberMe').innerText = dict.rememberMe;
     document.getElementById('uiBtnLogin').innerText = dict.btnLogin;
     document.getElementById('uiBtnRegister').innerText = dict.btnRegister;
-
     document.getElementById('modalTitle').innerText = dict.dataCenterTitle;
     document.getElementById('tab1Btn').innerText = dict.tabSubmit;
     document.getElementById('tab2Btn').innerText = dict.tabAudit;
 
-    // 2. 重新渲染点位、侧边栏和路线
     APP.renderAll();
     if (APP.currentPoint) APP.openDrawer(APP.currentPoint);
     if (APP.activeRouteId) APP.renderRouteList();
@@ -780,22 +679,88 @@ window.addEventListener('DOMContentLoaded', () => {
   const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
   APP.map = map;
 
-  // 🗺️ 地图模式设置方法
+  // 🌐 检查地图层级/拾取状态，自动开关国家提示气泡
+  APP.checkCountryTooltipVisibility = () => {
+    if (!APP.countries) return;
+    const currentZoom = map.getZoom();
+    // 放大进入细节 (zoom > 5) 或 在拾取坐标时，关闭国家悬浮气泡，避免挡住城市和点位
+    const shouldShow = currentZoom <= 5 && !APP.isPickingCoordinate;
+    
+    APP.countries.eachLayer(layer => {
+      if (shouldShow) {
+        if (!layer.getTooltip()) {
+          const en = (layer.feature.properties && layer.feature.properties.name) || '';
+          const CB = APP.countryDataDict || {};
+          const [cn, brief] = CB[en] || ['', en + '：该国宣教史料持续整理中。'];
+          layer.bindTooltip('<b>' + (cn ? cn + ' · ' : '') + en + '</b><p>' + brief + '</p>', {sticky:true, className:'ctip', direction:'top', opacity:1});
+        }
+      } else {
+        if (layer.getTooltip()) layer.unbindTooltip();
+      }
+    });
+  };
+
+  map.on('zoomend', APP.checkCountryTooltipVisibility);
+
+  // 📍 激活/退出地图坐标拾取交互模式
+  APP.startCoordinatePicker = () => {
+    APP.isPickingCoordinate = true;
+    APP.checkCountryTooltipVisibility(); // 立即隐藏国家大提示框
+    document.getElementById('adminModal').style.display = 'none';
+    const pickerBar = document.getElementById('pickerBar');
+    const dict = I18N[APP.lang];
+    document.getElementById('pickerText').innerText = dict.pickerTip;
+    document.getElementById('btnConfirmPick').innerText = dict.pickerConfirm;
+    document.getElementById('btnCancelPick').innerText = dict.pickerCancel;
+    pickerBar.style.display = 'flex';
+  };
+
+  APP.stopCoordinatePicker = (isConfirmed = false) => {
+    APP.isPickingCoordinate = false;
+    APP.checkCountryTooltipVisibility();
+    document.getElementById('pickerBar').style.display = 'none';
+    
+    if (isConfirmed && APP.pickedLatLng) {
+      document.getElementById('afC').value = `${APP.pickedLatLng.lat.toFixed(4)}, ${APP.pickedLatLng.lng.toFixed(4)}`;
+    }
+
+    if (APP.tempPickerMarker) {
+      map.removeLayer(APP.tempPickerMarker);
+      APP.tempPickerMarker = null;
+    }
+
+    document.getElementById('adminModal').style.display = 'flex';
+  };
+
+  document.getElementById('afC').onclick = () => APP.startCoordinatePicker();
+  document.getElementById('btnConfirmPick').onclick = () => APP.stopCoordinatePicker(true);
+  document.getElementById('btnCancelPick').onclick = () => APP.stopCoordinatePicker(false);
+
+  map.on('click', (e) => {
+    if (APP.isPickingCoordinate) {
+      APP.pickedLatLng = e.latlng;
+      if (APP.tempPickerMarker) map.removeLayer(APP.tempPickerMarker);
+      
+      const pinIcon = L.divIcon({
+        className: 'mkw',
+        html: `<div class="mk"><div class="cx" style="filter:drop-shadow(0 0 10px #2ecc71);"><i class="v" style="background:#2ecc71;"></i><i class="h" style="background:#2ecc71;"></i></div></div>`,
+        iconSize: [44,44], iconAnchor: [22,22]
+      });
+      APP.tempPickerMarker = L.marker([e.latlng.lat, e.latlng.lng], {icon: pinIcon}).addTo(map);
+      document.getElementById('pickerText').innerText = `📍 ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+    }
+  });
+
   APP.setMapMode = (mode) => {
     APP.currentMapMode = mode;
-
     document.getElementById('btnModeNormal').classList.toggle('active', mode === 'normal');
     document.getElementById('btnModeDarkGold').classList.toggle('active', mode === 'darkGold');
     document.getElementById('btnModeExplore').classList.toggle('active', mode === 'explore');
 
-    if (mode === 'explore') {
-      flashlight.classList.add('active');
-    } else {
-      flashlight.classList.remove('active');
-    }
+    if (mode === 'explore') flashlight.classList.add('active');
+    else flashlight.classList.remove('active');
 
     if (APP.tileLayer) map.removeLayer(APP.tileLayer);
-
     const isNormal = mode === 'normal';
     const tileClass = isNormal ? '' : 'dark-gold-tiles';
 
@@ -806,7 +771,6 @@ window.addEventListener('DOMContentLoaded', () => {
     document.body.classList.toggle('normal-mode-active', isNormal);
   };
 
-  // 初始化为黑金模式
   APP.setMapMode('darkGold');
 
   APP.ERAS = [
@@ -830,7 +794,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if(el) el.click();
   };
 
-  // 📱 全平台智能“添加到主屏幕”安装引导
   const bar = document.getElementById('smartInstallBar');
   const btnInstallPwa = document.getElementById('btnInstallPwa');
   const btnClosePwa = document.getElementById('btnClosePwa');
@@ -844,7 +807,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if (bar) bar.style.display = 'none';
   } else {
     let deferredPrompt = null;
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -879,13 +841,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  let clickLatLng = null;
-  map.on('click', (e) => {
-    clickLatLng = e.latlng;
-    const afC = document.getElementById('afC');
-    if(afC) afC.value = `${clickLatLng.lat.toFixed(4)}, ${clickLatLng.lng.toFixed(4)}`;
-  });
-
   (function initCountries(){
     const map = APP.map;
     if(!map) return;
@@ -918,6 +873,7 @@ window.addEventListener('DOMContentLoaded', () => {
       'Australia':['澳大利亚','1788年建立圣公会，后为太平洋差传基地。'],
       'Canada':['加拿大','17世纪耶稣会士赴新法兰西，于原住民中布道。']
     };
+    APP.countryDataDict = CB;
     const DEF = n => ['', n+'：该国宣教史料持续整理中。'];
 
     const baseStyle = () => ({ color:'rgba(212,175,106,.28)', weight:.6, fillColor:'#d4af6a', fillOpacity:.04 });
@@ -944,10 +900,15 @@ window.addEventListener('DOMContentLoaded', () => {
         onEachFeature:(f, ly)=>{
           const en = (f.properties && f.properties.name) || '';
           const [cn, brief] = CB[en] || DEF(en || '未知地区');
-          ly.bindTooltip(
-            '<b>' + (cn ? cn + ' · ' : '') + en + '</b><p>' + brief + '</p>',
-            {sticky:true, className:'ctip', direction:'top', opacity:1}
-          );
+          
+          // 仅在首页宏观视野时才绑定Tooltip
+          if (map.getZoom() <= 5) {
+            ly.bindTooltip(
+              '<b>' + (cn ? cn + ' · ' : '') + en + '</b><p>' + brief + '</p>',
+              {sticky:true, className:'ctip', direction:'top', opacity:1}
+            );
+          }
+
           ly.on('mouseover', e=>{
             const t = e.propagatedFrom || e.target;
             t.setStyle(hovStyle());
@@ -995,8 +956,10 @@ window.addEventListener('DOMContentLoaded', () => {
       const yearLabel = APP.lang === 'en' ? `AD ${p.y}` : `${p.y}年`;
       m.bindTooltip(`<b>${pName}</b> (${yearLabel})`, {direction:'top'});
       m.on('click', () => {
-        map.flyTo([p.la, p.ln], 8, {duration:1.2});
-        APP.openDrawer(p);
+        if (!APP.isPickingCoordinate) {
+          map.flyTo([p.la, p.ln], 8, {duration:1.2});
+          APP.openDrawer(p);
+        }
       });
       APP.markers[p.id] = m;
       APP.visibleState[p.id] = true;
@@ -1031,12 +994,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const encodedName = encodeURIComponent(name);
     const gaodeUrl = `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodedName}`;
     const appleUrl = `https://maps.apple.com/?q=${encodedName}&ll=${lat},${lng}`;
-
     const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
     const msg = APP.lang === 'en' ? `Navigate to: ${name}` : `准备导航至：${name}\n点击【确定】唤醒专业地图导航。`;
-    if (confirm(msg)) {
-      window.open(isAppleDevice ? appleUrl : gaodeUrl, '_blank');
-    }
+    if (confirm(msg)) window.open(isAppleDevice ? appleUrl : gaodeUrl, '_blank');
   };
 
   APP.openDrawer = (p) => {
@@ -1047,7 +1007,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const dict = I18N[APP.lang];
 
     document.getElementById('dWTitle').innerText = pName;
-
     const adminBtns = document.getElementById('drawerAdminBtns');
     if(adminBtns) adminBtns.style.display = APP.isSuperAdmin ? 'flex' : 'none';
 
@@ -1087,8 +1046,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('afN').value = p.n;
     document.getElementById('afW').value = p.w;
     document.getElementById('afY').value = p.y;
-    document.getElementById('afC').value = `${p.la}, ${p.ln}`;
-    clickLatLng = { lat: p.la, lng: p.ln };
+    document.getElementById('afC').value = `${p.la.toFixed(4)}, ${p.ln.toFixed(4)}`;
+    APP.pickedLatLng = { lat: p.la, lng: p.ln };
     document.getElementById('afD').value = p.d || '';
   };
 
@@ -1488,10 +1447,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('pointForm').onsubmit = async (e) => {
     e.preventDefault();
-    if(!clickLatLng) return alert('Please click on the map to pick coordinates!');
+    if(!APP.pickedLatLng && !document.getElementById('afC').value) return alert('请先点击地图拾取坐标！');
 
     const editId = document.getElementById('afId').value;
-
     const fileImg = document.getElementById('fileImg').files[0];
     const fileAudio = document.getElementById('fileAudio').files[0];
     const fileVideo = document.getElementById('fileVideo').files[0];
@@ -1505,14 +1463,15 @@ window.addEventListener('DOMContentLoaded', () => {
     let docData = fileDoc ? await readFileAsDataURL(fileDoc) : '';
 
     const existingPoint = editId ? APP.points.find(x => x.id === editId) : null;
+    const [latStr, lngStr] = document.getElementById('afC').value.split(',');
 
     const targetPoint = {
       id: editId || ('p_' + Date.now()),
       n: document.getElementById('afN').value,
       w: document.getElementById('afW').value,
       y: parseInt(document.getElementById('afY').value),
-      la: clickLatLng.lat,
-      ln: clickLatLng.lng,
+      la: parseFloat(latStr),
+      ln: parseFloat(lngStr),
       d: document.getElementById('afD').value,
       img: imgData || (existingPoint ? existingPoint.img : ''),
       audio_url: audioData || (existingPoint ? existingPoint.audio_url : ''),
@@ -1530,14 +1489,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     if(isCloudMode) {
-      if(editId) {
-        await supabase.from('missionary_points').update(targetPoint).eq('id', editId);
-      } else {
-        await supabase.from('missionary_points').insert([targetPoint]);
-      }
+      if(editId) await supabase.from('missionary_points').update(targetPoint).eq('id', editId);
+      else await supabase.from('missionary_points').insert([targetPoint]);
     }
 
-    alert('Saved successfully!');
+    alert('保存成功！');
     document.getElementById('adminModal').style.display = 'none';
     document.getElementById('pointForm').reset();
     document.getElementById('afId').value = '';
@@ -1565,9 +1521,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
     const p = APP.points.find(x => x.id === id);
     if(p) p.status = 'approved';
-    if(isCloudMode) {
-      await supabase.from('missionary_points').update({ status: 'approved' }).eq('id', id);
-    }
+    if(isCloudMode) await supabase.from('missionary_points').update({ status: 'approved' }).eq('id', id);
     APP.renderAll();
     APP.renderAuditList();
   };
@@ -1576,14 +1530,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
     if(!confirm('Delete this record?')) return;
     APP.points = APP.points.filter(x => x.id !== id);
-    if(isCloudMode) {
-      await supabase.from('missionary_points').delete().eq('id', id);
-    }
+    if(isCloudMode) await supabase.from('missionary_points').delete().eq('id', id);
     APP.renderAll();
     APP.renderAuditList();
   };
 
-  // 初始化设置语言为中文并启动全量渲染
   APP.setLanguage('zh');
   APP.updateTimeline(2026);
   APP.loadSavedAuth();

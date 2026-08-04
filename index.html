@@ -297,7 +297,7 @@
 <div class="flashlight-overlay" id="flashlight"></div>
 <div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
 
-<!-- 📍 地图坐标拾取控制栏 -->
+<!-- 📍 地图坐标拾取交互控制栏 -->
 <div id="pickerBar">
   <span id="pickerText">📍 点击地图选择坐标位置...</span>
   <button class="picker-btn secondary" id="btnLocatePicker">🎯 定位当前</button>
@@ -337,7 +337,8 @@
   <button class="tb desktop-only" id="bT">✦ <span id="uiNavTimeline">时空轴</span></button>
   <button class="tb desktop-only" id="bAuth">👤 <span id="uiNavAuth">登录</span></button>
   <button class="tb desktop-only" id="bSubmit" style="display:none">➕ <span id="uiNavSubmit">提交点位</span></button>
-  <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ <span id="uiNavAdmin">后台管理中心</span></button>
+  <!-- ⚙ “管理与监控中心”只有超级管理员登录后可见 -->
+  <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ <span id="uiNavAdmin">管理与监控中心</span></button>
 </div>
 
 <aside id="sidebar">
@@ -371,7 +372,8 @@
     <div class="m-btn" onclick="APP.triggerMobile('bT')">⏳ <span id="uiMNavTimeline">历史时空轴</span></div>
     <div class="m-btn" onclick="APP.triggerMobile('bAuth')" id="mBtnAuth">👤 <span id="uiMNavAuth">会员登录</span></div>
     <div class="m-btn" onclick="APP.triggerMobile('bSubmit')" id="mBtnSubmit" style="display:none">➕ <span id="uiMNavSubmit">提交点位</span></div>
-    <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ <span id="uiMNavAdmin">后台管理中心</span></div>
+    <!-- ⚙ “管理与监控中心”只有超级管理员登录后可见 -->
+    <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ <span id="uiMNavAdmin">管理与监控中心</span></div>
   </div>
 
   <div id="ranking-wrap">
@@ -463,7 +465,7 @@
   </div>
 </div>
 
-<!-- ⚙ 后台管理中心 modal（含数据流量与性能面板） -->
+<!-- ⚙ 后台管理中心 modal（含超级管理员专用数据流量与性能面板） -->
 <div id="adminModal" class="modal">
   <div class="modal-box">
     <div class="modal-hd">
@@ -472,13 +474,14 @@
     </div>
     <div class="modal-bd">
       <div style="display:flex;gap:8px;margin-bottom:12px;border-bottom:1px solid var(--glass-border);padding-bottom:8px">
-        <button class="tb on" id="tabDashBtn" onclick="APP.switchTab('dash')">📊 流量与性能监控 Dashboard</button>
+        <!-- ⚙ 只有超级管理员能看到并切换到“流量监控”标签页 -->
+        <button class="tb on" id="tabDashBtn" onclick="APP.switchTab('dash')" style="display:none">📊 流量与性能监控 Dashboard</button>
         <button class="tb" id="tab1Btn" onclick="APP.switchTab('form')">➕ 提交/修改坐标点位</button>
         <button class="tb" id="tab2Btn" onclick="APP.switchTab('list')">⚙ 坐标数据审核后台</button>
       </div>
 
-      <!-- 📊 流量与系统性能监控 Dashboard 页签 -->
-      <div id="dashTab">
+      <!-- 📊 流量与系统性能监控 Dashboard 页签 (仅超级管理员可见) -->
+      <div id="dashTab" style="display:none">
         <div class="dash-grid">
           <div class="dash-card">
             <div class="dash-lbl">⚡ 累计数据流量</div>
@@ -626,7 +629,7 @@ window.addEventListener('DOMContentLoaded', () => {
     zh: {
       title: "光之足迹", subTitle: "MISSIONARY ATLAS", sbTitle: "拓荒者足迹", sbSubTitle: "智慧宣教历史轨迹记录",
       langSwitchTitle: "🌐 界面语言 / Language", mapModeTitle: "🗺️ 切换地图模式", modeNormal: "正常模式", modeDarkGold: "黑金模式", modeExplore: "探索模式",
-      navSidebar: "目录", navRoute: "路线规划", navTimeline: "时空轴", navAuth: "登录", navSubmit: "提交点位", navAdmin: "后台管理",
+      navSidebar: "目录", navRoute: "路线规划", navTimeline: "时空轴", navAuth: "登录", navSubmit: "提交点位", navAdmin: "管理与监控中心",
       badgeADPrefix: "公元", badgeADSuffix: "年", badgePointsLabel: "点位:", badgeUnitLabel: "个",
       pwaTitle: "安装“拓荒者足迹” APP", pwaDesc: "体验更流畅的全屏宣教历史地图", pwaBtn: "立即安装",
       routePanelTitle: "✦ 宣教路线规划与流光", routeAnimOn: "开启特效", routeAnimOff: "关闭特效", routeContains: "包含站点",
@@ -701,6 +704,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   APP.updateDashboardUI = () => {
+    if(!APP.isSuperAdmin) return;
     const tf = document.getElementById('dNetTraffic');
     const rc = document.getElementById('dReqCount');
     const lat = document.getElementById('dAvgLatency');
@@ -1525,7 +1529,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     APP.isSuperAdmin = (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
 
-    alert(APP.isSuperAdmin ? 'Super Admin logged in!' : 'Member logged in!');
+    alert(APP.isSuperAdmin ? '超级管理员登录成功！' : '会员登录成功！');
     
     document.getElementById('authModal').style.display = 'none';
     const authText = `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(Admin)' : ''}`;
@@ -1535,13 +1539,16 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bSubmit').style.display = 'inline-block';
     document.getElementById('mBtnSubmit').style.display = 'flex';
     
+    // 🔐 只有超级管理员才显示后台管理与监控入口
     if(APP.isSuperAdmin) {
       document.getElementById('bAdmin').style.display = 'inline-block';
       document.getElementById('mBtnAdmin').style.display = 'flex';
+      document.getElementById('tabDashBtn').style.display = 'inline-block';
       document.getElementById('superAdminRouteEdit').style.display = 'block';
     } else {
       document.getElementById('bAdmin').style.display = 'none';
       document.getElementById('mBtnAdmin').style.display = 'none';
+      document.getElementById('tabDashBtn').style.display = 'none';
       document.getElementById('superAdminRouteEdit').style.display = 'none';
     }
 
@@ -1556,12 +1563,15 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   
   document.getElementById('bAdmin').onclick = () => {
-    if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
+    if(!APP.isSuperAdmin) return alert('只有超级管理员有权限访问控制面板！');
     document.getElementById('adminModal').style.display = 'flex';
     APP.switchTab('dash');
   };
 
   APP.switchTab = (type) => {
+    // 🔐 限制：非超级管理员强行切到 dash 视作无效
+    if(type === 'dash' && !APP.isSuperAdmin) type = 'form';
+
     document.getElementById('tabDashBtn').classList.toggle('on', type==='dash');
     document.getElementById('tab1Btn').classList.toggle('on', type==='form');
     document.getElementById('tab2Btn').classList.toggle('on', type==='list');

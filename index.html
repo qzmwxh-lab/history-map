@@ -260,7 +260,7 @@
   .file-uploader input[type="file"] { font-size: 10px; color: var(--gold-bright); }
 
   .modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.5); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; padding: 12px; }
-  .modal-box { background: var(--glass-bg); border: 1px solid var(--glass-border); width: min(640px, 100%); max-height: 85vh; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.8); overflow: hidden; backdrop-filter: blur(24px) saturate(180%); }
+  .modal-box { background: var(--glass-bg); border: 1px solid var(--glass-border); width: min(720px, 100%); max-height: 88vh; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.8); overflow: hidden; backdrop-filter: blur(24px) saturate(180%); }
   .modal-hd { padding: 14px 16px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
   .modal-bd { padding: 16px; overflow-y: auto; flex: 1; }
   .input-style { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: #fff; padding: 8px 10px; border-radius: 6px; width: 100%; font-size: 12px; }
@@ -269,6 +269,13 @@
   .nav-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .nav-btn { background: rgba(212,175,106,0.15); border: 1px solid var(--gold); color: var(--gold-bright); padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; text-decoration: none; font-weight: bold; }
   .nav-btn:active { background: var(--gold); color: #000; }
+
+  /* 📊 流量与系统监控 Dashboard 网格与卡片 */
+  .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .dash-card { background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border); padding: 10px; border-radius: 10px; text-align: center; }
+  .dash-card .d-val { font-size: 18px; color: var(--gold-bright); font-family: var(--font-mono); font-weight: bold; margin-top: 4px; }
+  .dash-card .d-lbl { font-size: 10px; color: var(--inkd); }
+  .dash-log-box { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 8px; padding: 10px; font-family: var(--font-mono); font-size: 10px; color: #2ecc71; height: 130px; overflow-y: auto; }
 
   @media (max-width: 768px) {
     .desktop-only { display: none!important; }
@@ -330,7 +337,7 @@
   <button class="tb desktop-only" id="bT">✦ <span id="uiNavTimeline">时空轴</span></button>
   <button class="tb desktop-only" id="bAuth">👤 <span id="uiNavAuth">登录</span></button>
   <button class="tb desktop-only" id="bSubmit" style="display:none">➕ <span id="uiNavSubmit">提交点位</span></button>
-  <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ <span id="uiNavAdmin">审核后台</span></button>
+  <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ <span id="uiNavAdmin">后台管理中心</span></button>
 </div>
 
 <aside id="sidebar">
@@ -364,7 +371,7 @@
     <div class="m-btn" onclick="APP.triggerMobile('bT')">⏳ <span id="uiMNavTimeline">历史时空轴</span></div>
     <div class="m-btn" onclick="APP.triggerMobile('bAuth')" id="mBtnAuth">👤 <span id="uiMNavAuth">会员登录</span></div>
     <div class="m-btn" onclick="APP.triggerMobile('bSubmit')" id="mBtnSubmit" style="display:none">➕ <span id="uiMNavSubmit">提交点位</span></div>
-    <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ <span id="uiMNavAdmin">管理审核后台</span></div>
+    <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ <span id="uiMNavAdmin">后台管理中心</span></div>
   </div>
 
   <div id="ranking-wrap">
@@ -456,19 +463,48 @@
   </div>
 </div>
 
+<!-- ⚙ 后台管理中心 modal（含数据流量与性能面板） -->
 <div id="adminModal" class="modal">
   <div class="modal-box">
     <div class="modal-hd">
-      <h3 style="color:var(--gold-bright);font-size:15px" id="modalTitle">宣教数据中心</h3>
+      <h3 style="color:var(--gold-bright);font-size:15px" id="modalTitle">超级管理与流量数据监控中心</h3>
       <button onclick="document.getElementById('adminModal').style.display='none'" style="background:none;border:none;color:#fff">×</button>
     </div>
     <div class="modal-bd">
       <div style="display:flex;gap:8px;margin-bottom:12px;border-bottom:1px solid var(--glass-border);padding-bottom:8px">
-        <button class="tb on" id="tab1Btn" onclick="APP.switchTab('form')">提交/修改坐标点位</button>
-        <button class="tb" id="tab2Btn" onclick="APP.switchTab('list')">超级审核管理后台</button>
+        <button class="tb on" id="tabDashBtn" onclick="APP.switchTab('dash')">📊 流量与性能监控 Dashboard</button>
+        <button class="tb" id="tab1Btn" onclick="APP.switchTab('form')">➕ 提交/修改坐标点位</button>
+        <button class="tb" id="tab2Btn" onclick="APP.switchTab('list')">⚙ 坐标数据审核后台</button>
       </div>
 
-      <form id="pointForm" style="display:flex;flex-direction:column;gap:8px;font-size:11px">
+      <!-- 📊 流量与系统性能监控 Dashboard 页签 -->
+      <div id="dashTab">
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-lbl">⚡ 累计数据流量</div>
+            <div class="dash-val" id="dNetTraffic">0.00 KB</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-lbl">🌐 瓦片/API 请求数</div>
+            <div class="dash-val" id="dReqCount">0 次</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-lbl">⏱️ 地图请求平均延迟</div>
+            <div class="dash-val" id="dAvgLatency">0 ms</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-lbl">💾 JS 堆内存占用</div>
+            <div class="dash-val" id="dMemUsage">N/A</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--gold-bright);margin-bottom:6px">📡 实时系统网络与流量日志：</div>
+        <div class="dash-log-box" id="dashLog">
+          <div>[SYSTEM] 后台监控运行中...</div>
+        </div>
+      </div>
+
+      <form id="pointForm" style="display:none;flex-direction:column;gap:8px;font-size:11px">
         <input type="hidden" id="afId">
         <div style="display:flex;gap:8px">
           <input type="text" id="afN" class="input-style" placeholder="地点名称 (例: 广州 · 十三行)" required>
@@ -476,7 +512,6 @@
         </div>
         <div style="display:flex;gap:8px">
           <input type="number" id="afY" class="input-style" placeholder="年份 (例: 1807)" required>
-          <!-- 📍 增强版坐标输入组合，支持手动编辑、地图选取与直接定位 -->
           <div style="display:flex;gap:4px;flex:1">
             <input type="text" id="afC" class="input-style" placeholder="📍 经纬度 (手动输入/点此选取)" style="color:var(--gold-bright);background:rgba(212,175,106,0.15);border-color:var(--gold)" required>
             <button type="button" onclick="APP.startCoordinatePicker()" class="btn-gold" style="padding:0 8px;font-size:10px;white-space:nowrap">🗺️ 选点</button>
@@ -549,18 +584,56 @@ window.addEventListener('DOMContentLoaded', () => {
   const isCloudMode = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+  // 📊 实时数据流量与网络性能统计
+  const METRICS = {
+    totalBytes: 0,
+    reqCount: 0,
+    latencies: [],
+    log: (msg) => {
+      const logBox = document.getElementById('dashLog');
+      if (logBox) {
+        const timeStr = new Date().toLocaleTimeString();
+        logBox.innerHTML += `<div>[${timeStr}] ${msg}</div>`;
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+    }
+  };
+
+  // 拦截/监听 Fetch 数据请求与流量
+  const origFetch = window.fetch;
+  window.fetch = async (...args) => {
+    const startTime = performance.now();
+    try {
+      const res = await origFetch(...args);
+      const clone = res.clone();
+      const blob = await clone.blob();
+      const duration = Math.round(performance.now() - startTime);
+
+      METRICS.totalBytes += blob.size;
+      METRICS.reqCount++;
+      METRICS.latencies.push(duration);
+      if(METRICS.latencies.length > 50) METRICS.latencies.shift();
+
+      METRICS.log(`FETCH ${args[0].toString().substring(0,40)}... | ${blob.size} B | ${duration}ms`);
+      APP.updateDashboardUI();
+      return res;
+    } catch(e) {
+      return origFetch(...args);
+    }
+  };
+
   const I18N = {
     zh: {
       title: "光之足迹", subTitle: "MISSIONARY ATLAS", sbTitle: "拓荒者足迹", sbSubTitle: "智慧宣教历史轨迹记录",
       langSwitchTitle: "🌐 界面语言 / Language", mapModeTitle: "🗺️ 切换地图模式", modeNormal: "正常模式", modeDarkGold: "黑金模式", modeExplore: "探索模式",
-      navSidebar: "目录", navRoute: "路线规划", navTimeline: "时空轴", navAuth: "登录", navSubmit: "提交点位", navAdmin: "审核后台",
+      navSidebar: "目录", navRoute: "路线规划", navTimeline: "时空轴", navAuth: "登录", navSubmit: "提交点位", navAdmin: "后台管理",
       badgeADPrefix: "公元", badgeADSuffix: "年", badgePointsLabel: "点位:", badgeUnitLabel: "个",
       pwaTitle: "安装“拓荒者足迹” APP", pwaDesc: "体验更流畅的全屏宣教历史地图", pwaBtn: "立即安装",
       routePanelTitle: "✦ 宣教路线规划与流光", routeAnimOn: "开启特效", routeAnimOff: "关闭特效", routeContains: "包含站点",
       routeEditTitle: "⚙ 管理员路线修改", btnNewRoute: "➕ 新建", btnSaveRoute: "保存配置",
       drawerDetailTitle: "详情", pioneerLabel: "✦ 先驱人物：", navRouteBtn: "🧭 一键导航路线", navAmapBtn: "🗺️ 高德地图直达",
       drawerEdit: "✏️ 编辑", drawerDelete: "🗑️ 删除", authModalTitle: "会员登录 / 注册", rememberMe: "记住账号密码（下次自动填充）",
-      btnLogin: "登录", btnRegister: "注册会员", dataCenterTitle: "宣教数据中心", tabSubmit: "提交/修改坐标点位", tabAudit: "超级审核管理后台",
+      btnLogin: "登录", btnRegister: "注册会员", dataCenterTitle: "管理与数据监控中心", tabSubmit: "提交/修改坐标点位", tabAudit: "坐标数据审核后台",
       loadingCountries: "✦ 正在载入全球国界与宣教数据...", countriesLoaded: "✦ 全球国界与宣教数据已载入",
       pickerTip: "📍 请在地图上点击选择点位位置...", pickerConfirm: "确定选中", pickerCancel: "取消"
     },
@@ -574,7 +647,7 @@ window.addEventListener('DOMContentLoaded', () => {
       routeEditTitle: "⚙ Route Management", btnNewRoute: "➕ New", btnSaveRoute: "Save Route",
       drawerDetailTitle: "Historical Site Detail", pioneerLabel: "✦ Pioneer Missionary: ", navRouteBtn: "🧭 Turn-by-Turn Navigation", navAmapBtn: "🗺️ Open Web Maps Direct",
       drawerEdit: "✏️ Edit", drawerDelete: "🗑️ Delete", authModalTitle: "Member Login / Register", rememberMe: "Remember my credentials",
-      btnLogin: "Login", btnRegister: "Register", dataCenterTitle: "Missionary Data Center", tabSubmit: "Submit / Edit Coordinates", tabAudit: "Super Admin Audit Portal",
+      btnLogin: "Login", btnRegister: "Register", dataCenterTitle: "Admin & Traffic Monitor", tabSubmit: "Submit / Edit Coordinates", tabAudit: "Audit Portal",
       loadingCountries: "✦ Loading global boundaries & mission records...", countriesLoaded: "✦ Global missionary & boundary data loaded",
       pickerTip: "📍 Click on the map to select coordinates...", pickerConfirm: "Confirm", pickerCancel: "Cancel"
     }
@@ -625,6 +698,27 @@ window.addEventListener('DOMContentLoaded', () => {
       { id: 'r4', name: '西南少数民族拓荒与文化复兴线', name_en: 'Southwest Tribal Frontier & Literacy Route', pts: ['dali', 'baoshan_qinghua', 'shimankan', 'wuding_sapushan'] },
       { id: 'r5', name: '四大名山宣教避暑与研讨线', name_en: 'Mountain Sanctuaries & Conference Trail', pts: ['jigongshan', 'lushan_guling', 'fuzhou_guling', 'moganshan'] }
     ]
+  };
+
+  APP.updateDashboardUI = () => {
+    const tf = document.getElementById('dNetTraffic');
+    const rc = document.getElementById('dReqCount');
+    const lat = document.getElementById('dAvgLatency');
+    const mem = document.getElementById('dMemUsage');
+
+    if(tf) {
+      const kb = METRICS.totalBytes / 1024;
+      tf.innerText = kb > 1024 ? `${(kb/1024).toFixed(2)} MB` : `${kb.toFixed(2)} KB`;
+    }
+    if(rc) rc.innerText = `${METRICS.reqCount} 次`;
+    if(lat && METRICS.latencies.length > 0) {
+      const avg = Math.round(METRICS.latencies.reduce((a,b)=>a+b,0) / METRICS.latencies.length);
+      lat.innerText = `${avg} ms`;
+    }
+    if(mem && performance.memory) {
+      const mb = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1);
+      mem.innerText = `${mb} MB`;
+    }
   };
 
   APP.setLanguage = (lang) => {
@@ -707,11 +801,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   map.on('zoomend', APP.checkCountryTooltipVisibility);
 
-  // 🎯 获取自己当前 GPS 定位
   APP.getCurrentLocation = (isInsidePicker = false) => {
-    if (!navigator.geolocation) {
-      return alert('您的浏览器不支持地理定位功能！');
-    }
+    if (!navigator.geolocation) return alert('您的浏览器不支持地理定位功能！');
     const btn = event ? event.target : null;
     if (btn) btn.innerText = '⌛ 定位中...';
 
@@ -726,7 +817,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (btn) btn.innerText = isInsidePicker ? '🎯 定位当前' : '🎯 定位';
 
-        // 放置临时点并把地图移动到当前位置
         if (APP.tempPickerMarker) map.removeLayer(APP.tempPickerMarker);
         const pinIcon = L.divIcon({
           className: 'mkw',
@@ -736,11 +826,8 @@ window.addEventListener('DOMContentLoaded', () => {
         APP.tempPickerMarker = L.marker([lat, lng], {icon: pinIcon}).addTo(map);
         map.flyTo([lat, lng], 13, { duration: 1.2 });
 
-        if (isInsidePicker) {
-          document.getElementById('pickerText').innerText = `📍 ${coordStr}`;
-        } else {
-          alert(`🎯 已精确定位到您当前位置：${coordStr}`);
-        }
+        if (isInsidePicker) document.getElementById('pickerText').innerText = `📍 ${coordStr}`;
+        else alert(`🎯 已精确定位到您当前位置：${coordStr}`);
       },
       (err) => {
         if (btn) btn.innerText = isInsidePicker ? '🎯 定位当前' : '🎯 定位';
@@ -750,7 +837,6 @@ window.addEventListener('DOMContentLoaded', () => {
     );
   };
 
-  // 📍 激活/退出地图坐标拾取模式
   APP.startCoordinatePicker = () => {
     APP.isPickingCoordinate = true;
     APP.checkCountryTooltipVisibility();
@@ -759,11 +845,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const dict = I18N[APP.lang];
     
     const existingVal = document.getElementById('afC').value.trim();
-    if (existingVal) {
-      document.getElementById('pickerText').innerText = `📍 ${existingVal}`;
-    } else {
-      document.getElementById('pickerText').innerText = dict.pickerTip;
-    }
+    if (existingVal) document.getElementById('pickerText').innerText = `📍 ${existingVal}`;
+    else document.getElementById('pickerText').innerText = dict.pickerTip;
 
     document.getElementById('btnConfirmPick').innerText = dict.pickerConfirm;
     document.getElementById('btnCancelPick').innerText = dict.pickerCancel;
@@ -887,11 +970,8 @@ window.addEventListener('DOMContentLoaded', () => {
           const { outcome } = await deferredPrompt.userChoice;
           if (outcome === 'accepted') bar.style.display = 'none';
           deferredPrompt = null;
-        } else if (isIos) {
-          alert('🍎 iOS Installation:\nTap Share ⎋ in Safari, then scroll down and choose "Add to Home Screen".');
-        } else {
-          alert('💡 Desktop / Android:\nClick the Install icon on the right side of the address bar or browser menu!');
-        }
+        } else if (isIos) alert('🍎 iOS Installation:\nTap Share ⎋ in Safari, then scroll down and choose "Add to Home Screen".');
+        else alert('💡 Desktop / Android:\nClick the Install icon on the right side of the address bar or browser menu!');
       };
     }
   }
@@ -1478,14 +1558,19 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('bAdmin').onclick = () => {
     if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
     document.getElementById('adminModal').style.display = 'flex';
-    APP.switchTab('list');
+    APP.switchTab('dash');
   };
 
   APP.switchTab = (type) => {
+    document.getElementById('tabDashBtn').classList.toggle('on', type==='dash');
     document.getElementById('tab1Btn').classList.toggle('on', type==='form');
     document.getElementById('tab2Btn').classList.toggle('on', type==='list');
+
+    document.getElementById('dashTab').style.display = type==='dash' ? 'block' : 'none';
     document.getElementById('pointForm').style.display = type==='form' ? 'flex' : 'none';
     document.getElementById('auditList').style.display = type==='list' ? 'block' : 'none';
+
+    if(type === 'dash') APP.updateDashboardUI();
     if(type === 'list') APP.renderAuditList();
   };
 

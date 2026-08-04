@@ -59,10 +59,11 @@
   #pickerBar {
     position: fixed; top: calc(20px + var(--safe-top)); left: 50%; transform: translateX(-50%); z-index: 1100;
     background: var(--glass-bg); border: 1px solid var(--gold-bright); border-radius: 30px; padding: 8px 16px;
-    display: none; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(20px);
+    display: none; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(20px);
   }
   #pickerBar span { font-size: 12px; color: var(--gold-bright); }
   .picker-btn { background: var(--gold-bright); color: #000; border: none; padding: 4px 12px; border-radius: 14px; font-size: 11px; font-weight: bold; }
+  .picker-btn.secondary { background: rgba(212,175,106,0.25); color: var(--gold-bright); border: 1px solid var(--gold); }
   .picker-btn.cancel { background: rgba(255,255,255,0.1); color: var(--ink); border: 1px solid var(--glass-border); }
 
   .ctip {
@@ -292,6 +293,7 @@
 <!-- 📍 地图坐标拾取控制栏 -->
 <div id="pickerBar">
   <span id="pickerText">📍 点击地图选择坐标位置...</span>
+  <button class="picker-btn secondary" id="btnLocatePicker">🎯 定位当前</button>
   <button class="picker-btn" id="btnConfirmPick">确定选中</button>
   <button class="picker-btn cancel" id="btnCancelPick">取消</button>
 </div>
@@ -474,7 +476,12 @@
         </div>
         <div style="display:flex;gap:8px">
           <input type="number" id="afY" class="input-style" placeholder="年份 (例: 1807)" required>
-          <input type="text" id="afC" class="input-style" placeholder="📍 点击地图拾取坐标" readonly style="color:var(--gold-bright);cursor:pointer;background:rgba(212,175,106,0.15);border-color:var(--gold)">
+          <!-- 📍 增强版坐标输入组合，支持手动编辑、地图选取与直接定位 -->
+          <div style="display:flex;gap:4px;flex:1">
+            <input type="text" id="afC" class="input-style" placeholder="📍 经纬度 (手动输入/点此选取)" style="color:var(--gold-bright);background:rgba(212,175,106,0.15);border-color:var(--gold)" required>
+            <button type="button" onclick="APP.startCoordinatePicker()" class="btn-gold" style="padding:0 8px;font-size:10px;white-space:nowrap">🗺️ 选点</button>
+            <button type="button" onclick="APP.getCurrentLocation()" class="btn-gold" style="padding:0 8px;font-size:10px;white-space:nowrap;background:linear-gradient(180deg,#2ecc71,#27ae60);color:#fff">🎯 定位</button>
+          </div>
         </div>
         <textarea id="afD" class="input-style" placeholder="历史简介考证故事..." style="height:50px"></textarea>
 
@@ -679,11 +686,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const map = L.map('map', { worldCopyJump:true, minZoom:2, maxZoom:18, zoomControl:false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
   APP.map = map;
 
-  // 🌐 检查地图层级/拾取状态，自动开关国家提示气泡
   APP.checkCountryTooltipVisibility = () => {
     if (!APP.countries) return;
     const currentZoom = map.getZoom();
-    // 放大进入细节 (zoom > 5) 或 在拾取坐标时，关闭国家悬浮气泡，避免挡住城市和点位
     const shouldShow = currentZoom <= 5 && !APP.isPickingCoordinate;
     
     APP.countries.eachLayer(layer => {
@@ -702,14 +707,64 @@ window.addEventListener('DOMContentLoaded', () => {
 
   map.on('zoomend', APP.checkCountryTooltipVisibility);
 
-  // 📍 激活/退出地图坐标拾取交互模式
+  // 🎯 获取自己当前 GPS 定位
+  APP.getCurrentLocation = (isInsidePicker = false) => {
+    if (!navigator.geolocation) {
+      return alert('您的浏览器不支持地理定位功能！');
+    }
+    const btn = event ? event.target : null;
+    if (btn) btn.innerText = '⌛ 定位中...';
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const coordStr = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        
+        document.getElementById('afC').value = coordStr;
+        APP.pickedLatLng = { lat, lng };
+
+        if (btn) btn.innerText = isInsidePicker ? '🎯 定位当前' : '🎯 定位';
+
+        // 放置临时点并把地图移动到当前位置
+        if (APP.tempPickerMarker) map.removeLayer(APP.tempPickerMarker);
+        const pinIcon = L.divIcon({
+          className: 'mkw',
+          html: `<div class="mk"><div class="cx" style="filter:drop-shadow(0 0 10px #2ecc71);"><i class="v" style="background:#2ecc71;"></i><i class="h" style="background:#2ecc71;"></i></div></div>`,
+          iconSize: [44,44], iconAnchor: [22,22]
+        });
+        APP.tempPickerMarker = L.marker([lat, lng], {icon: pinIcon}).addTo(map);
+        map.flyTo([lat, lng], 13, { duration: 1.2 });
+
+        if (isInsidePicker) {
+          document.getElementById('pickerText').innerText = `📍 ${coordStr}`;
+        } else {
+          alert(`🎯 已精确定位到您当前位置：${coordStr}`);
+        }
+      },
+      (err) => {
+        if (btn) btn.innerText = isInsidePicker ? '🎯 定位当前' : '🎯 定位';
+        alert('获取定位失败，请确保已开启设备GPS与浏览器位置权限。');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  // 📍 激活/退出地图坐标拾取模式
   APP.startCoordinatePicker = () => {
     APP.isPickingCoordinate = true;
-    APP.checkCountryTooltipVisibility(); // 立即隐藏国家大提示框
+    APP.checkCountryTooltipVisibility();
     document.getElementById('adminModal').style.display = 'none';
     const pickerBar = document.getElementById('pickerBar');
     const dict = I18N[APP.lang];
-    document.getElementById('pickerText').innerText = dict.pickerTip;
+    
+    const existingVal = document.getElementById('afC').value.trim();
+    if (existingVal) {
+      document.getElementById('pickerText').innerText = `📍 ${existingVal}`;
+    } else {
+      document.getElementById('pickerText').innerText = dict.pickerTip;
+    }
+
     document.getElementById('btnConfirmPick').innerText = dict.pickerConfirm;
     document.getElementById('btnCancelPick').innerText = dict.pickerCancel;
     pickerBar.style.display = 'flex';
@@ -732,9 +787,9 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('adminModal').style.display = 'flex';
   };
 
-  document.getElementById('afC').onclick = () => APP.startCoordinatePicker();
   document.getElementById('btnConfirmPick').onclick = () => APP.stopCoordinatePicker(true);
   document.getElementById('btnCancelPick').onclick = () => APP.stopCoordinatePicker(false);
+  document.getElementById('btnLocatePicker').onclick = () => APP.getCurrentLocation(true);
 
   map.on('click', (e) => {
     if (APP.isPickingCoordinate) {
@@ -901,7 +956,6 @@ window.addEventListener('DOMContentLoaded', () => {
           const en = (f.properties && f.properties.name) || '';
           const [cn, brief] = CB[en] || DEF(en || '未知地区');
           
-          // 仅在首页宏观视野时才绑定Tooltip
           if (map.getZoom() <= 5) {
             ly.bindTooltip(
               '<b>' + (cn ? cn + ' · ' : '') + en + '</b><p>' + brief + '</p>',
@@ -1447,7 +1501,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('pointForm').onsubmit = async (e) => {
     e.preventDefault();
-    if(!APP.pickedLatLng && !document.getElementById('afC').value) return alert('请先点击地图拾取坐标！');
+    const coordVal = document.getElementById('afC').value.trim();
+    if(!coordVal || !coordVal.includes(',')) return alert('请输入或选择有效的经纬度坐标 (例: 30.2741, 120.1551)！');
 
     const editId = document.getElementById('afId').value;
     const fileImg = document.getElementById('fileImg').files[0];
@@ -1463,7 +1518,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let docData = fileDoc ? await readFileAsDataURL(fileDoc) : '';
 
     const existingPoint = editId ? APP.points.find(x => x.id === editId) : null;
-    const [latStr, lngStr] = document.getElementById('afC').value.split(',');
+    const [latStr, lngStr] = coordVal.split(',');
 
     const targetPoint = {
       id: editId || ('p_' + Date.now()),

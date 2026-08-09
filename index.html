@@ -295,7 +295,7 @@
 
 <div id="map"></div>
 <div class="flashlight-overlay" id="flashlight"></div>
-<div id="cLoad">✦ 正在载入全球国界与宣教数据...</div>
+<div id="cLoad">✦ 正在同步云端宣教点位数据...</div>
 
 <!-- 📍 地图坐标拾取交互控制栏 -->
 <div id="pickerBar">
@@ -337,7 +337,6 @@
   <button class="tb desktop-only" id="bT">✦ <span id="uiNavTimeline">时空轴</span></button>
   <button class="tb desktop-only" id="bAuth">👤 <span id="uiNavAuth">登录</span></button>
   <button class="tb desktop-only" id="bSubmit" style="display:none">➕ <span id="uiNavSubmit">提交点位</span></button>
-  <!-- ⚙ “管理与监控中心”只有超级管理员登录后可见 -->
   <button class="tb desktop-only" id="bAdmin" style="display:none">⚙ <span id="uiNavAdmin">管理与监控中心</span></button>
 </div>
 
@@ -372,7 +371,6 @@
     <div class="m-btn" onclick="APP.triggerMobile('bT')">⏳ <span id="uiMNavTimeline">历史时空轴</span></div>
     <div class="m-btn" onclick="APP.triggerMobile('bAuth')" id="mBtnAuth">👤 <span id="uiMNavAuth">会员登录</span></div>
     <div class="m-btn" onclick="APP.triggerMobile('bSubmit')" id="mBtnSubmit" style="display:none">➕ <span id="uiMNavSubmit">提交点位</span></div>
-    <!-- ⚙ “管理与监控中心”只有超级管理员登录后可见 -->
     <div class="m-btn" onclick="APP.triggerMobile('bAdmin')" id="mBtnAdmin" style="display:none;grid-column: span 2">⚙ <span id="uiMNavAdmin">管理与监控中心</span></div>
   </div>
 
@@ -465,7 +463,7 @@
   </div>
 </div>
 
-<!-- ⚙ 后台管理中心 modal（含超级管理员专用数据流量与性能面板） -->
+<!-- ⚙ 后台管理中心 modal -->
 <div id="adminModal" class="modal">
   <div class="modal-box">
     <div class="modal-hd">
@@ -474,13 +472,11 @@
     </div>
     <div class="modal-bd">
       <div style="display:flex;gap:8px;margin-bottom:12px;border-bottom:1px solid var(--glass-border);padding-bottom:8px">
-        <!-- ⚙ 只有超级管理员能看到并切换到“流量监控”标签页 -->
         <button class="tb on" id="tabDashBtn" onclick="APP.switchTab('dash')" style="display:none">📊 流量与性能监控 Dashboard</button>
         <button class="tb" id="tab1Btn" onclick="APP.switchTab('form')">➕ 提交/修改坐标点位</button>
         <button class="tb" id="tab2Btn" onclick="APP.switchTab('list')">⚙ 坐标数据审核后台</button>
       </div>
 
-      <!-- 📊 流量与系统性能监控 Dashboard 页签 (仅超级管理员可见) -->
       <div id="dashTab" style="display:none">
         <div class="dash-grid">
           <div class="dash-card">
@@ -554,7 +550,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-gold" style="margin-top:8px">保存点位数据</button>
+        <button type="submit" class="btn-gold" style="margin-top:8px">保存点位数据并同步云端</button>
       </form>
 
       <div id="auditList" style="display:none">
@@ -569,27 +565,31 @@
 
 <script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- 引入最新稳定版 Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.8/dist/umd/supabase.min.js"></script>
 
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker 注册成功:', reg.scope))
-      .catch(err => console.log('Service Worker 注册失败:', err));
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
   });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   const SUPER_ADMIN_EMAIL = '440032005@qq.com'; 
   
-  // 🌐 Supabase 云端 API 配置
+  // 🌐 Supabase 云端 API 配置 (已适配全新 Publishable Key)
   const SUPABASE_URL = 'https://zjtofadvudkfijlpptmb.supabase.co'; 
-  const SUPABASE_KEY = 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'; // 👈 替换为你在 Supabase 后台复制的 anon public 密钥
-  
-  // ✅ 修改后的代码（强制开启云端模式）：
-const isCloudMode = true;
-  const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  const SUPABASE_KEY = 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'; 
+
+  let supabase = null;
+  try {
+    if (window.supabase && window.supabase.createClient) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+  } catch (e) {
+    console.error("Supabase Client 初始化失败:", e);
+  }
 
   // 📊 实时数据流量与网络性能统计
   const METRICS = {
@@ -606,7 +606,6 @@ const isCloudMode = true;
     }
   };
 
-  // 拦截/监听 Fetch 数据请求与流量
   const origFetch = window.fetch;
   window.fetch = async (...args) => {
     const startTime = performance.now();
@@ -641,7 +640,7 @@ const isCloudMode = true;
       drawerDetailTitle: "详情", pioneerLabel: "✦ 先驱人物：", navRouteBtn: "🧭 一键导航路线", navAmapBtn: "🗺️ 高德地图直达",
       drawerEdit: "✏️ 编辑", drawerDelete: "🗑️ 删除", authModalTitle: "会员登录 / 注册", rememberMe: "记住账号密码（下次自动填充）",
       btnLogin: "登录", btnRegister: "注册会员", dataCenterTitle: "管理与数据监控中心", tabSubmit: "提交/修改坐标点位", tabAudit: "坐标数据审核后台",
-      loadingCountries: "✦ 正在载入全球国界与宣教数据...", countriesLoaded: "✦ 全球国界与宣教数据已载入",
+      loadingCountries: "✦ 正在同步云端宣教点位数据...", countriesLoaded: "✦ 全球宣教点位与地图数据载入完毕",
       pickerTip: "📍 请在地图上点击选择点位位置...", pickerConfirm: "确定选中", pickerCancel: "取消"
     },
     en: {
@@ -655,7 +654,7 @@ const isCloudMode = true;
       drawerDetailTitle: "Historical Site Detail", pioneerLabel: "✦ Pioneer Missionary: ", navRouteBtn: "🧭 Turn-by-Turn Navigation", navAmapBtn: "🗺️ Open Web Maps Direct",
       drawerEdit: "✏️ Edit", drawerDelete: "🗑️ Delete", authModalTitle: "Member Login / Register", rememberMe: "Remember my credentials",
       btnLogin: "Login", btnRegister: "Register", dataCenterTitle: "Admin & Traffic Monitor", tabSubmit: "Submit / Edit Coordinates", tabAudit: "Audit Portal",
-      loadingCountries: "✦ Loading global boundaries & mission records...", countriesLoaded: "✦ Global missionary & boundary data loaded",
+      loadingCountries: "✦ Syncing missionary data from cloud...", countriesLoaded: "✦ Global missionary records loaded",
       pickerTip: "📍 Click on the map to select coordinates...", pickerConfirm: "Confirm", pickerCancel: "Cancel"
     }
   };
@@ -674,30 +673,7 @@ const isCloudMode = true;
     lang: 'zh', user: null, isSuperAdmin: false, currentMapMode: 'darkGold', tileLayer: null,
     markers: {}, visibleState: {}, routeAnimFrame: null, enableRouteAnim: true, activeRouteId: 'r4', currentPoint: null,
     tempPickerMarker: null, isPickingCoordinate: false, pickedLatLng: null,
-    points: [
-      {id:'xian_daqin', n:'西安 · 大秦寺塔', n_en:'Xi\'an · Daqin Pagoda', w:'阿罗本', w_en:'Alopen', y:635, la:34.05, ln:108.88, d:'635年阿罗本抵长安，唐太宗敕建大秦寺，开启福音首次系统入华。', d_en:'Alopen arrived in Chang\'an in 635 AD. Emperor Taizong issued an edict to construct the Daqin Monastery.', status:'approved', vr360_url:'https://pannellum.org/images/alma.jpg'},
-      {id:'turpan', n:'吐鲁番 · 高昌古城教堂遗址', n_en:'Turpan · Gaochang Church Ruins', w:'西域景教僧侣', w_en:'Nestorian Monks', y:700, la:42.85, ln:89.52, d:'古代丝绸之路景教重镇，出土大量叙利亚文圣经残页与壁画。', d_en:'An ancient Silk Road Nestorian hub.', status:'approved'},
-      {id:'zhaoqing', n:'肇庆 · 娗香阁', n_en:'Zhaoqing · Xianxiang Pavilion', w:'利玛窦', w_en:'Matteo Ricci', y:1583, la:23.05, ln:112.47, d:'1583年利玛窦由澳门入境肇庆，建立中国大陆第一座天主教堂。', d_en:'In 1583, Matteo Ricci entered Zhaoqing.', status:'approved'},
-      {id:'macau', n:'澳门 · 大三巴', n_en:'Macao · Ruins of St. Paul\'s', w:'范礼安 / 罗明坚', w_en:'Alessandro Valignano / Michele Ruggieri', y:1594, la:22.197, ln:113.54, d:'远东第一所西式大学，明清时期宣教士进入大陆的前哨基地。', d_en:'The first Western-style university in the Far East.', status:'approved'},
-      {id:'bj', n:'北京 · 利玛窦墓', n_en:'Beijing · Tomb of Matteo Ricci', w:'利玛窦', w_en:'Matteo Ricci', y:1601, la:39.9, ln:116.4, d:'1601年利玛窦入京觐见万历帝，以学术科学架起交流桥梁。', d_en:'In 1601, Matteo Ricci arrived in Beijing.', status:'approved'},
-      {id:'shanghai_xujiahui', n:'上海 · 徐家汇圣母院', n_en:'Shanghai · Xujiahui Convent', w:'徐光启 / 利玛窦', w_en:'Xu Guangqi / Matteo Ricci', y:1608, la:31.19, ln:121.43, d:'明代内阁重臣徐光启受洗后建立的宣教与西学东渐中心。', d_en:'Established following the baptism of Xu Guangqi.', status:'approved'},
-      {id:'gz', n:'广州 · 十三行', n_en:'Guangzhou · Thirteen Factories', w:'马礼逊 (Robert Morrison)', w_en:'Robert Morrison', y:1807, la:23.13, ln:113.26, d:'1807年马礼逊抵穗隐居译经，按立第一位华人牧师。', d_en:'Arriving in 1807, Robert Morrison translated the Chinese Bible here.', status:'approved'},
-      {id:'mlc', n:'马六甲 · 英华书院', n_en:'Malacca · Anglo-Chinese College', w:'米怜 (William Milne)', w_en:'William Milne', y:1818, la:2.2, ln:102.25, d:'1818年创办英华书院，集教育、印刷与宣教于一体。', d_en:'Founded in 1818 to combine education and evangelism.', status:'approved'},
-      {id:'sh', n:'上海 · 墨海书馆', n_en:'Shanghai · London Missionary Society Press', w:'麦都思 (Walter Henry Medhurst)', w_en:'Walter Henry Medhurst', y:1843, la:31.23, ln:121.47, d:'1843年设墨海书馆，上海逐步成为宣教与出版枢纽。', d_en:'Established in 1843, turning Shanghai into a printing center.', status:'approved'},
-      {id:'fuzhou', n:'福州 · 仓山保福堂', n_en:'Fuzhou · Cangshan Church', w:'麦利和', w_en:'Robert Samuel Maclay', y:1847, la:26.04, ln:119.31, d:'美以美会在华宣教大本营，创办学校并推动福建各地事工。', d_en:'Headquarters of the Methodist Episcopal Mission.', status:'approved'},
-      {id:'ningbo', n:'宁波 · 桥头街礼拜堂', n_en:'Ningbo · Qiaotou Street Church', w:'戴德生 (Hudson Taylor)', w_en:'Hudson Taylor', y:1854, la:29.87, ln:121.54, d:'1854年戴德生抵宁波换穿华人服饰布道，为创内地会奠基。', d_en:'In 1854, Hudson Taylor adopted Chinese attire.', status:'approved'},
-      {id:'hz', n:'杭州 · 天水堂', n_en:'Hangzhou · Tianshui Church', w:'戴德生', w_en:'Hudson Taylor', y:1866, la:30.27, ln:120.16, d:'1866年戴德生率内地会团队抵杭，深入内陆拓荒。', d_en:'In 1866, Taylor led the Lammermuir Party to Hangzhou.', status:'approved'},
-      {id:'wenzhou', n:'温州 · 城西堂', n_en:'Wenzhou · Chengxi Church', w:'曹雅直 (George Stott)', w_en:'George Stott', y:1867, la:28.01, ln:120.65, d:'独脚宣教士曹雅直1867年踏入温州创办学校，开启温州教会复兴。', d_en:'George Stott arrived in Wenzhou in 1867.', status:'approved'},
-      {id:'taiyuan', n:'太原 · 浸信会宣教站', n_en:'Taiyuan · Baptist Mission Station', w:'李提摩太 (Timothy Richard)', w_en:'Timothy Richard', y:1877, la:37.87, ln:112.55, d:'1877年华北特大旱荒，李提摩太深入山西赈灾布道办学。', d_en:'During the 1877 famine, Timothy Richard provided relief.', status:'approved'},
-      {id:'lushan_guling', n:'九江 · 庐山牯岭教会区', n_en:'Jiujiang · Lushan Guling Estate', w:'李德立 (Edward Selby Little)', w_en:'Edward Selby Little', y:1895, la:29.57, ln:115.98, d:'1895年李德立开辟牯岭避暑地，后各差会在此建立教堂与牯岭美国学堂。', d_en:'In 1895, Little pioneered Guling estate.', status:'approved'},
-      {id:'jigongshan', n:'信阳 · 鸡公山信义会旧址', n_en:'Xinyang · Mount Jigong Lutheran Site', w:'李立生 (Daniel Nelson)', w_en:'Daniel Nelson', y:1902, la:31.81, ln:114.10, d:'1902年美籍宣教士李立生开发鸡公山避暑地。1920年多国信义会在此联合成立“中华信义会”。', d_en:'Developed in 1902 by Daniel Nelson.', status:'approved'},
-      {id:'shimankan', n:'毕节 · 石门坎奇迹遗址', n_en:'Bijie · Shimankan Miracle Site', w:'伯格理 (Samuel Pollard)', w_en:'Samuel Pollard', y:1904, la:26.98, ln:104.22, d:'1904年伯格理深入贵州石门坎，创制老苗文、建校兴医，创造了震惊中外的石门坎奇迹。', d_en:'In 1904, Samuel Pollard created a written Miao script.', status:'approved'},
-      {id:'fuzhou_guling', n:'福州 · 鼓岭执事之家', n_en:'Fuzhou · Guling Deacon House', w:'倪柝声', w_en:'Watchman Nee', y:1907, la:26.10, ln:119.39, d:'鼓岭原为美英宣教士避暑地。1948–1949年，倪柝声在此举办两次影响深远的“鼓岭训练”。', d_en:'Watchman Nee hosted trainings here.', status:'approved'},
-      {id:'moganshan', n:'德清 · 莫干山疗养古堡', n_en:'Dengqing · Moganshan Sanatorium', w:'梅滕更 (Duncan Main)', w_en:'Duncan Main', y:1910, la:30.60, ln:119.86, d:'1896年宣教士占山避暑。1910年杭州广济医院院长梅滕更在此建造医疗疗养古堡。', d_en:'In 1910, Dr. Duncan Main built a sanatorium castle.', status:'approved'},
-      {id:'dali', n:'大理 · 崇圣寺旁宣教点', n_en:'Dali · Lisu Pioneer Station', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1910, la:25.70, ln:100.15, d:'富能仁深入滇西北山区创制傈僳文字，促成滇西北少数民族大规模归主。', d_en:'Fraser invented the written Lisu script.', status:'approved'},
-      {id:'baoshan_qinghua', n:'保山 · 清华教堂（富能仁墓）', n_en:'Baoshan · Qinghua Church (Fraser\'s Tomb)', w:'富能仁 (James O. Fraser)', w_en:'James O. Fraser', y:1938, la:25.1012, ln:99.1585, d:'傈僳族使徒富能仁牧师1938年于保山安息。其遗骨安葬于保山市隆阳区清华教堂院内。', d_en:'James O. Fraser entered rest in 1938.', status:'approved'},
-      {id:'wuding_sapushan', n:'武定 · 洒普山', n_en:'Wuding · Sapushan Hill', w:'王志明 (Wang Zhiming)', w_en:'Pastor Wang Zhiming', y:1944, la:25.53, ln:102.40, d:'滇北苗族教会领袖。王志明牧师一生服事少数民族同胞，其雕像1998年立于英国伦敦西敏寺大教堂。', d_en:'Leader of Miao churches in Northern Yunnan.', status:'approved'}
-    ],
+    points: [], // 所有点位统一从 Supabase 云端异步载入，实现 100% 跨设备同步！
     routes: [
       { id: 'r1', name: '马礼逊译经与东亚传播线', name_en: 'Morrison Translation & East Asia Route', pts: ['gz', 'mlc', 'sh'] },
       { id: 'r2', name: '利玛窦西学东渐与京畿线', name_en: 'Matteo Ricci Science & Capital Route', pts: ['macau', 'zhaoqing', 'shanghai_xujiahui', 'bj'] },
@@ -707,25 +683,39 @@ const isCloudMode = true;
     ]
   };
 
-  // ☁️ 云端数据同步拉取
+  // ☁️ 核心：100% 从 Supabase 云端拉取全量数据
   APP.loadPointsFromCloud = async () => {
-    if (!isCloudMode) {
-      console.warn("⚠️ 处于本地暂存模式，请填写有效的 SUPABASE_KEY 以连接云端。");
+    const badge = document.getElementById('cLoad');
+    if (badge) {
+      badge.textContent = "✦ 正在连线 Supabase 云端数据库...";
+      badge.classList.remove('bye');
+    }
+
+    if (!supabase) {
+      alert("❌ 无法连接到 Supabase SDK，请检查网络设置或连线状态！");
       return;
     }
+
     try {
       const { data, error } = await supabase.from('missionary_points').select('*');
       if (error) {
-        console.error('❌ 云端数据读取失败:', error);
+        console.error('❌ Supabase 数据库拉取异常:', error);
+        alert(`❌ 无法从云端读取数据！\n错误信息: ${error.message}\n请确保在 Supabase 运行了 "alter table missionary_points disable row level security;"`);
         return;
       }
-      if (data && data.length > 0) {
+
+      if (data) {
         APP.points = data;
         APP.renderAll();
-        console.log('✅ 成功从云端读取最新点位数据，总计:', data.length);
+        console.log('✅ 成功从云端数据库拉取到点位，数量:', data.length);
+        if (badge) {
+          badge.textContent = `✅ 云端同步成功，共 ${data.length} 个宣教点位`;
+          badge.classList.add('ok');
+          setTimeout(() => badge.classList.add('bye'), 4000);
+        }
       }
     } catch (err) {
-      console.error('❌ 网络同步异常:', err);
+      console.error('❌ 云端同步捕获到异常:', err);
     }
   };
 
@@ -1006,100 +996,9 @@ const isCloudMode = true;
     }
   }
 
-  (function initCountries(){
-    const map = APP.map;
-    if(!map) return;
-    const badge = document.getElementById('cLoad');
-
-    const CB = {
-      'China':['中国','635年景教入长安；1807年马礼逊来华；戴德生创内地会。'],
-      'India':['印度','相传多马1世纪抵马拉巴海岸；近代威廉·克理译经办学。'],
-      'Japan':['日本','1549年沙勿略登陆鹿儿岛；禁教时代隐匿信徒坚守250年。'],
-      'Korea':['韩国','1884年新教传入；1907年平壤大复兴，以祷告之国著称。'],
-      'United Kingdom':['英国','近代宣教运动发源地，差出马礼逊、戴德生等先驱。'],
-      'United States of America':['美国','19世纪学生志愿运动兴起，差会网络遍及全球。'],
-      'Germany':['德国','敬虔主义孕育莫拉维亚弟兄会，1732年起差派海外。'],
-      'France':['法国','巴黎外方传教会深耕东南亚；修会在华办学兴医。'],
-      'Italy':['意大利','利玛窦、汤若望等耶稣会士由此启程来华。'],
-      'Portugal':['葡萄牙','1557年定居澳门，成为天主教入华门户。'],
-      'Spain':['西班牙','沙勿略由此启程赴东方；修会进入菲律宾与拉美。'],
-      'Netherlands':['荷兰','改革宗1627年随东印度公司进入台湾与印尼。'],
-      'Israel':['以色列','福音发源地；耶路撒冷——教会诞生之城。'],
-      'Egypt':['埃及','马可开创亚历山大教会；沙漠修道运动发源地。'],
-      'Ethiopia':['埃塞俄比亚','徒8章埃提阿伯太监受洗；4世纪奉基督教为国教。'],
-      'Turkey':['土耳其','保罗故乡大数；安提阿首称基督徒；七教会所在。'],
-      'Russia':['俄罗斯','988年罗斯受洗；东正教宣教士19世纪抵北京。'],
-      'Brazil':['巴西','天主教根基深厚，近代福音派增长全球最快之一。'],
-      'Philippines':['菲律宾','1521年十字架抵宿务，亚洲最大天主教国家。'],
-      'Vietnam':['越南','17世纪耶稣会士创制国语字；信徒历逼迫持守见证。'],
-      'Thailand':['泰国','1828年新教抵曼谷，医疗与教育宣教深耕。'],
-      'Myanmar':['缅甸','1813年耶德逊译缅文圣经，克伦族山区大复兴。'],
-      'Indonesia':['印度尼西亚','19世纪荷兰差会拓荒爪哇与巴布亚群岛。'],
-      'Australia':['澳大利亚','1788年建立圣公会，后为太平洋差传基地。'],
-      'Canada':['加拿大','17世纪耶稣会士赴新法兰西，于原住民中布道。']
-    };
-    APP.countryDataDict = CB;
-    const DEF = n => ['', n+'：该国宣教史料持续整理中。'];
-
-    const baseStyle = () => ({ color:'rgba(212,175,106,.28)', weight:.6, fillColor:'#d4af6a', fillOpacity:.04 });
-    const hovStyle = () => ({ color:'#f5d78e', weight:1.5, fillColor:'#d4af6a', fillOpacity:.16 });
-
-    const URLS = [
-      'https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json',
-      'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'
-    ];
-    (async ()=>{
-      let gj = null;
-      for(const u of URLS){
-        try{ const r = await fetch(u); if(r.ok){ gj = await r.json(); break; } }catch(e){}
-      }
-      if(!gj){
-        badge.textContent = '✦ 国界数据加载失败';
-        badge.classList.add('ok');
-        setTimeout(()=>badge.classList.add('bye'), 5000);
-        return;
-      }
-
-      const layer = L.geoJSON(gj, {
-        style: baseStyle,
-        onEachFeature:(f, ly)=>{
-          const en = (f.properties && f.properties.name) || '';
-          const [cn, brief] = CB[en] || DEF(en || '未知地区');
-          
-          if (map.getZoom() <= 5) {
-            ly.bindTooltip(
-              '<b>' + (cn ? cn + ' · ' : '') + en + '</b><p>' + brief + '</p>',
-              {sticky:true, className:'ctip', direction:'top', opacity:1}
-            );
-          }
-
-          ly.on('mouseover', e=>{
-            const t = e.propagatedFrom || e.target;
-            t.setStyle(hovStyle());
-            if(t.bringToFront) t.bringToFront();
-          });
-          ly.on('mouseout', e=>{
-            const t = e.propagatedFrom || e.target;
-            t.setStyle(baseStyle());
-          });
-          ly.on('click', e=>{
-            const t = e.propagatedFrom || e.target;
-            t.setStyle(hovStyle());
-            setTimeout(()=> t.setStyle(baseStyle()), 1600);
-          });
-        }
-      }).addTo(map);
-
-      APP.countries = layer;
-      badge.textContent = I18N[APP.lang].countriesLoaded;
-      badge.classList.add('ok');
-      setTimeout(()=>badge.classList.add('bye'), 3500);
-    })();
-  })();
-
   const mkHtml = p => {
     const title = (APP.lang === 'en' && p.n_en) ? p.n_en : p.n;
-    return `<div class="mk" id="mk_${p.id}"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${title.split('·')[0].trim()}</div></div>`;
+    return `<div class="mk" id="mk_${p.id}"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${title ? title.split('·')[0].trim() : ''}</div></div>`;
   };
 
   APP.renderAll = () => {
@@ -1110,7 +1009,7 @@ const isCloudMode = true;
     const listEl = document.getElementById('ranking-list');
     listEl.innerHTML = '';
 
-    const activePoints = APP.points.filter(p => p.status === 'approved');
+    const activePoints = APP.points.filter(p => p.status === 'approved' || !p.status);
 
     activePoints.forEach((p, idx) => {
       const pName = (APP.lang === 'en' && p.n_en) ? p.n_en : p.n;
@@ -1291,7 +1190,7 @@ const isCloudMode = true;
     if(!r) return;
 
     const latlngs = r.pts.map(pid => {
-      const p = APP.points.find(pt => pt.id === pid && pt.status === 'approved');
+      const p = APP.points.find(pt => pt.id === pid);
       return p ? [p.la, p.ln] : null;
     }).filter(Boolean);
 
@@ -1448,7 +1347,7 @@ const isCloudMode = true;
     let activeCount = 0;
     let newlyBornPt = null;
 
-    APP.points.filter(p => p.status==='approved').forEach(p => {
+    APP.points.forEach(p => {
       const mk = APP.markers[p.id];
       if(!mk) return;
       const el = mk.getElement() ? mk.getElement().querySelector('.mk') : null;
@@ -1535,7 +1434,7 @@ const isCloudMode = true;
 
     if(!email || !password) return alert('Please enter email & password!');
 
-    if(isCloudMode) {
+    if(supabase) {
       const { data, error } = type === 'login' 
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password });
@@ -1565,7 +1464,6 @@ const isCloudMode = true;
     document.getElementById('bSubmit').style.display = 'inline-block';
     document.getElementById('mBtnSubmit').style.display = 'flex';
     
-    // 🔐 只有超级管理员才显示后台管理与监控入口
     if(APP.isSuperAdmin) {
       document.getElementById('bAdmin').style.display = 'inline-block';
       document.getElementById('mBtnAdmin').style.display = 'flex';
@@ -1595,7 +1493,6 @@ const isCloudMode = true;
   };
 
   APP.switchTab = (type) => {
-    // 🔐 限制：非超级管理员强行切到 dash 视作无效
     if(type === 'dash' && !APP.isSuperAdmin) type = 'form';
 
     document.getElementById('tabDashBtn').classList.toggle('on', type==='dash');
@@ -1610,11 +1507,11 @@ const isCloudMode = true;
     if(type === 'list') APP.renderAuditList();
   };
 
-  // ☁️ 文件直接上传至 Supabase Storage 对象存储桶逻辑
+  // ☁️ 云端文件直接上传函数
   async function uploadToSupabaseStorage(file, folderName) {
     if (!file) return '';
-    if (!isCloudMode) {
-      alert('未配置云端 API，无法上传文件至存储桶！');
+    if (!supabase) {
+      alert('未检测到 Supabase，无法上传文件！');
       return '';
     }
 
@@ -1624,14 +1521,11 @@ const isCloudMode = true;
     try {
       const { data, error } = await supabase.storage
         .from('media')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(fileName, file, { cacheControl: '3600', upsert: false });
 
       if (error) {
         console.error('存储桶上传失败:', error);
-        alert(`❌ 文件 ${file.name} 上传失败: ${error.message}`);
+        alert(`❌ 文件 ${file.name} 上传失败: ${error.message}\n请确保在 Supabase 创建了名为 "media" 的公开存储桶！`);
         return '';
       }
 
@@ -1639,7 +1533,6 @@ const isCloudMode = true;
         .from('media')
         .getPublicUrl(fileName);
 
-      console.log('✅ 文件上传成功，公开访问 URL:', urlData.publicUrl);
       return urlData.publicUrl;
     } catch (err) {
       console.error('存储过程发生异常:', err);
@@ -1647,7 +1540,7 @@ const isCloudMode = true;
     }
   }
 
-  // 📝 点位表单保存事件
+  // 📝 核心：点位提交保存与全网同步逻辑
   document.getElementById('pointForm').onsubmit = async (e) => {
     e.preventDefault();
     const coordVal = document.getElementById('afC').value.trim();
@@ -1655,7 +1548,7 @@ const isCloudMode = true;
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerText;
-    submitBtn.innerText = '⌛ 正在同步视频/文件至云存储中...';
+    submitBtn.innerText = '⌛ 正在保存并上传媒体文件至云端...';
     submitBtn.disabled = true;
 
     try {
@@ -1668,7 +1561,6 @@ const isCloudMode = true;
 
       const existingPoint = editId ? APP.points.find(x => x.id === editId) : null;
 
-      // 🚀 直传 Supabase Storage 获取文件在线 URL
       let imgUrl = fileImg ? await uploadToSupabaseStorage(fileImg, 'images') : (existingPoint ? existingPoint.img : '');
       let audioUrl = fileAudio ? await uploadToSupabaseStorage(fileAudio, 'audios') : (existingPoint ? existingPoint.audio_url : '');
       let videoUrl = fileVideo ? await uploadToSupabaseStorage(fileVideo, 'videos') : (existingPoint ? existingPoint.video_url : '');
@@ -1685,15 +1577,15 @@ const isCloudMode = true;
         la: parseFloat(latStr),
         ln: parseFloat(lngStr),
         d: document.getElementById('afD').value,
-        img: imgUrl,
-        audio_url: audioUrl,
-        video_url: videoUrl,
-        vr360_url: vrUrl,
-        doc_url: docUrl,
+        img: imgUrl || '',
+        audio_url: audioUrl || '',
+        video_url: videoUrl || '',
+        vr360_url: vrUrl || '',
+        doc_url: docUrl || '',
         status: 'approved'
       };
 
-      if (isCloudMode) {
+      if (supabase) {
         let error = null;
         if (editId) {
           const res = await supabase.from('missionary_points').update(targetPoint).eq('id', editId);
@@ -1704,24 +1596,19 @@ const isCloudMode = true;
         }
 
         if (error) {
-          alert(`❌ 保存点位失败: ${error.message}`);
+          console.error("Supabase 写入错误:", error);
+          alert(`❌ 保存失败！Supabase 提示：${error.message}\n错误代码: ${error.code}`);
           return;
         }
       }
 
-      if (editId) {
-        const idx = APP.points.findIndex(x => x.id === editId);
-        if (idx !== -1) APP.points[idx] = targetPoint;
-      } else {
-        APP.points.push(targetPoint);
-      }
-
-      alert('🎉 保存成功！多媒体文件已上传云端并全网同步！');
+      alert('🎉 成功保存并同步至云端！其他设备刷新即可看到！');
       document.getElementById('adminModal').style.display = 'none';
       document.getElementById('pointForm').reset();
       document.getElementById('afId').value = '';
       
-      APP.renderAll();
+      // 🚀 保存成功后重新拉取全量云端数据，确保画面100%同步
+      await APP.loadPointsFromCloud();
       if (editId) APP.openDrawer(targetPoint);
 
     } catch (err) {
@@ -1739,37 +1626,33 @@ const isCloudMode = true;
       <tr style="border-bottom:1px solid var(--glass-border)">
         <td style="padding:6px"><b>${p.n}</b></td>
         <td>${p.w}</td>
-        <td><span style="color:${p.status==='approved'?'#2ecc71':'var(--gold-bright)'}">${p.status==='approved'?'Online':'Pending'}</span></td>
+        <td><span style="color:#2ecc71">Online</span></td>
         <td>
-          ${p.status !== 'approved' ? `<button onclick="APP.approvePoint('${p.id}')" style="color:#2ecc71;background:none;border:none">Approve</button>` : ''}
           <button onclick="APP.deletePoint('${p.id}')" style="color:#e74c3c;background:none;border:none;margin-left:4px">Delete</button>
         </td>
       </tr>
     `).join('');
   };
 
-  APP.approvePoint = async (id) => {
-    if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
-    const p = APP.points.find(x => x.id === id);
-    if(p) p.status = 'approved';
-    if(isCloudMode) await supabase.from('missionary_points').update({ status: 'approved' }).eq('id', id);
-    APP.renderAll();
-    APP.renderAuditList();
-  };
-
   APP.deletePoint = async (id) => {
     if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
-    if(!confirm('Delete this record?')) return;
-    APP.points = APP.points.filter(x => x.id !== id);
-    if(isCloudMode) await supabase.from('missionary_points').delete().eq('id', id);
-    APP.renderAll();
+    if(!confirm('确定要在云端删除此点位记录吗？')) return;
+    
+    if(supabase) {
+      const { error } = await supabase.from('missionary_points').delete().eq('id', id);
+      if(error) alert('删除失败: ' + error.message);
+    }
+    
+    await APP.loadPointsFromCloud();
     APP.renderAuditList();
   };
 
   APP.setLanguage('zh');
   APP.updateTimeline(2026);
   APP.loadSavedAuth();
-  APP.loadPointsFromCloud(); // 🚀 启动时自动从云端加载最新点位
+  
+  // 🚀 启动时自动全量读取云端点位
+  APP.loadPointsFromCloud();
 });
 </script>
 </body>

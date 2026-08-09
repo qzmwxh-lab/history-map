@@ -585,9 +585,10 @@ window.addEventListener('DOMContentLoaded', () => {
   
   // 🌐 Supabase 云端 API 配置
   const SUPABASE_URL = 'https://zjtofadvudkfijlpptmb.supabase.co'; 
-  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 👈 替换为你在 Supabase 后台复制的 anon public 密钥
+  const SUPABASE_KEY = 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'; // 👈 替换为你在 Supabase 后台复制的 anon public 密钥
   
-  const isCloudMode = SUPABASE_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+  // ✅ 修改后的代码（强制开启云端模式）：
+const isCloudMode = true;
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
   // 📊 实时数据流量与网络性能统计

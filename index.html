@@ -582,10 +582,12 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener('DOMContentLoaded', () => {
   const SUPER_ADMIN_EMAIL = '440032005@qq.com'; 
-  // 🌐 已自动绑定你的 Supabase API 地址
+  
+  // 🌐 Supabase 云端数据库 API 配置参数
   const SUPABASE_URL = 'https://zjtofadvudkfijlpptmb.supabase.co'; 
-  const SUPABASE_KEY = '这里粘贴你的_anon_public_key'; // 👈 请替换为在 Project Settings -> API 中复制的 anon 密钥
-  const isCloudMode = SUPABASE_KEY !== '这里粘贴你的_anon_public_key';
+  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 👈 只需要将此处的 YOUR_SUPABASE_ANON_KEY 替换为你的 anon public 密钥即可！
+  
+  const isCloudMode = SUPABASE_KEY !== 'YOUR_SUPABASE_ANON_KEY';
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
   // 📊 实时数据流量与网络性能统计
@@ -704,22 +706,25 @@ window.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
-  // ☁️ 新增：从 Supabase 云端加载点位数据
+  // ☁️ 云端数据同步拉取
   APP.loadPointsFromCloud = async () => {
-    if (!isCloudMode) return;
+    if (!isCloudMode) {
+      console.warn("⚠️ 处于本地暂存模式，请填写有效的 SUPABASE_KEY 以连接云端。");
+      return;
+    }
     try {
       const { data, error } = await supabase.from('missionary_points').select('*');
       if (error) {
-        console.error('云端拉取数据错误:', error);
+        console.error('❌ 云端数据读取失败:', error);
         return;
       }
       if (data && data.length > 0) {
         APP.points = data;
         APP.renderAll();
-        console.log('✅ 成功同步云端点位:', data.length);
+        console.log('✅ 成功从云端读取最新点位数据，总计:', data.length);
       }
     } catch (err) {
-      console.error('云端网络连接异常:', err);
+      console.error('❌ 网络同步异常:', err);
     }
   };
 
@@ -1708,7 +1713,7 @@ window.addEventListener('DOMContentLoaded', () => {
   APP.setLanguage('zh');
   APP.updateTimeline(2026);
   APP.loadSavedAuth();
-  APP.loadPointsFromCloud(); // 🚀 启动时自动从云端加载最新数据
+  APP.loadPointsFromCloud(); // 🚀 启动时自动从云端加载最新点位
 });
 </script>
 </body>

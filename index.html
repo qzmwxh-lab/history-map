@@ -524,7 +524,7 @@
         <textarea id="afD" class="input-style" placeholder="历史简介考证故事..." style="height:50px"></textarea>
 
         <div style="border-top:1px dashed var(--glass-border);padding-top:8px;margin-top:4px">
-          <div style="color:var(--gold-bright);margin-bottom:6px">📁 本地多媒体文件直传（图片/MP3/MP4/VR/文档）</div>
+          <div style="color:var(--gold-bright);margin-bottom:6px">📁 云端存储媒体文件直传（图片/MP3/MP4/VR/文档）</div>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div class="file-uploader">
@@ -583,9 +583,9 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('DOMContentLoaded', () => {
   const SUPER_ADMIN_EMAIL = '440032005@qq.com'; 
   
-  // 🌐 Supabase 云端数据库 API 配置参数
+  // 🌐 Supabase 云端 API 配置
   const SUPABASE_URL = 'https://zjtofadvudkfijlpptmb.supabase.co'; 
-  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 👈 只需要将此处的 YOUR_SUPABASE_ANON_KEY 替换为你的 anon public 密钥即可！
+  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 👈 替换为你在 Supabase 后台复制的 anon public 密钥
   
   const isCloudMode = SUPABASE_KEY !== 'YOUR_SUPABASE_ANON_KEY';
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -1609,72 +1609,127 @@ window.addEventListener('DOMContentLoaded', () => {
     if(type === 'list') APP.renderAuditList();
   };
 
-  const readFileAsDataURL = (file) => {
-    return new Promise((resolve, reject) => {
-      if(!file) return resolve('');
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = (e) => reject(e);
-      reader.readAsDataURL(file);
-    });
-  };
+  // ☁️ 文件直接上传至 Supabase Storage 对象存储桶逻辑
+  async function uploadToSupabaseStorage(file, folderName) {
+    if (!file) return '';
+    if (!isCloudMode) {
+      alert('未配置云端 API，无法上传文件至存储桶！');
+      return '';
+    }
 
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('media')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('存储桶上传失败:', error);
+        alert(`❌ 文件 ${file.name} 上传失败: ${error.message}`);
+        return '';
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('media')
+        .getPublicUrl(fileName);
+
+      console.log('✅ 文件上传成功，公开访问 URL:', urlData.publicUrl);
+      return urlData.publicUrl;
+    } catch (err) {
+      console.error('存储过程发生异常:', err);
+      return '';
+    }
+  }
+
+  // 📝 点位表单保存事件
   document.getElementById('pointForm').onsubmit = async (e) => {
     e.preventDefault();
     const coordVal = document.getElementById('afC').value.trim();
-    if(!coordVal || !coordVal.includes(',')) return alert('请输入或选择有效的经纬度坐标 (例: 30.2741, 120.1551)！');
+    if(!coordVal || !coordVal.includes(',')) return alert('请输入或选择有效的经纬度坐标！');
 
-    const editId = document.getElementById('afId').value;
-    const fileImg = document.getElementById('fileImg').files[0];
-    const fileAudio = document.getElementById('fileAudio').files[0];
-    const fileVideo = document.getElementById('fileVideo').files[0];
-    const fileVR = document.getElementById('fileVR').files[0];
-    const fileDoc = document.getElementById('fileDoc').files[0];
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerText;
+    submitBtn.innerText = '⌛ 正在同步视频/文件至云存储中...';
+    submitBtn.disabled = true;
 
-    let imgData = fileImg ? await readFileAsDataURL(fileImg) : '';
-    let audioData = fileAudio ? await readFileAsDataURL(fileAudio) : '';
-    let videoData = fileVideo ? await readFileAsDataURL(fileVideo) : '';
-    let vrData = fileVR ? await readFileAsDataURL(fileVR) : '';
-    let docData = fileDoc ? await readFileAsDataURL(fileDoc) : '';
+    try {
+      const editId = document.getElementById('afId').value;
+      const fileImg = document.getElementById('fileImg').files[0];
+      const fileAudio = document.getElementById('fileAudio').files[0];
+      const fileVideo = document.getElementById('fileVideo').files[0];
+      const fileVR = document.getElementById('fileVR').files[0];
+      const fileDoc = document.getElementById('fileDoc').files[0];
 
-    const existingPoint = editId ? APP.points.find(x => x.id === editId) : null;
-    const [latStr, lngStr] = coordVal.split(',');
+      const existingPoint = editId ? APP.points.find(x => x.id === editId) : null;
 
-    const targetPoint = {
-      id: editId || ('p_' + Date.now()),
-      n: document.getElementById('afN').value,
-      w: document.getElementById('afW').value,
-      y: parseInt(document.getElementById('afY').value),
-      la: parseFloat(latStr),
-      ln: parseFloat(lngStr),
-      d: document.getElementById('afD').value,
-      img: imgData || (existingPoint ? existingPoint.img : ''),
-      audio_url: audioData || (existingPoint ? existingPoint.audio_url : ''),
-      video_url: videoData || (existingPoint ? existingPoint.video_url : ''),
-      vr360_url: vrData || (existingPoint ? existingPoint.vr360_url : ''),
-      doc_url: docData || (existingPoint ? existingPoint.doc_url : ''),
-      status: APP.isSuperAdmin ? 'approved' : 'pending'
-    };
+      // 🚀 直传 Supabase Storage 获取文件在线 URL
+      let imgUrl = fileImg ? await uploadToSupabaseStorage(fileImg, 'images') : (existingPoint ? existingPoint.img : '');
+      let audioUrl = fileAudio ? await uploadToSupabaseStorage(fileAudio, 'audios') : (existingPoint ? existingPoint.audio_url : '');
+      let videoUrl = fileVideo ? await uploadToSupabaseStorage(fileVideo, 'videos') : (existingPoint ? existingPoint.video_url : '');
+      let vrUrl = fileVR ? await uploadToSupabaseStorage(fileVR, 'vrs') : (existingPoint ? existingPoint.vr360_url : '');
+      let docUrl = fileDoc ? await uploadToSupabaseStorage(fileDoc, 'docs') : (existingPoint ? existingPoint.doc_url : '');
 
-    if(editId) {
-      const idx = APP.points.findIndex(x => x.id === editId);
-      if(idx !== -1) APP.points[idx] = targetPoint;
-    } else {
-      APP.points.push(targetPoint);
+      const [latStr, lngStr] = coordVal.split(',');
+
+      const targetPoint = {
+        id: editId || ('p_' + Date.now()),
+        n: document.getElementById('afN').value,
+        w: document.getElementById('afW').value,
+        y: parseInt(document.getElementById('afY').value),
+        la: parseFloat(latStr),
+        ln: parseFloat(lngStr),
+        d: document.getElementById('afD').value,
+        img: imgUrl,
+        audio_url: audioUrl,
+        video_url: videoUrl,
+        vr360_url: vrUrl,
+        doc_url: docUrl,
+        status: 'approved'
+      };
+
+      if (isCloudMode) {
+        let error = null;
+        if (editId) {
+          const res = await supabase.from('missionary_points').update(targetPoint).eq('id', editId);
+          error = res.error;
+        } else {
+          const res = await supabase.from('missionary_points').insert([targetPoint]);
+          error = res.error;
+        }
+
+        if (error) {
+          alert(`❌ 保存点位失败: ${error.message}`);
+          return;
+        }
+      }
+
+      if (editId) {
+        const idx = APP.points.findIndex(x => x.id === editId);
+        if (idx !== -1) APP.points[idx] = targetPoint;
+      } else {
+        APP.points.push(targetPoint);
+      }
+
+      alert('🎉 保存成功！多媒体文件已上传云端并全网同步！');
+      document.getElementById('adminModal').style.display = 'none';
+      document.getElementById('pointForm').reset();
+      document.getElementById('afId').value = '';
+      
+      APP.renderAll();
+      if (editId) APP.openDrawer(targetPoint);
+
+    } catch (err) {
+      console.error('提交发生异常:', err);
+      alert(`保存提交发生异常：${err.message}`);
+    } finally {
+      submitBtn.innerText = originalBtnText;
+      submitBtn.disabled = false;
     }
-
-    if(isCloudMode) {
-      if(editId) await supabase.from('missionary_points').update(targetPoint).eq('id', editId);
-      else await supabase.from('missionary_points').insert([targetPoint]);
-    }
-
-    alert('保存成功！数据已实时同步至云端！');
-    document.getElementById('adminModal').style.display = 'none';
-    document.getElementById('pointForm').reset();
-    document.getElementById('afId').value = '';
-    
-    APP.renderAll();
-    if(editId) APP.openDrawer(targetPoint);
   };
 
   APP.renderAuditList = () => {

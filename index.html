@@ -582,9 +582,10 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener('DOMContentLoaded', () => {
   const SUPER_ADMIN_EMAIL = '440032005@qq.com'; 
-  const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
-  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-  const isCloudMode = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+  // 🌐 已自动绑定你的 Supabase API 地址
+  const SUPABASE_URL = 'https://zjtofadvudkfijlpptmb.supabase.co'; 
+  const SUPABASE_KEY = '这里粘贴你的_anon_public_key'; // 👈 请替换为在 Project Settings -> API 中复制的 anon 密钥
+  const isCloudMode = SUPABASE_KEY !== '这里粘贴你的_anon_public_key';
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
   // 📊 实时数据流量与网络性能统计
@@ -701,6 +702,25 @@ window.addEventListener('DOMContentLoaded', () => {
       { id: 'r4', name: '西南少数民族拓荒与文化复兴线', name_en: 'Southwest Tribal Frontier & Literacy Route', pts: ['dali', 'baoshan_qinghua', 'shimankan', 'wuding_sapushan'] },
       { id: 'r5', name: '四大名山宣教避暑与研讨线', name_en: 'Mountain Sanctuaries & Conference Trail', pts: ['jigongshan', 'lushan_guling', 'fuzhou_guling', 'moganshan'] }
     ]
+  };
+
+  // ☁️ 新增：从 Supabase 云端加载点位数据
+  APP.loadPointsFromCloud = async () => {
+    if (!isCloudMode) return;
+    try {
+      const { data, error } = await supabase.from('missionary_points').select('*');
+      if (error) {
+        console.error('云端拉取数据错误:', error);
+        return;
+      }
+      if (data && data.length > 0) {
+        APP.points = data;
+        APP.renderAll();
+        console.log('✅ 成功同步云端点位:', data.length);
+      }
+    } catch (err) {
+      console.error('云端网络连接异常:', err);
+    }
   };
 
   APP.updateDashboardUI = () => {
@@ -1643,7 +1663,7 @@ window.addEventListener('DOMContentLoaded', () => {
       else await supabase.from('missionary_points').insert([targetPoint]);
     }
 
-    alert('保存成功！');
+    alert('保存成功！数据已实时同步至云端！');
     document.getElementById('adminModal').style.display = 'none';
     document.getElementById('pointForm').reset();
     document.getElementById('afId').value = '';
@@ -1688,6 +1708,7 @@ window.addEventListener('DOMContentLoaded', () => {
   APP.setLanguage('zh');
   APP.updateTimeline(2026);
   APP.loadSavedAuth();
+  APP.loadPointsFromCloud(); // 🚀 启动时自动从云端加载最新数据
 });
 </script>
 </body>

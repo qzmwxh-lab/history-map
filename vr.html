@@ -2,21 +2,21 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>环视台 · VR全景托管平台</title>
 
 <!-- PWA 标准配置（与主站保持一致） -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#0b0e14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="环视台">
-<link rel="apple-touch-icon" href="/pwa-icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/pwa-icons/icon-192.png">
+<link rel="apple-touch-icon" href="./pwa-icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./pwa-icons/icon-192.png">
 
 <!-- 字体与地图样式依赖 -->
 <link rel="preconnect" href="https://fonts.font.im">
-<link href="https://fonts.font.im/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.font.im/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
 <style>
@@ -254,9 +254,10 @@
 <div id="topbar">
   <div class="brand" id="brand-home"><span class="dot"></span>环视台 <span style="font-weight:400;color:var(--ink-faint);font-size:11px;">VR全景平台</span></div>
   <span class="sync-dot" id="sync-dot" title="实时同步未连接"></span>
-  <a href="/index.html" class="btn btn-ghost" style="text-decoration:none;">← 返回光之足迹</a>
+  <a href="./index.html" class="btn btn-ghost" style="text-decoration:none;">← 返回光之足迹</a>
   <div class="sp"></div>
-  <button class="btn" id="login-btn" data-login>⚿ 后台管理</button>
+  <a class="btn" href="./admin.html">管理工作台</a>
+  <button class="btn" id="login-btn" data-login>⚿ 编辑器登录</button>
 </div>
 
 <!-- 作品列表 -->
@@ -310,7 +311,7 @@
   <div id="editor-toolbar" class="hidden">
     <button class="btn" id="back-to-list-btn">← 作品列表</button>
     <label class="btn" for="scene-file-input">➕ 上传全景</label>
-    <input type="file" id="scene-file-input" accept="image/*,video/*">
+    <input type="file" id="scene-file-input" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
     <button class="btn" id="add-hotspot-toggle">⊕ 添加锚点</button>
   </div>
 
@@ -392,11 +393,13 @@
 <script src="https://npm.elemecdn.com/@supabase/supabase-js@2/dist/umd/supabase.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';document.head.appendChild(s);"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="./app-config.js"></script>
+<script src="./security.js"></script>
 
 <script>
 /* 配置 */
-const SUPABASE_URL = "https://zjtofadvudkfijlpptmb.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb";
+const { supabaseUrl: SUPABASE_URL, supabasePublishableKey: SUPABASE_ANON_KEY, adminRole: ADMIN_ROLE, storage: STORAGE } = window.APP_CONFIG;
+const { escapeHtml, safeMediaUrl, isAdminUser, storagePathFromPublicUrl } = window.HistoryMapSecurity;
 let sb = null;
 
 async function waitForSupabase(maxMs = 5000){
@@ -430,9 +433,6 @@ function toast(msg) {
   t.classList.add("show");
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove("show"), 2600);
-}
-function escapeHtml(s) {
-  return (s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
 }
 function fmtDate(iso) {
   if (!iso) return "";
@@ -468,17 +468,19 @@ function showView(id) {
 let sceneCounts = {};
 let homeViewMode = "list";       
 let workSearchTerm = "";
-let clusterFilterIds = null;     
+let clusterFilterIds = null;
+let worksLoadError = '';
 
 async function fetchWorks() {
-  if (!sb) return [];
+  worksLoadError = '';
+  if (!sb) { worksLoadError = '云端服务暂不可用，请稍后刷新重试'; return []; }
   const { data, error } = await sb.from("vr_works").select("*").order("created_at", { ascending: false });
-  if (error) { toast("读取作品列表失败：" + error.message); return []; }
+  if (error) { worksLoadError = '作品列表加载失败，请检查网络后刷新重试'; toast(worksLoadError); return []; }
   return data || [];
 }
 async function fetchSceneCounts(workIds) {
   if (!sb || !workIds.length) return {};
-  const { data, error } = await sb.from("vr_scenes").select("work_id");
+  const { data, error } = await sb.from("vr_scenes").select("work_id").in("work_id", workIds);
   if (error) return {};
   const counts = {};
   (data || []).forEach(r => { counts[r.work_id] = (counts[r.work_id] || 0) + 1; });
@@ -539,8 +541,9 @@ function renderWorksGrid(list) {
   list.forEach(w => {
     const cnt = sceneCounts[w.id] || 0;
     const locBit = w.location_name ? ` · ${escapeHtml(w.location_name)}` : "";
+    const coverUrl = safeMediaUrl(w.cover, location.href);
     html += `<div class="work-card" data-id="${w.id}">
-      ${w.cover ? `<img class="cover" src="${w.cover}" alt="${escapeHtml(w.title)}">` : `<div class="cover"></div>`}
+      ${coverUrl ? `<img class="cover" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(w.title)}" loading="lazy" referrerpolicy="no-referrer">` : `<div class="cover"></div>`}
       <div class="body">
         <div class="title">${escapeHtml(w.title)}</div>
         <div class="meta">${cnt} 个场景 · ${fmtDate(w.created_at)}${locBit}</div>
@@ -551,7 +554,7 @@ function renderWorksGrid(list) {
   grid.innerHTML = html;
   if (list.length === 0) {
     emptyEl.style.display = "block";
-    emptyEl.textContent = (workSearchTerm || clusterFilterIds) ? "没有找到匹配的作品" : "还没有任何作品，登录后台后点击上方“新建作品”开始创作。";
+    emptyEl.textContent = worksLoadError || ((workSearchTerm || clusterFilterIds) ? "没有找到匹配的作品" : "还没有任何作品，登录后台后点击上方“新建作品”开始创作。");
   } else {
     emptyEl.style.display = "none";
   }
@@ -568,8 +571,10 @@ function renderWorksGrid(list) {
       e.stopPropagation();
       if (!confirm("删除整个作品及其所有场景与锚点？此操作不可恢复。")) return;
       const id = Number(btn.dataset.del);
+      const { data: mediaRows } = await sb.from("vr_scenes").select("media_url").eq("work_id", id);
       const { error } = await sb.from("vr_works").delete().eq("id", id);
       if (error) { toast("删除失败：" + error.message); return; }
+      await removeVrAssets((mediaRows || []).map(row => row.media_url));
       toast("作品已删除");
       works = await fetchWorks();
       sceneCounts = await fetchSceneCounts(works.map(w => w.id));
@@ -763,9 +768,15 @@ function disposeCurrentMedia() {
 function loadSceneMedia(sceneRec) {
   disposeCurrentMedia();
   document.getElementById("pano-loading").classList.remove("hide");
+  const mediaUrl = safeMediaUrl(sceneRec.media_url, location.href);
+  if (!mediaUrl) {
+    document.getElementById("pano-loading").classList.add("hide");
+    toast("场景媒体地址无效");
+    return;
+  }
   if (sceneRec.media_type === "video") {
     const video = document.createElement("video");
-    video.src = sceneRec.media_url;
+    video.src = mediaUrl;
     video.crossOrigin = "anonymous";
     video.loop = true; video.muted = true; video.playsInline = true; video.autoplay = true;
     video.style.display = "none";
@@ -784,7 +795,7 @@ function loadSceneMedia(sceneRec) {
   } else {
     const loader = new THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
-    loader.load(sceneRec.media_url, (tex) => {
+    loader.load(mediaUrl, (tex) => {
       currentTexture = tex;
       sphereMesh.material.map = tex;
       sphereMesh.material.color.set(0xffffff);
@@ -836,7 +847,7 @@ function makeHotspotTexture(type) {
 }
 
 function clearSprites() {
-  spriteGroup.forEach(s => scene3d.remove(s));
+  spriteGroup.forEach(s => { if(scene3d) scene3d.remove(s); s.material.dispose(); });
   spriteGroup = [];
 }
 function buildSprites(hsList) {
@@ -953,6 +964,9 @@ function destroyEngine() {
   animFrameId = null;
   disposeCurrentMedia();
   clearSprites();
+  window.removeEventListener('pointerup', onPointerUp);
+  window.removeEventListener('resize', onResize);
+  if(sphereMesh) { sphereMesh.geometry.dispose(); sphereMesh.material.dispose(); }
   if (renderer) {
     renderer.dispose();
     const wrap = document.getElementById("pano-canvas-wrap");
@@ -975,6 +989,11 @@ async function fetchHotspotsForScene(sceneId) {
 }
 
 async function enterViewer(workId) {
+  if (!sb || !Number.isSafeInteger(workId) || workId <= 0) {
+    toast('作品地址无效或服务暂不可用');
+    go('#/');
+    return;
+  }
   stopTour();
   showView("view-viewer");
   initEngineOnce();
@@ -1037,8 +1056,10 @@ function renderSceneList() {
     e.stopPropagation();
     if (!confirm("删除该场景及其关联锚点？")) return;
     const id = Number(btn.dataset.sdel);
+    const sceneToDelete = scenes.find(scene => scene.id === id);
     const { error } = await sb.from("vr_scenes").delete().eq("id", id);
     if (error) { toast("删除失败：" + error.message); return; }
+    if(sceneToDelete) await removeVrAssets([sceneToDelete.media_url]);
     toast("场景已成功删除");
     scenes = await fetchScenesForWork(currentWorkId);
     if (currentSceneId === id) {
@@ -1058,24 +1079,34 @@ async function reorderScenes(srcId, targetId) {
   const srcIdx = scenes.findIndex(s => s.id === srcId);
   const tgtIdx = scenes.findIndex(s => s.id === targetId);
   if (srcIdx < 0 || tgtIdx < 0) return;
+  const previous = scenes.map(scene => ({ ...scene }));
   const [moved] = scenes.splice(srcIdx, 1);
   scenes.splice(tgtIdx, 0, moved);
   scenes.forEach((s, i) => { s.sort_order = i + 1; });
   renderSceneList();
   markSelfUpdate();
-  await Promise.all(scenes.map(s => sb.from("vr_scenes").update({ sort_order: s.sort_order }).eq("id", s.id)));
+  const { error } = await sb.rpc('reorder_vr_scenes', { p_work_id: currentWorkId, p_scene_ids: scenes.map(s => s.id) });
+  if (error) {
+    scenes = previous;
+    renderSceneList();
+    toast("次序更新失败：" + error.message);
+    return;
+  }
   toast("漫游次序已更新");
 }
 
 function renderHotspotList() {
   const ul = document.getElementById("hotspot-list");
   const empty = document.getElementById("hotspot-empty");
-  ul.innerHTML = hotspots.map(h => `
-    <li data-id="${h.id}">
-      <span class="htag ${h.type}">${h.type === 'scene' ? '跳转' : '信息'}</span>
-      <span class="hname">${escapeHtml(h.title || h.text || '未命名锚点')}</span>
-      ${adminMode ? `<span class="hdel" data-hdel="${h.id}">✕</span>` : ''}
-    </li>`).join("");
+  ul.innerHTML = hotspots.map(h => {
+    const hotspotType = h.type === 'scene' ? 'scene' : 'info';
+    return `
+      <li data-id="${Number(h.id)}">
+        <span class="htag ${hotspotType}">${hotspotType === 'scene' ? '跳转' : '信息'}</span>
+        <span class="hname">${escapeHtml(h.title || h.text || '未命名锚点')}</span>
+        ${adminMode ? `<span class="hdel" data-hdel="${Number(h.id)}">✕</span>` : ''}
+      </li>`;
+  }).join("");
   empty.style.display = hotspots.length ? "none" : "block";
   ul.querySelectorAll("li").forEach(li => li.addEventListener("click", (e) => {
     if (e.target.closest("[data-hdel]")) return;
@@ -1186,16 +1217,25 @@ document.getElementById("add-hotspot-toggle").addEventListener("click", () => {
 async function uploadToVrMedia(file, folder) {
   const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
   const path = `${folder}/${Date.now()}_${safeName}`;
-  const { error } = await sb.storage.from("vr-media").upload(path, file, { cacheControl: "3600", upsert: false });
+  const { error } = await sb.storage.from(STORAGE.vrBucket).upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
   if (error) return { error: error.message };
-  const { data } = sb.storage.from("vr-media").getPublicUrl(path);
-  return { url: data.publicUrl };
+  const { data } = sb.storage.from(STORAGE.vrBucket).getPublicUrl(path);
+  return { url: data.publicUrl, path };
+}
+async function removeVrAssets(urls) {
+  const paths = urls.map(url => storagePathFromPublicUrl(url, STORAGE.vrBucket)).filter(Boolean);
+  if(paths.length) await sb.storage.from(STORAGE.vrBucket).remove(paths);
 }
 document.getElementById("scene-file-input").addEventListener("change", async () => {
   const input = document.getElementById("scene-file-input");
   const file = input.files[0];
-  if (!file || !currentWorkId) return;
-  const isVideo = file.type.startsWith("video/");
+  if (!file || !currentWorkId || !adminMode) return;
+  const imageTypes = ["image/jpeg", "image/png", "image/webp"];
+  const videoTypes = ["video/mp4", "video/webm"];
+  if(!imageTypes.includes(file.type) && !videoTypes.includes(file.type)) {
+    toast("仅支持 JPEG、PNG、WebP、MP4 或 WebM 文件"); input.value = ""; return;
+  }
+  const isVideo = videoTypes.includes(file.type);
   const limit = isVideo ? UPLOAD_LIMITS_MB.video : UPLOAD_LIMITS_MB.image;
   const statusEl = document.getElementById("scene-upload-status");
   if (file.size > limit * 1024 * 1024) {
@@ -1204,7 +1244,7 @@ document.getElementById("scene-file-input").addEventListener("change", async () 
     input.value = ""; return;
   }
   statusEl.textContent = "全景媒体文件上传中…"; statusEl.className = "";
-  const { url, error } = await uploadToVrMedia(file, isVideo ? "video" : "image");
+  const { url, path, error } = await uploadToVrMedia(file, isVideo ? "video" : "image");
   if (error) { statusEl.textContent = "上传失败：" + error; statusEl.className = "err"; input.value = ""; return; }
   const nextOrder = scenes.length ? Math.max(...scenes.map(s => s.sort_order)) + 1 : 1;
   const name = file.name.replace(/\.[^.]+$/, "") || `场景 ${nextOrder}`;
@@ -1213,7 +1253,10 @@ document.getElementById("scene-file-input").addEventListener("change", async () 
     work_id: currentWorkId, name, media_type: isVideo ? "video" : "image",
     media_url: url, yaw: 0, pitch: 0, fov: 90, sort_order: nextOrder
   }).select().single();
-  if (insErr) { statusEl.textContent = "数据写入失败：" + insErr.message; statusEl.className = "err"; input.value = ""; return; }
+  if (insErr) {
+    if(path) await sb.storage.from(STORAGE.vrBucket).remove([path]);
+    statusEl.textContent = "数据写入失败：" + insErr.message; statusEl.className = "err"; input.value = ""; return;
+  }
   statusEl.textContent = "上传完成 ✓ " + file.name; statusEl.className = "ok";
   input.value = "";
   scenes = await fetchScenesForWork(currentWorkId);
@@ -1237,8 +1280,14 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
   const email = document.getElementById("login-email").value.trim();
   const pass = document.getElementById("login-pass").value;
   const errEl = document.getElementById("login-err");
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(!sb) { errEl.textContent = "登录服务暂不可用"; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
   if (error) { errEl.textContent = "登录失败：" + error.message; return; }
+  if (!isAdminUser(data.user, ADMIN_ROLE)) {
+    await sb.auth.signOut();
+    errEl.textContent = "该账号没有主控管理权限";
+    return;
+  }
   loginOverlay.classList.remove("show");
   document.getElementById("login-form").reset();
   await setAdminMode(true);
@@ -1277,6 +1326,7 @@ document.getElementById("rail-toggle").addEventListener("click", () => {
 function subscribeRealtime() {
   if(!sb) return;
   const dot = document.getElementById("sync-dot");
+  let refreshTimer = null;
   const refreshCurrent = async () => {
     if (Date.now() >= suppressRealtimeToastUntil) {
       toast("云端全景数据已实时更新");
@@ -1296,10 +1346,14 @@ function subscribeRealtime() {
       renderHomeView();
     }
   };
+  const scheduleRefresh = () => {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refreshCurrent, 180);
+  };
   sb.channel("vr-realtime")
-    .on("postgres_changes", { event: "*", schema: "public", table: "vr_works" }, refreshCurrent)
-    .on("postgres_changes", { event: "*", schema: "public", table: "vr_scenes" }, refreshCurrent)
-    .on("postgres_changes", { event: "*", schema: "public", table: "vr_hotspots" }, refreshCurrent)
+    .on("postgres_changes", { event: "*", schema: "public", table: "vr_works" }, scheduleRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "vr_scenes" }, scheduleRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "vr_hotspots" }, scheduleRefresh)
     .subscribe((status) => {
       const live = status === "SUBSCRIBED";
       dot.classList.toggle("live", live);
@@ -1314,13 +1368,16 @@ function subscribeRealtime() {
     catch(e){ console.warn("Supabase 初始化失败", e); }
   }
   const { data } = sb ? await sb.auth.getSession() : { data: null };
-  if (data && data.session) { adminMode = true; document.getElementById("login-btn").classList.add("admin-on"); document.getElementById("login-btn").textContent = "⚡ 主控中"; }
+  await setAdminMode(isAdminUser(data?.session?.user, ADMIN_ROLE));
+  if(sb) sb.auth.onAuthStateChange((_event, session) => {
+    setTimeout(() => { setAdminMode(isAdminUser(session?.user, ADMIN_ROLE)).catch(error => toast(error.message)); }, 0);
+  });
   subscribeRealtime();
   await handleRoute();
 })();
 
 if("serviceWorker" in navigator){
-  window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js"); });
+  window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js"); });
 }
 </script>
 </body>

@@ -2,20 +2,20 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>光之足迹 · 宣教历史地图与属灵文旅</title>
 
 <!-- PWA 跨平台应用规范配置 -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#0b0e14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="光之足迹">
-<link rel="apple-touch-icon" href="/pwa-icons/icon-192.png">
+<link rel="apple-touch-icon" href="./pwa-icons/icon-192.png">
 
 <!-- 核心样式与字体依赖 -->
 <link rel="preconnect" href="https://fonts.font.im">
-<link href="https://fonts.font.im/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.font.im/css2?family=Ma+Shan+Zheng&amp;family=Noto+Serif+SC:wght@400;600;700&amp;family=Roboto+Mono:wght@500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
 
@@ -425,7 +425,7 @@
   <div class="tl-track">
     <span style="font-size:10px;color:var(--inkd)">600</span>
     <input type="range" class="tl-slider" id="tSlider" min="600" max="2026" value="2026">
-    <span style="font-size:10px;color:var(--inkd)">2026</span>
+    <span id="tlMaxYear" style="font-size:10px;color:var(--inkd)">2026</span>
   </div>
   <div class="tl-eras" id="tErasContainer"></div>
 </div>
@@ -453,7 +453,7 @@
         <input type="password" id="authPass" class="input-style" placeholder="密码" required>
         
         <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--inkd);cursor:pointer;">
-          <input type="checkbox" id="rememberMe" style="accent-color:var(--gold);"> <span id="uiRememberMe">记住账号密码（下次自动填充）</span>
+          <input type="checkbox" id="rememberMe" style="accent-color:var(--gold);"> <span id="uiRememberMe">记住邮箱（密码交给浏览器管理）</span>
         </label>
 
         <div style="display:flex;gap:8px;margin-top:6px">
@@ -529,28 +529,28 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div class="file-uploader">
               <span>🖼️ 封面图片:</span>
-              <input type="file" id="fileImg" accept="image/*">
+              <input type="file" id="fileImg" accept="image/jpeg,image/png,image/webp">
             </div>
             
             <div class="file-uploader">
               <span>🎵 音频 (.mp3):</span>
-              <input type="file" id="fileAudio" accept="audio/*">
+              <input type="file" id="fileAudio" accept="audio/mpeg,audio/mp4">
             </div>
 
             <div class="file-uploader">
               <span>🎬 视频 (.mp4):</span>
-              <input type="file" id="fileVideo" accept="video/*">
+              <input type="file" id="fileVideo" accept="video/mp4,video/webm">
             </div>
 
             <div class="file-uploader">
               <span>🥽 VR 360全景图:</span>
-              <input type="file" id="fileVR" accept="image/*">
+              <input type="file" id="fileVR" accept="image/jpeg,image/png,image/webp">
             </div>
           </div>
 
           <div class="file-uploader" style="margin-top:8px">
             <span>📄 考证文档 (.pdf / .txt):</span>
-            <input type="file" id="fileDoc" accept=".pdf, .txt, .docx">
+            <input type="file" id="fileDoc" accept="application/pdf">
           </div>
         </div>
 
@@ -570,24 +570,23 @@
 <script src="https://cdn.bootcdn.net/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./app-config.js"></script>
+<script src="./security.js"></script>
 
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('./sw.js')
       .then(reg => console.log('Service Worker 注册成功:', reg.scope))
       .catch(err => console.log('Service Worker 注册失败:', err));
   });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const SUPER_ADMIN_EMAIL = '440032005@qq.com'; 
-  
-  // 🌐 Supabase 云端数据库 API 配置参数
-  const SUPABASE_URL = 'https://zjtofadvudkfijlpptmb.supabase.co'; 
-  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 👈 只需要将此处的 YOUR_SUPABASE_ANON_KEY 替换为你的 anon public 密钥即可！
-  
-  const isCloudMode = SUPABASE_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+  const { supabaseUrl: SUPABASE_URL, supabasePublishableKey: SUPABASE_KEY, adminRole: ADMIN_ROLE, storage: STORAGE } = window.APP_CONFIG;
+  const { escapeHtml, safeMediaUrl, isAdminUser, storagePathFromPublicUrl } = window.HistoryMapSecurity;
+  const CURRENT_YEAR = new Date().getFullYear();
+  const isCloudMode = Boolean(SUPABASE_URL && SUPABASE_KEY && window.supabase);
   const supabase = isCloudMode ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
   // 📊 实时数据流量与网络性能统计
@@ -599,34 +598,29 @@ window.addEventListener('DOMContentLoaded', () => {
       const logBox = document.getElementById('dashLog');
       if (logBox) {
         const timeStr = new Date().toLocaleTimeString();
-        logBox.innerHTML += `<div>[${timeStr}] ${msg}</div>`;
+        const row = document.createElement('div');
+        row.textContent = `[${timeStr}] ${msg}`;
+        logBox.appendChild(row);
         logBox.scrollTop = logBox.scrollHeight;
       }
     }
   };
 
-  // 拦截/监听 Fetch 数据请求与流量
-  const origFetch = window.fetch;
-  window.fetch = async (...args) => {
-    const startTime = performance.now();
-    try {
-      const res = await origFetch(...args);
-      const clone = res.clone();
-      const blob = await clone.blob();
-      const duration = Math.round(performance.now() - startTime);
-
-      METRICS.totalBytes += blob.size;
-      METRICS.reqCount++;
-      METRICS.latencies.push(duration);
-      if(METRICS.latencies.length > 50) METRICS.latencies.shift();
-
-      METRICS.log(`FETCH ${args[0].toString().substring(0,40)}... | ${blob.size} B | ${duration}ms`);
-      APP.updateDashboardUI();
-      return res;
-    } catch(e) {
-      return origFetch(...args);
-    }
-  };
+  // 使用 Resource Timing 统计，不读取响应体，也不重复网络请求。
+  if ('PerformanceObserver' in window) {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        const bytes = entry.transferSize || entry.encodedBodySize || 0;
+        METRICS.totalBytes += bytes;
+        METRICS.reqCount += 1;
+        METRICS.latencies.push(Math.round(entry.duration));
+        if (METRICS.latencies.length > 50) METRICS.latencies.shift();
+        METRICS.log(`RESOURCE ${entry.name.slice(0, 48)} | ${bytes} B | ${Math.round(entry.duration)}ms`);
+      }
+      if (window.APP) APP.updateDashboardUI();
+    });
+    observer.observe({ type: 'resource', buffered: true });
+  }
 
   const I18N = {
     zh: {
@@ -638,7 +632,7 @@ window.addEventListener('DOMContentLoaded', () => {
       routePanelTitle: "✦ 宣教路线规划与流光", routeAnimOn: "开启特效", routeAnimOff: "关闭特效", routeContains: "包含站点",
       routeEditTitle: "⚙ 管理员路线修改", btnNewRoute: "➕ 新建", btnSaveRoute: "保存配置",
       drawerDetailTitle: "详情", pioneerLabel: "✦ 先驱人物：", navRouteBtn: "🧭 一键导航路线", navAmapBtn: "🗺️ 高德地图直达",
-      drawerEdit: "✏️ 编辑", drawerDelete: "🗑️ 删除", authModalTitle: "会员登录 / 注册", rememberMe: "记住账号密码（下次自动填充）",
+      drawerEdit: "✏️ 编辑", drawerDelete: "🗑️ 删除", authModalTitle: "会员登录 / 注册", rememberMe: "记住邮箱（密码交给浏览器管理）",
       btnLogin: "登录", btnRegister: "注册会员", dataCenterTitle: "管理与数据监控中心", tabSubmit: "提交/修改坐标点位", tabAudit: "坐标数据审核后台",
       loadingCountries: "✦ 正在载入全球国界与宣教数据...", countriesLoaded: "✦ 全球国界与宣教数据已载入",
       pickerTip: "📍 请在地图上点击选择点位位置...", pickerConfirm: "确定选中", pickerCancel: "取消"
@@ -652,7 +646,7 @@ window.addEventListener('DOMContentLoaded', () => {
       routePanelTitle: "✦ Missionary Routes & Flow Paths", routeAnimOn: "Enable FX", routeAnimOff: "Disable FX", routeContains: "Key Sites",
       routeEditTitle: "⚙ Route Management", btnNewRoute: "➕ New", btnSaveRoute: "Save Route",
       drawerDetailTitle: "Historical Site Detail", pioneerLabel: "✦ Pioneer Missionary: ", navRouteBtn: "🧭 Turn-by-Turn Navigation", navAmapBtn: "🗺️ Open Web Maps Direct",
-      drawerEdit: "✏️ Edit", drawerDelete: "🗑️ Delete", authModalTitle: "Member Login / Register", rememberMe: "Remember my credentials",
+      drawerEdit: "✏️ Edit", drawerDelete: "🗑️ Delete", authModalTitle: "Member Login / Register", rememberMe: "Remember email (browser manages passwords)",
       btnLogin: "Login", btnRegister: "Register", dataCenterTitle: "Admin & Traffic Monitor", tabSubmit: "Submit / Edit Coordinates", tabAudit: "Audit Portal",
       loadingCountries: "✦ Loading global boundaries & mission records...", countriesLoaded: "✦ Global missionary & boundary data loaded",
       pickerTip: "📍 Click on the map to select coordinates...", pickerConfirm: "Confirm", pickerCancel: "Cancel"
@@ -713,12 +707,14 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
     try {
-      const { data, error } = await supabase.from('missionary_points').select('*');
+      let query = supabase.from('missionary_points').select('*').order('y', { ascending: true });
+      if(!APP.isSuperAdmin) query = query.eq('status', 'approved');
+      const { data, error } = await query;
       if (error) {
         console.error('❌ 云端数据读取失败:', error);
         return;
       }
-      if (data && data.length > 0) {
+      if (Array.isArray(data)) {
         APP.points = data;
         APP.renderAll();
         console.log('✅ 成功从云端读取最新点位数据，总计:', data.length);
@@ -946,7 +942,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { y: 1807, n: '晚清福音入华', n_en: 'Late Qing Protestant Arrival' },
     { y: 1865, n: '内地会内陆拓荒', n_en: 'China Inland Mission Era' },
     { y: 1900, n: '民国教务蓬勃时期', n_en: 'Republican Flourishing Era' },
-    { y: 2026, n: '现代宣教时代', n_en: 'Contemporary Mission Era' }
+    { y: CURRENT_YEAR, n: '现代宣教时代', n_en: 'Contemporary Mission Era' }
   ];
 
   document.getElementById('btnLogoHome').onclick = () => {
@@ -1098,7 +1094,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const mkHtml = p => {
     const title = (APP.lang === 'en' && p.n_en) ? p.n_en : p.n;
-    return `<div class="mk" id="mk_${p.id}"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${title.split('·')[0].trim()}</div></div>`;
+    return `<div class="mk"><div class="rp"></div><div class="rp r2"></div><div class="cx"><i class="v"></i><i class="h"></i></div><div class="lb">${escapeHtml(String(title || '').split('·')[0].trim())}</div></div>`;
   };
 
   APP.renderAll = () => {
@@ -1117,7 +1113,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const m = L.marker([p.la, p.ln], {icon}).addTo(map);
       
       const yearLabel = APP.lang === 'en' ? `AD ${p.y}` : `${p.y}年`;
-      m.bindTooltip(`<b>${pName}</b> (${yearLabel})`, {direction:'top'});
+      m.bindTooltip(`<b>${escapeHtml(pName)}</b> (${escapeHtml(yearLabel)})`, {direction:'top'});
       m.on('click', () => {
         if (!APP.isPickingCoordinate) {
           map.flyTo([p.la, p.ln], 8, {duration:1.2});
@@ -1128,7 +1124,7 @@ window.addEventListener('DOMContentLoaded', () => {
       APP.visibleState[p.id] = true;
 
       const li = document.createElement('li');
-      li.innerHTML = `<span class="num">${String(idx + 1).padStart(2,'0')}</span><span class="name">${pName} (${yearLabel})</span>`;
+      li.innerHTML = `<span class="num">${String(idx + 1).padStart(2,'0')}</span><span class="name">${escapeHtml(pName)} (${escapeHtml(yearLabel)})</span>`;
       li.onclick = () => {
         map.flyTo([p.la, p.ln], 8, {duration:1.2});
         APP.openDrawer(p);
@@ -1175,27 +1171,34 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const yearLabel = APP.lang === 'en' ? `AD ${p.y}` : `${p.y}年`;
 
+    const imageUrl = safeMediaUrl(p.img, location.href);
+    const audioUrl = safeMediaUrl(p.audio_url, location.href);
+    const videoUrl = safeMediaUrl(p.video_url, location.href);
+    const panoramaUrl = safeMediaUrl(p.vr360_url, location.href);
+    const documentUrl = safeMediaUrl(p.doc_url, location.href);
+
     let html = `
-      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px">${dict.pioneerLabel}${pWho} (${yearLabel})</div>
-      <p style="font-size:12px;line-height:1.7;color:var(--inkd);margin-bottom:12px">${pDesc}</p>
+      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px">${escapeHtml(dict.pioneerLabel)}${escapeHtml(pWho)} (${escapeHtml(yearLabel)})</div>
+      <p style="font-size:12px;line-height:1.7;color:var(--inkd);margin-bottom:12px">${escapeHtml(pDesc)}</p>
       
       <div class="nav-btn-group">
-        <a class="nav-btn" href="javascript:void(0)" onclick="APP.openNavigation(${p.la}, ${p.ln}, '${pName}')">${dict.navRouteBtn}</a>
-        <a class="nav-btn" style="border-color:var(--glass-border);color:var(--ink)" href="https://uri.amap.com/marker?position=${p.ln},${p.la}&name=${encodeURIComponent(pName)}" target="_blank">${dict.navAmapBtn}</a>
+        <button type="button" class="nav-btn" id="drawer-nav-btn">${escapeHtml(dict.navRouteBtn)}</button>
+        <a class="nav-btn" style="border-color:var(--glass-border);color:var(--ink)" href="https://uri.amap.com/marker?position=${encodeURIComponent(p.ln)},${encodeURIComponent(p.la)}&name=${encodeURIComponent(pName)}" target="_blank" rel="noopener noreferrer">${escapeHtml(dict.navAmapBtn)}</a>
       </div>
     `;
 
-    if(p.img) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🖼️ Photo</div><img src="${p.img}" style="width:100%;max-height:200px;object-fit:cover;border-radius:4px"></div>`;
-    if(p.audio_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎵 Audio Guide</div><audio controls style="width:100%;height:32px"><source src="${p.audio_url}"></audio></div>`;
-    if(p.video_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎬 Documentary / Video</div><video controls style="width:100%;max-height:220px"><source src="${p.video_url}"></video></div>`;
-    if(p.vr360_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 VR 360° Panorama</div><div id="vr-panorama"></div></div>`;
-    if(p.doc_url) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">📄 Document / Archive</div><iframe src="${p.doc_url}" style="width:100%;height:220px;border:none"></iframe></div>`;
+    if(imageUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🖼️ Photo</div><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(pName)}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;max-height:200px;object-fit:cover;border-radius:4px"></div>`;
+    if(audioUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎵 Audio Guide</div><audio controls preload="metadata" style="width:100%;height:32px"><source src="${escapeHtml(audioUrl)}"></audio></div>`;
+    if(videoUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎬 Documentary / Video</div><video controls preload="metadata" style="width:100%;max-height:220px"><source src="${escapeHtml(videoUrl)}"></video></div>`;
+    if(panoramaUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 VR 360° Panorama</div><div id="vr-panorama"></div></div>`;
+    if(documentUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">📄 Document / Archive</div><iframe src="${escapeHtml(documentUrl)}" title="${escapeHtml(pName)}" sandbox style="width:100%;height:220px;border:none"></iframe></div>`;
 
     document.getElementById('dWBody').innerHTML = html;
+    document.getElementById('drawer-nav-btn').addEventListener('click', () => APP.openNavigation(p.la, p.ln, pName));
     document.getElementById('drawer').classList.add('open');
 
-    if(p.vr360_url) {
-      setTimeout(() => { pannellum.viewer('vr-panorama', { type: 'equirectangular', panorama: p.vr360_url, autoLoad: true }); }, 300);
+    if(panoramaUrl) {
+      setTimeout(() => { pannellum.viewer('vr-panorama', { type: 'equirectangular', panorama: panoramaUrl, autoLoad: true }); }, 300);
     }
   };
 
@@ -1227,21 +1230,25 @@ window.addEventListener('DOMContentLoaded', () => {
     rContainer.innerHTML = APP.routes.map(r => {
       const rName = (APP.lang === 'en' && r.name_en) ? r.name_en : r.name;
       return `
-        <div class="route-item ${APP.activeRouteId === r.id ? 'active' : ''}" onclick="APP.selectRoute('${r.id}')">
+        <div class="route-item ${APP.activeRouteId === r.id ? 'active' : ''}" data-route-id="${escapeHtml(r.id)}">
           <div>
-            <div style="font-size:12px;color:var(--gold-bright);font-weight:bold">${rName}</div>
-            <div style="font-size:10px;color:var(--inkd);margin-top:2px">${dict.routeContains}: ${r.pts.join(' ➔ ')}</div>
+            <div style="font-size:12px;color:var(--gold-bright);font-weight:bold">${escapeHtml(rName)}</div>
+            <div style="font-size:10px;color:var(--inkd);margin-top:2px">${escapeHtml(dict.routeContains)}: ${escapeHtml(r.pts.join(' ➔ '))}</div>
           </div>
           ${APP.isSuperAdmin ? `
-            <div class="route-actions" onclick="event.stopPropagation()">
-              <button class="route-btn" onclick="APP.editRoute('${r.id}')">Edit</button>
-              <button class="route-btn" style="color:#e74c3c" onclick="APP.deleteRoute('${r.id}')">Delete</button>
+            <div class="route-actions">
+              <button class="route-btn" data-route-edit="${escapeHtml(r.id)}">Edit</button>
+              <button class="route-btn" data-route-delete="${escapeHtml(r.id)}" style="color:#e74c3c">Delete</button>
             </div>
           ` : ''}
         </div>
       `;
     }).join('');
 
+    rContainer.querySelectorAll('[data-route-id]').forEach(el => el.addEventListener('click', () => APP.selectRoute(el.dataset.routeId)));
+    rContainer.querySelectorAll('.route-actions').forEach(el => el.addEventListener('click', event => event.stopPropagation()));
+    rContainer.querySelectorAll('[data-route-edit]').forEach(el => el.addEventListener('click', () => APP.editRoute(el.dataset.routeEdit)));
+    rContainer.querySelectorAll('[data-route-delete]').forEach(el => el.addEventListener('click', () => APP.deleteRoute(el.dataset.routeDelete)));
     APP.updateMobileRouteCard();
   };
 
@@ -1426,6 +1433,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const tEraText = document.getElementById('tEraText');
   const btnPlay = document.getElementById('btnPlay');
   const eraBadge = document.getElementById('eraBadge');
+  tSlider.max = String(CURRENT_YEAR);
+  document.getElementById('tlMaxYear').textContent = String(CURRENT_YEAR);
 
   let isPlaying = false, playTimer = null;
 
@@ -1484,10 +1493,10 @@ window.addEventListener('DOMContentLoaded', () => {
     btnPlay.innerText = isPlaying ? '■' : '▶';
     if(isPlaying) {
       let curY = parseInt(tSlider.value);
-      if(curY >= 2026) curY = 600;
+      if(curY >= CURRENT_YEAR) curY = 600;
       playTimer = setInterval(() => {
         curY += 3;
-        if(curY >= 2026) { curY = 2026; isPlaying = false; btnPlay.innerText = '▶'; clearInterval(playTimer); }
+        if(curY >= CURRENT_YEAR) { curY = CURRENT_YEAR; isPlaying = false; btnPlay.innerText = '▶'; clearInterval(playTimer); }
         APP.updateTimeline(curY, true);
       }, 50);
     } else {
@@ -1499,7 +1508,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tl').style.display = 'none';
     eraBadge.style.display = 'none';
     if(isPlaying) btnPlay.click();
-    APP.updateTimeline(2026);
+    APP.updateTimeline(CURRENT_YEAR);
   };
 
   document.getElementById('bT').onclick = () => {
@@ -1514,10 +1523,9 @@ window.addEventListener('DOMContentLoaded', () => {
   
   APP.loadSavedAuth = () => {
     const savedEmail = localStorage.getItem('ma_remember_email');
-    const savedPass = localStorage.getItem('ma_remember_pass');
-    if(savedEmail && savedPass) {
+    localStorage.removeItem('ma_remember_pass');
+    if(savedEmail) {
       document.getElementById('authEmail').value = savedEmail;
-      document.getElementById('authPass').value = savedPass;
       document.getElementById('rememberMe').checked = true;
     }
   };
@@ -1534,35 +1542,41 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if(!email || !password) return alert('Please enter email & password!');
 
-    if(isCloudMode) {
-      const { data, error } = type === 'login' 
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-      if(error) return alert('Auth failed: ' + error.message);
-      APP.user = data.user;
-    } else {
-      APP.user = { email, id: 'user_' + Date.now() };
+    if(!isCloudMode) return alert('登录服务暂不可用，请稍后重试。');
+    const { data, error } = type === 'login'
+      ? await supabase.auth.signInWithPassword({ email, password })
+      : await supabase.auth.signUp({ email, password });
+    if(error) return alert('Auth failed: ' + error.message);
+
+    if(type === 'register' && !data.session) {
+      document.getElementById('authPass').value = '';
+      alert('注册成功，请先前往邮箱完成验证。');
+      return;
     }
 
     if(isRemember) {
       localStorage.setItem('ma_remember_email', email);
-      localStorage.setItem('ma_remember_pass', password);
     } else {
       localStorage.removeItem('ma_remember_email');
-      localStorage.removeItem('ma_remember_pass');
     }
+    localStorage.removeItem('ma_remember_pass');
 
-    APP.isSuperAdmin = (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
-
-    alert(APP.isSuperAdmin ? '超级管理员登录成功！' : '会员登录成功！');
-    
+    APP.applyAuthUser(data.user);
+    document.getElementById('authPass').value = '';
+    alert(APP.isSuperAdmin ? '管理员登录成功！' : '会员登录成功！');
     document.getElementById('authModal').style.display = 'none';
-    const authText = `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(Admin)' : ''}`;
+  };
+
+  APP.applyAuthUser = (user) => {
+    APP.user = user || null;
+    APP.isSuperAdmin = isAdminUser(user, ADMIN_ROLE);
+    const email = user && user.email ? user.email : '';
+    const authText = user ? `👤 ${email.split('@')[0]} ${APP.isSuperAdmin ? '(Admin)' : ''}` : '👤 登录';
     document.getElementById('bAuth').innerText = authText;
     document.getElementById('mBtnAuth').innerText = authText;
 
-    document.getElementById('bSubmit').style.display = 'inline-block';
-    document.getElementById('mBtnSubmit').style.display = 'flex';
+    document.getElementById('bSubmit').style.display = user ? 'inline-block' : 'none';
+    document.getElementById('mBtnSubmit').style.display = user ? 'flex' : 'none';
     
     // 🔐 只有超级管理员才显示后台管理与监控入口
     if(APP.isSuperAdmin) {
@@ -1578,6 +1592,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     APP.renderRouteList();
+    if(isCloudMode) APP.loadPointsFromCloud();
   };
 
   document.getElementById('bSubmit').onclick = () => {
@@ -1589,8 +1604,7 @@ window.addEventListener('DOMContentLoaded', () => {
   
   document.getElementById('bAdmin').onclick = () => {
     if(!APP.isSuperAdmin) return alert('只有超级管理员有权限访问控制面板！');
-    document.getElementById('adminModal').style.display = 'flex';
-    APP.switchTab('dash');
+    location.href = './admin.html';
   };
 
   APP.switchTab = (type) => {
@@ -1609,18 +1623,37 @@ window.addEventListener('DOMContentLoaded', () => {
     if(type === 'list') APP.renderAuditList();
   };
 
-  const readFileAsDataURL = (file) => {
-    return new Promise((resolve, reject) => {
-      if(!file) return resolve('');
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = (e) => reject(e);
-      reader.readAsDataURL(file);
+  const POINT_MEDIA_RULES = {
+    img: { maxMB: 20, types: ['image/jpeg', 'image/png', 'image/webp'] },
+    audio: { maxMB: 30, types: ['audio/mpeg', 'audio/mp4'] },
+    video: { maxMB: 200, types: ['video/mp4', 'video/webm'] },
+    vr: { maxMB: 20, types: ['image/jpeg', 'image/png', 'image/webp'] },
+    doc: { maxMB: 20, types: ['application/pdf'] }
+  };
+
+  const uploadPointAsset = async (file, kind, pointId) => {
+    if(!file) return null;
+    const rule = POINT_MEDIA_RULES[kind];
+    if(!rule || !rule.types.includes(file.type)) throw new Error(`${file.name} 的文件类型不受支持`);
+    if(file.size > rule.maxMB * 1024 * 1024) throw new Error(`${file.name} 超过 ${rule.maxMB}MB 上限`);
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${APP.user.id}/${pointId}/${kind}_${Date.now()}_${safeName}`;
+    const { error } = await supabase.storage.from(STORAGE.historyBucket).upload(path, file, {
+      cacheControl: '3600', upsert: false, contentType: file.type
     });
+    if(error) throw error;
+    const { data } = supabase.storage.from(STORAGE.historyBucket).getPublicUrl(path);
+    return { path, url: data.publicUrl };
+  };
+
+  const removeHistoryAssets = async (urls) => {
+    const paths = urls.map(url => storagePathFromPublicUrl(url, STORAGE.historyBucket)).filter(Boolean);
+    if(paths.length) await supabase.storage.from(STORAGE.historyBucket).remove(paths);
   };
 
   document.getElementById('pointForm').onsubmit = async (e) => {
     e.preventDefault();
+    if(!APP.user || !isCloudMode) return alert('请先登录后再保存点位。');
     const coordVal = document.getElementById('afC').value.trim();
     if(!coordVal || !coordVal.includes(',')) return alert('请输入或选择有效的经纬度坐标 (例: 30.2741, 120.1551)！');
 
@@ -1631,72 +1664,97 @@ window.addEventListener('DOMContentLoaded', () => {
     const fileVR = document.getElementById('fileVR').files[0];
     const fileDoc = document.getElementById('fileDoc').files[0];
 
-    let imgData = fileImg ? await readFileAsDataURL(fileImg) : '';
-    let audioData = fileAudio ? await readFileAsDataURL(fileAudio) : '';
-    let videoData = fileVideo ? await readFileAsDataURL(fileVideo) : '';
-    let vrData = fileVR ? await readFileAsDataURL(fileVR) : '';
-    let docData = fileDoc ? await readFileAsDataURL(fileDoc) : '';
-
     const existingPoint = editId ? APP.points.find(x => x.id === editId) : null;
     const [latStr, lngStr] = coordVal.split(',');
+    const latitude = Number(latStr);
+    const longitude = Number(lngStr);
+    if(!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      return alert('经纬度超出有效范围。');
+    }
+    const pointId = editId || (crypto.randomUUID ? crypto.randomUUID() : `p_${Date.now()}`);
+    const uploaded = [];
+
+    try {
+      for (const [file, kind] of [[fileImg, 'img'], [fileAudio, 'audio'], [fileVideo, 'video'], [fileVR, 'vr'], [fileDoc, 'doc']]) {
+        const result = await uploadPointAsset(file, kind, pointId);
+        if(result) uploaded.push({ kind, ...result });
+      }
+    } catch(error) {
+      await removeHistoryAssets(uploaded.map(item => item.url));
+      return alert('媒体上传失败：' + error.message);
+    }
+
+    const uploadedUrl = kind => uploaded.find(item => item.kind === kind)?.url || '';
 
     const targetPoint = {
-      id: editId || ('p_' + Date.now()),
+      id: pointId,
       n: document.getElementById('afN').value,
       w: document.getElementById('afW').value,
       y: parseInt(document.getElementById('afY').value),
-      la: parseFloat(latStr),
-      ln: parseFloat(lngStr),
+      la: latitude,
+      ln: longitude,
       d: document.getElementById('afD').value,
-      img: imgData || (existingPoint ? existingPoint.img : ''),
-      audio_url: audioData || (existingPoint ? existingPoint.audio_url : ''),
-      video_url: videoData || (existingPoint ? existingPoint.video_url : ''),
-      vr360_url: vrData || (existingPoint ? existingPoint.vr360_url : ''),
-      doc_url: docData || (existingPoint ? existingPoint.doc_url : ''),
+      img: uploadedUrl('img') || (existingPoint ? existingPoint.img : ''),
+      audio_url: uploadedUrl('audio') || (existingPoint ? existingPoint.audio_url : ''),
+      video_url: uploadedUrl('video') || (existingPoint ? existingPoint.video_url : ''),
+      vr360_url: uploadedUrl('vr') || (existingPoint ? existingPoint.vr360_url : ''),
+      doc_url: uploadedUrl('doc') || (existingPoint ? existingPoint.doc_url : ''),
       status: APP.isSuperAdmin ? 'approved' : 'pending'
     };
 
-    if(editId) {
-      const idx = APP.points.findIndex(x => x.id === editId);
-      if(idx !== -1) APP.points[idx] = targetPoint;
-    } else {
-      APP.points.push(targetPoint);
+    const { data: savedPoint, error: saveError } = editId
+      ? await supabase.from('missionary_points').update(targetPoint).eq('id', editId).select().single()
+      : await supabase.from('missionary_points').insert([targetPoint]).select().single();
+    if(saveError) {
+      await removeHistoryAssets(uploaded.map(item => item.url));
+      return alert('保存失败：' + saveError.message);
     }
 
-    if(isCloudMode) {
-      if(editId) await supabase.from('missionary_points').update(targetPoint).eq('id', editId);
-      else await supabase.from('missionary_points').insert([targetPoint]);
+    if(existingPoint) {
+      const replacedUrls = [];
+      if(fileImg) replacedUrls.push(existingPoint.img);
+      if(fileAudio) replacedUrls.push(existingPoint.audio_url);
+      if(fileVideo) replacedUrls.push(existingPoint.video_url);
+      if(fileVR) replacedUrls.push(existingPoint.vr360_url);
+      if(fileDoc) replacedUrls.push(existingPoint.doc_url);
+      await removeHistoryAssets(replacedUrls);
     }
 
-    alert('保存成功！数据已实时同步至云端！');
+    const idx = APP.points.findIndex(x => x.id === savedPoint.id);
+    if(idx >= 0) APP.points[idx] = savedPoint; else APP.points.push(savedPoint);
+
+    alert('保存成功，数据已同步至云端。');
     document.getElementById('adminModal').style.display = 'none';
     document.getElementById('pointForm').reset();
     document.getElementById('afId').value = '';
     
     APP.renderAll();
-    if(editId) APP.openDrawer(targetPoint);
+    if(editId) APP.openDrawer(savedPoint);
   };
 
   APP.renderAuditList = () => {
     const tbody = document.getElementById('auditTbody');
     tbody.innerHTML = APP.points.map(p => `
       <tr style="border-bottom:1px solid var(--glass-border)">
-        <td style="padding:6px"><b>${p.n}</b></td>
-        <td>${p.w}</td>
+        <td style="padding:6px"><b>${escapeHtml(p.n)}</b></td>
+        <td>${escapeHtml(p.w)}</td>
         <td><span style="color:${p.status==='approved'?'#2ecc71':'var(--gold-bright)'}">${p.status==='approved'?'Online':'Pending'}</span></td>
         <td>
-          ${p.status !== 'approved' ? `<button onclick="APP.approvePoint('${p.id}')" style="color:#2ecc71;background:none;border:none">Approve</button>` : ''}
-          <button onclick="APP.deletePoint('${p.id}')" style="color:#e74c3c;background:none;border:none;margin-left:4px">Delete</button>
+          ${p.status !== 'approved' ? `<button data-approve-id="${escapeHtml(p.id)}" style="color:#2ecc71;background:none;border:none">Approve</button>` : ''}
+          <button data-delete-id="${escapeHtml(p.id)}" style="color:#e74c3c;background:none;border:none;margin-left:4px">Delete</button>
         </td>
       </tr>
     `).join('');
+    tbody.querySelectorAll('[data-approve-id]').forEach(button => button.addEventListener('click', () => APP.approvePoint(button.dataset.approveId)));
+    tbody.querySelectorAll('[data-delete-id]').forEach(button => button.addEventListener('click', () => APP.deletePoint(button.dataset.deleteId)));
   };
 
   APP.approvePoint = async (id) => {
     if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
-    const p = APP.points.find(x => x.id === id);
-    if(p) p.status = 'approved';
-    if(isCloudMode) await supabase.from('missionary_points').update({ status: 'approved' }).eq('id', id);
+    const { data, error } = await supabase.from('missionary_points').update({ status: 'approved' }).eq('id', id).select().single();
+    if(error) return alert('审核失败：' + error.message);
+    const index = APP.points.findIndex(x => x.id === id);
+    if(index >= 0) APP.points[index] = data;
     APP.renderAll();
     APP.renderAuditList();
   };
@@ -1704,16 +1762,27 @@ window.addEventListener('DOMContentLoaded', () => {
   APP.deletePoint = async (id) => {
     if(!APP.isSuperAdmin) return alert('Super Admin permission required!');
     if(!confirm('Delete this record?')) return;
+    const point = APP.points.find(x => x.id === id);
+    const { error } = await supabase.from('missionary_points').delete().eq('id', id);
+    if(error) return alert('删除失败：' + error.message);
     APP.points = APP.points.filter(x => x.id !== id);
-    if(isCloudMode) await supabase.from('missionary_points').delete().eq('id', id);
+    if(point) await removeHistoryAssets([point.img, point.audio_url, point.video_url, point.vr360_url, point.doc_url]);
     APP.renderAll();
     APP.renderAuditList();
   };
 
   APP.setLanguage('zh');
-  APP.updateTimeline(2026);
+  APP.updateTimeline(CURRENT_YEAR);
   APP.loadSavedAuth();
-  APP.loadPointsFromCloud(); // 🚀 启动时自动从云端加载最新点位
+  if(isCloudMode) {
+    supabase.auth.getSession().then(({ data }) => APP.applyAuthUser(data.session?.user || null));
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setTimeout(() => APP.applyAuthUser(session?.user || null), 0);
+    });
+  } else {
+    APP.applyAuthUser(null);
+    APP.renderAll();
+  }
 });
 </script>
 </body>

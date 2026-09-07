@@ -31,3 +31,11 @@ test("database migration covers tables and both media buckets", () => {
   assert.match(sql, /enable row level security/);
   assert.match(sql, /app_metadata/);
 });
+
+test("point schema migration includes localized editor fields", () => {
+  const sql = fs.readFileSync("supabase/migrations/20260908000000_add_point_localized_fields.sql", "utf8");
+  for (const column of ["n_en", "w_en", "d_en", "created_by"]) {
+    assert.match(sql, new RegExp(`add column if not exists ${column}\\b`));
+  }
+  assert.match(sql, /notify pgrst, 'reload schema'/);
+});

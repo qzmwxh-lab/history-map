@@ -4,6 +4,13 @@
     const $ = id => doc.getElementById(id);
     const state = { user: null, tab: 'overview', page: 0, total: 0, rows: [], work: null, revision: 0, busy: false };
     const pageSize = 20;
+    const pointUploads = {
+      img: { label: '上传本地图片', accept: 'image/jpeg,image/png,image/webp,image/gif', types: ['image/jpeg','image/png','image/webp','image/gif'], maxMB: 20 },
+      audio_url: { label: '上传本地音频', accept: 'audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm', types: ['audio/mpeg','audio/mp4','audio/ogg','audio/wav','audio/webm'], maxMB: 50 },
+      video_url: { label: '上传本地视频', accept: 'video/mp4,video/webm,video/quicktime', types: ['video/mp4','video/webm','video/quicktime'], maxMB: 200 },
+      vr360_url: { label: '上传全景图片 / 视频', accept: 'image/jpeg,image/png,image/webp,video/mp4,video/webm', types: ['image/jpeg','image/png','image/webp','video/mp4','video/webm'], maxMB: 200 },
+      doc_url: { label: '上传本地文献', accept: '.pdf,.doc,.docx,.txt,.md,.rtf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown,application/rtf', types: ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','text/plain','text/markdown','application/rtf'], maxMB: 50 }
+    };
     const schema = {
       points: { table: 'missionary_points', title: '历史点位', name: 'n', fields: [
         ['n','人物 / 名称','text',true], ['w','地点','text',true], ['y','年代','number',true],
@@ -143,6 +150,13 @@
         if(type === 'number') { input.step = ['y','sort_order'].includes(key) ? '1' : 'any'; if(min != null) input.min = min; if(max != null) input.max = max; }
         input.value = row?.[key] ?? defaults[key] ?? ''; if(type === 'textarea' || type === 'url') wrap.className = 'wide';
         wrap.append(input); $('fields').append(wrap);
+        if (editing.s === schema.points && pointUploads[key]) {
+          const upload = pointUploads[key];
+          const uploadLabel = node('label',`${upload.label}（≤ ${upload.maxMB} MB）`,'wide upload-field');
+          const file = node('input'); file.type = 'file'; file.name = `upload_${key}`; file.accept = upload.accept;
+          uploadLabel.append(file,node('span','选择文件后，保存时上传并自动填写上方 URL。','upload-hint'));
+          $('fields').append(uploadLabel);
+        }
       }
       if (editing.s === schema.scenes) {
         const label = node('label','上传全景文件（图片 ≤ 20 MB；视频 ≤ 200 MB）','wide'); const file = node('input');
@@ -163,6 +177,26 @@
             if(type === 'url' && value && !/^https?:\/\//i.test(value)) throw new Error('媒体地址必须使用 HTTP 或 HTTPS。');
             payload[key] = type === 'number' ? (value ? Number(value) : null) : value;
           }
+          if(current.s === schema.points) {
+            const recordId = current.row?.id || root.crypto.randomUUID();
+            for (const [key,upload] of Object.entries(pointUploads)) {
+              const fileInput = $('edit-form').elements.namedItem(`upload_${key}`);
+              const file = fileInput?.files?.[0];
+              if (!file) continue;
+              if (!upload.types.includes(file.type)) throw new Error(`${upload.label}：不支持此文件格式。`);
+              if (file.size > upload.maxMB*1024*1024) throw new Error(`${upload.label}：文件超过 ${upload.maxMB} MB。`);
+              $('edit-error').textContent = `正在上传：${file.name}`;
+              const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_') || 'file';
+              const path = `${user.id}/points/${recordId}/${key}/${root.crypto.randomUUID()}-${safeName}`;
+              const bucket = sb.storage.from(config.storage.historyBucket);
+              const {error} = await bucket.upload(path,file,{contentType:file.type,upsert:false});
+              if(error) throw error;
+              payload[key] = bucket.getPublicUrl(path).data.publicUrl;
+              $('edit-form').elements.namedItem(key).value = payload[key]; fileInput.value = '';
+              await authorize();
+            }
+            if(!current.row) { payload.id = recordId; payload.created_by = user.id; }
+          }
           if(current.s === schema.scenes) {
             payload.work_id = current.workId;
             const file = $('edit-form').elements.namedItem('upload').files[0];
@@ -182,7 +216,6 @@
             }
             if(!payload.media_url) throw new Error('请填写媒体 URL 或上传全景文件。');
           }
-          if(!current.row && current.s === schema.points) { payload.id = root.crypto.randomUUID(); payload.created_by = user.id; }
           let query = sb.from(current.s.table);
           query = current.row ? query.update(payload).eq('id',current.row.id) : query.insert(payload);
           const {error} = await query.select('id').single(); if(error) throw error;

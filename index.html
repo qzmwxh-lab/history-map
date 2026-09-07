@@ -1190,14 +1190,17 @@ window.addEventListener('DOMContentLoaded', () => {
     if(imageUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🖼️ Photo</div><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(pName)}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;max-height:200px;object-fit:cover;border-radius:4px"></div>`;
     if(audioUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎵 Audio Guide</div><audio controls preload="metadata" style="width:100%;height:32px"><source src="${escapeHtml(audioUrl)}"></audio></div>`;
     if(videoUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🎬 Documentary / Video</div><video controls preload="metadata" style="width:100%;max-height:220px"><source src="${escapeHtml(videoUrl)}"></video></div>`;
-    if(panoramaUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 VR 360° Panorama</div><div id="vr-panorama"></div></div>`;
+    const panoramaIsVideo = panoramaUrl && /\.(mp4|webm|mov)(?:[?#]|$)/i.test(panoramaUrl);
+    if(panoramaUrl) html += panoramaIsVideo
+      ? `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 360° Panorama Video</div><video controls playsinline preload="metadata" style="width:100%;max-height:260px"><source src="${escapeHtml(panoramaUrl)}"></video></div>`
+      : `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">🥽 VR 360° Panorama</div><div id="vr-panorama"></div></div>`;
     if(documentUrl) html += `<div class="media-box"><div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px">📄 Document / Archive</div><iframe src="${escapeHtml(documentUrl)}" title="${escapeHtml(pName)}" sandbox style="width:100%;height:220px;border:none"></iframe></div>`;
 
     document.getElementById('dWBody').innerHTML = html;
     document.getElementById('drawer-nav-btn').addEventListener('click', () => APP.openNavigation(p.la, p.ln, pName));
     document.getElementById('drawer').classList.add('open');
 
-    if(panoramaUrl) {
+    if(panoramaUrl && !panoramaIsVideo) {
       setTimeout(() => { pannellum.viewer('vr-panorama', { type: 'equirectangular', panorama: panoramaUrl, autoLoad: true }); }, 300);
     }
   };

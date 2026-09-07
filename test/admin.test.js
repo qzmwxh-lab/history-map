@@ -28,9 +28,13 @@ function fixture({role='admin',rows=[],total=rows.length,writeError=null}={}) {
         delete(){call.delete=true;return q;}, single(){return q;},
         then(resolve,reject){return Promise.resolve({data:rows,count:total,error:call.write?writeError:null}).then(resolve,reject);}
       }; return q;
-    }
+    },
+    storage:{from(bucket){return {
+      upload:async(path,file,options)=>{calls.push({bucket,path,file,options,upload:true});return {error:null};},
+      getPublicUrl:path=>({data:{publicUrl:`https://cdn.example/${bucket}/${path}`}})
+    };}}
   };
-  const app = win.module.exports.createAdmin(win.document,sb,{adminRole:'admin',storage:{vrBucket:'vr-media'}});
+  const app = win.module.exports.createAdmin(win.document,sb,{adminRole:'admin',storage:{historyBucket:'history-media',vrBucket:'vr-media'}});
   return {app,doc:win.document,calls,revoke:()=>currentRole='member',close:()=>win.close()};
 }
 
@@ -110,4 +114,23 @@ test('confirmed deletion targets the selected work',async()=>{
   const dialog=f.doc.getElementById('confirm-dialog');dialog.returnValue='delete';dialog.close();
   await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(f.calls.find(c=>c.delete).filters,[['id',42]]);f.close();
+});
+
+test('point editor offers local uploads for every requested media kind',async()=>{
+  const f=fixture();await f.app.start();await f.app.navigate('points');
+  await f.app.edit({id:'p1',n:'人物',w:'地点',y:1900,la:30,ln:110,status:'approved'});
+  assert.deepEqual([...f.doc.querySelectorAll('.upload-field input')].map(el=>el.name),[
+    'upload_img','upload_audio_url','upload_video_url','upload_vr360_url','upload_doc_url'
+  ]);f.close();
+});
+
+test('local image upload stores the file and writes its public URL',async()=>{
+  const f=fixture();await f.app.start();await f.app.navigate('points');
+  await f.app.edit({id:'p1',n:'人物',w:'地点',y:1900,la:30,ln:110,status:'approved'});
+  const input=f.doc.querySelector('[name="upload_img"]');
+  Object.defineProperty(input,'files',{value:[new f.doc.defaultView.File(['image'],'local.jpg',{type:'image/jpeg'})]});
+  await f.app.save({preventDefault(){}});
+  const upload=f.calls.find(c=>c.upload);const write=f.calls.find(c=>c.write);
+  assert.equal(upload.bucket,'history-media');assert.equal(upload.options.contentType,'image/jpeg');
+  assert.match(write.write.img,/^https:\/\/cdn\.example\/history-media\//);f.close();
 });

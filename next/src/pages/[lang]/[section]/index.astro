@@ -1,0 +1,78 @@
+---
+import Shell from '../../../layouts/Shell.astro';
+import { labels } from '../../../lib/catalog.mjs';
+export function getStaticPaths() { return ['zh','en'].flatMap(lang => ['map','places','people','library','routes'].map(section=>({params:{lang,section}}))); }
+const { lang, section } = Astro.params;
+const t = labels[lang as 'zh'|'en'];
+const chinese = lang === 'zh';
+const intros:Record<string,string[]> = {
+  map:['沿着地图，重访跨越时代的足迹。','Explore the places where lives and history meet.'],
+  places:['一处地点，一段值得追寻的历史。','Every place holds a history worth exploring.'],
+  people:['在时代的经纬中，读懂一个人的一生。','Discover the lives behind the journeys.'],
+  library:['让每一段叙述，都有据可循。','Follow each story back to its sources.'],
+  routes:['循着足迹，连接过去与此刻。','Connect the past with the places around you.']
+};
+---
+<Shell lang={lang} section={section}>
+  <section class="intro"><p class="eyebrow">{section === 'map' ? 'THE LIVING ATLAS' : 'THE HISTORICAL COLLECTION'}</p><h1>{t[section as keyof typeof t]}</h1><p>{intros[section!][chinese ? 0 : 1]}</p></section>
+  <section class="workspace" data-catalog data-section={section} data-lang={lang} data-url={import.meta.env.PUBLIC_SUPABASE_URL || 'https://zjtofadvudkfijlpptmb.supabase.co'} data-key={import.meta.env.PUBLIC_SUPABASE_KEY || 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'}>
+    <div class="toolbar"><label class="search-label"><span>{chinese ? '检索档案' : 'Search records'}</span><input type="search" id="search" placeholder={t.search} /></label><label><span>{chinese ? '截至年份' : 'Through year'}</span><input id="year" type="number" min="1" max="2100" placeholder={chinese ? '全部年代' : 'All years'} /></label><button id="retry">{t.retry}</button></div>
+    <p id="status" role="status" aria-live="polite">{t.loading}</p>
+    {section === 'map' && <div id="atlas" aria-label={chinese ? '历史地点地图' : 'Historical places map'}></div>}
+    <div id="results" class="cards"></div>
+    <noscript>{chinese ? '请启用 JavaScript 读取地图档案。' : 'Enable JavaScript to load the archive.'}</noscript>
+  </section>
+</Shell>
+<script>
+import {labels, filterPoints, publicPoint} from '../../../lib/catalog.mjs';
+const root = document.querySelector<HTMLElement>('[data-catalog]')!;
+const lang = root.dataset.lang as 'zh'|'en'; const t = labels[lang];
+const status = document.querySelector<HTMLElement>('#status')!;
+const results = document.querySelector<HTMLElement>('#results')!;
+const search = document.querySelector<HTMLInputElement>('#search')!;
+const year = document.querySelector<HTMLInputElement>('#year')!;
+let rows:any[] = []; let map:any; let layer:any; let L:any;
+const initial=new URL(location.href);search.value=initial.searchParams.get('q')||'';year.value=initial.searchParams.get('year')||'';
+function remember(){const url=new URL(location.href);search.value?url.searchParams.set('q',search.value):url.searchParams.delete('q');year.value?url.searchParams.set('year',year.value):url.searchParams.delete('year');if(map){const c=map.getCenter();url.searchParams.set('lat',c.lat.toFixed(4));url.searchParams.set('lng',c.lng.toFixed(4));url.searchParams.set('zoom',String(map.getZoom()));}history.replaceState(null,'',url);}
+function render() {
+  results.replaceChildren(); layer?.clearLayers();
+  const selected = filterPoints(rows, search.value, year.value);
+  status.textContent = selected.length ? `${selected.length} ${lang === 'zh' ? '条档案' : 'records'}` : t.empty;
+  for (const p of selected) {
+    const article = document.createElement('article'); article.className='card';
+    const meta=document.createElement('small'); meta.textContent=`${p.year ?? '—'} · ${t.pending}`;
+    const heading=document.createElement('h2'); heading.textContent=p.title;
+    const person=document.createElement('p'); person.textContent=p.person;
+    const desc=document.createElement('p'); desc.textContent=p.summary;
+    const link=document.createElement('a'); link.href=`/${lang}/record/?id=${encodeURIComponent(p.id)}`;link.textContent=t.read;
+    article.append(meta,heading,person,desc,link); results.append(article);
+    if(layer && p.coordinateSystem === 'WGS84' && Number.isFinite(p.latitude) && Number.isFinite(p.longitude)) {
+      const popup=document.createElement('a'); popup.textContent=p.title;popup.href=link.href;
+      const marker=p.precision==='approximate'?L.circle([p.latitude,p.longitude],{radius:5000,color:'#d6b779'}):L.circleMarker([p.latitude,p.longitude],{radius:7,color:'#d6b779'});
+      marker.bindPopup(popup).addTo(layer);
+    }
+  }
+}
+async function load() {
+  status.textContent=t.loading;
+  const button=document.querySelector<HTMLButtonElement>('#retry')!; button.disabled=true;
+  try {
+    const url=new URL(root.dataset.section === 'map' || root.dataset.section === 'places' ? '/rest/v1/public_atlas' : '/rest/v1/public_archive',root.dataset.url);
+    if(root.dataset.section !== 'map' && root.dataset.section !== 'places') url.searchParams.set('kind',`eq.${root.dataset.section}`);
+    url.searchParams.set('select','id,kind,title,title_en,person,year,summary,summary_en,source_citation,status,visibility,coordinate_system,public_latitude,public_longitude,location_precision'); url.searchParams.set('order','year.asc,id.asc');
+    const all:any[]=[];
+    for(let offset=0;;offset+=500){url.searchParams.set('limit','500');url.searchParams.set('offset',String(offset));const response=await fetch(url,{headers:{apikey:root.dataset.key!},signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error(String(response.status));const batch=await response.json();all.push(...batch);if(batch.length<500)break;}
+    rows=all.map(row=>publicPoint(row,lang)).filter(Boolean); render();
+  } catch { status.textContent=t.error; } finally { button.disabled=false; }
+}
+search.addEventListener('input',()=>{remember();render();}); year.addEventListener('input',()=>{remember();render();});
+document.querySelector('#retry')!.addEventListener('click',load);
+if(root.dataset.section === 'map') {
+  L=await import('leaflet'); await import('leaflet/dist/leaflet.css');
+  const lat=Number(initial.searchParams.get('lat')??28);const lng=Number(initial.searchParams.get('lng')??70);const zoom=Number(initial.searchParams.get('zoom')??3);
+  map=L.map('atlas').setView([Number.isFinite(lat)&&Math.abs(lat)<=90?lat:28,Number.isFinite(lng)&&Math.abs(lng)<=180?lng:70],Number.isFinite(zoom)?Math.min(18,Math.max(2,zoom)):3); layer=L.layerGroup().addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+  map.on('moveend',remember);
+}
+await load();
+</script>

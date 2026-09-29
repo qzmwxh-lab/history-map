@@ -1,0 +1,57 @@
+---
+import Shell from '../../../layouts/Shell.astro';
+export function getStaticPaths(){return ['zh','en'].map(lang=>({params:{lang}}));}
+const {lang}=Astro.params;
+---
+<Shell lang={lang} section="places" title={lang==='zh'?'历史档案':'Historical record'}>
+ <article class="intro" data-record data-lang={lang} data-url={import.meta.env.PUBLIC_SUPABASE_URL || 'https://zjtofadvudkfijlpptmb.supabase.co'} data-key={import.meta.env.PUBLIC_SUPABASE_KEY || 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'}>
+ <p class="eyebrow">HISTORICAL RECORD</p><h1 id="record-title">{lang==='zh'?'历史档案':'Historical record'}</h1>
+ <p id="record-status" role="status">{lang==='zh'?'正在读取档案…':'Loading record…'}</p>
+ <div id="record-content" hidden>
+ <p id="translation-notice"></p><p id="record-summary"></p>
+ <section><h2>{lang==='zh'?'历史档案':'Historical account'}</h2><div id="history" class="prose"></div></section>
+ <section id="reflection-section"><h2>{lang==='zh'?'编辑反思':'Editorial reflection'}</h2><p>{lang==='zh'?'以下为编辑的信仰反思，与上方史实分别呈现。':'This editorial reflection is presented separately from the historical account.'}</p><div id="reflection" class="prose"></div></section>
+ <section><h2>{lang==='zh'?'参考资料':'Sources'}</h2><p id="source"></p></section>
+ <section id="media-section" hidden><h2>{lang==='zh'?'影像、声音与文献':'Media and documents'}</h2><div id="record-media" class="record-media"></div></section>
+ <section id="related-section" hidden><h2>{lang==='zh'?'相关足迹与资料':'Related places and records'}</h2><ol id="related-records"></ol></section>
+ <button id="share">{lang==='zh'?'复制分享链接':'Copy link'}</button>
+ </div>
+ <p><button id="retry-record">{lang==='zh'?'重新加载':'Retry'}</button> <a href={`/${lang}/map/`}>{lang==='zh'?'返回地图':'Back to map'}</a></p>
+ </article>
+</Shell>
+<script>
+import {publicAssetUrl} from '../../../lib/media.mjs';
+const root=document.querySelector<HTMLElement>('[data-record]')!;const zh=root.dataset.lang==='zh';
+const status=document.querySelector<HTMLElement>('#record-status')!;
+const content=document.querySelector<HTMLElement>('#record-content')!;
+const id=new URL(location.href).searchParams.get('id');
+async function load(){
+ content.hidden=true;
+ if(!id||!/^[a-zA-Z0-9_-]{1,100}$/.test(id)){status.textContent=zh?'档案链接无效。':'Invalid record link.';return;}
+ const button=document.querySelector<HTMLButtonElement>('#retry-record')!;button.disabled=true;
+ try{
+  const url=new URL('/rest/v1/public_archive',root.dataset.url);url.searchParams.set('id',`eq.${id}`);url.searchParams.set('select','*');url.searchParams.set('limit','1');
+  const response=await fetch(url,{headers:{apikey:root.dataset.key!},signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error();
+  const [row]=await response.json();
+  if(!row||row.status!=='published'||row.visibility!=='public'){status.textContent=zh?'档案尚未公开或不存在。':'This record is not publicly available.';return;}
+  const translated=!zh&&row.title_en;
+  document.querySelector('#record-title')!.textContent=translated?row.title_en:row.title;
+  document.querySelector('#record-summary')!.textContent=translated?row.summary_en:row.summary;
+  document.querySelector('#history')!.textContent=translated?row.historical_text_en:row.historical_text;
+  const reflection=translated?row.reflection_text_en:row.reflection_text;
+  document.querySelector('#reflection')!.textContent=reflection||'';
+  (document.querySelector('#reflection-section') as HTMLElement).hidden=!reflection;
+  document.querySelector('#source')!.textContent=row.source_citation||(zh?'资料来源待核验。':'Sources awaiting verification.');
+  document.querySelector('#translation-notice')!.textContent=!zh&&!translated?'An approved English translation is not yet available. Showing the Chinese original.':'';
+  status.textContent='';content.hidden=false;
+  const mediaSection=document.querySelector<HTMLElement>('#media-section')!;const media=document.querySelector<HTMLElement>('#record-media')!;media.replaceChildren();mediaSection.hidden=true;
+  try{const assetUrl=new URL('/rest/v1/public_archive_assets',root.dataset.url);assetUrl.searchParams.set('record_id',`eq.${id}`);assetUrl.searchParams.set('order','sort_order.asc,id.asc');const assetResponse=await fetch(assetUrl,{headers:{apikey:root.dataset.key!},signal:AbortSignal.timeout(10000)});if(!assetResponse.ok)throw new Error();for(const asset of await assetResponse.json()){const url=publicAssetUrl(root.dataset.url,asset);if(!url)continue;const figure=document.createElement('figure');let item:HTMLElement;if(asset.kind==='image'||(asset.kind==='panorama'&&asset.mime_type?.startsWith('image/'))){item=document.createElement('img');(item as HTMLImageElement).src=url;(item as HTMLImageElement).alt=asset.caption||asset.file_name||'';(item as HTMLImageElement).loading='lazy';}else if(asset.kind==='audio'){item=document.createElement('audio');(item as HTMLAudioElement).src=url;(item as HTMLAudioElement).controls=true;}else if(asset.kind==='video'||asset.kind==='panorama'){item=document.createElement('video');(item as HTMLVideoElement).src=url;(item as HTMLVideoElement).controls=true;(item as HTMLVideoElement).preload='metadata';}else{item=document.createElement('a');(item as HTMLAnchorElement).href=url;(item as HTMLAnchorElement).target='_blank';(item as HTMLAnchorElement).rel='noopener noreferrer';item.textContent=asset.caption||asset.file_name||(zh?'打开文献':'Open document');}figure.append(item);if(asset.caption&&asset.kind!=='document')figure.append(Object.assign(document.createElement('figcaption'),{textContent:asset.caption}));media.append(figure);}mediaSection.hidden=!media.childElementCount;}catch{status.textContent=zh?'正文已加载，媒体暂时不可用。':'Record loaded; media is temporarily unavailable.';}
+  const relatedSection=document.querySelector<HTMLElement>('#related-section')!;relatedSection.hidden=true;document.querySelector('#related-records')!.replaceChildren();
+  try{const linkUrl=new URL('/rest/v1/public_archive_links',root.dataset.url);linkUrl.searchParams.set('record_id',`eq.${id}`);linkUrl.searchParams.set('order','position.asc,related_id.asc');const linkResponse=await fetch(linkUrl,{headers:{apikey:root.dataset.key!},signal:AbortSignal.timeout(10000)});if(!linkResponse.ok)throw new Error();const links=await linkResponse.json();for(const link of links){const item=document.createElement('li');const a=document.createElement('a');a.textContent=link.title;a.href=`/${root.dataset.lang}/record/?id=${encodeURIComponent(link.related_id)}`;item.append(a);document.querySelector('#related-records')!.append(item);}relatedSection.hidden=links.length===0;}catch{status.textContent=zh?'正文已加载，关联资料暂时不可用。':'Record loaded; related records are temporarily unavailable.';}
+ }catch{status.textContent=zh?'档案加载失败，请重试。':'Unable to load this record. Please retry.';}finally{button.disabled=false;}
+}
+document.querySelector('#retry-record')!.addEventListener('click',load);
+document.querySelector('#share')!.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);status.textContent=zh?'链接已复制。':'Link copied.';}catch{status.textContent=zh?'请复制浏览器地址栏中的链接。':'Copy the URL from your address bar.';}});
+load();
+</script>
+<style>.prose{white-space:pre-wrap;line-height:1.95;max-width:72ch}section{padding:24px 0;border-bottom:1px solid var(--line)}h2{font-family:Georgia,"Songti SC",serif;font-weight:500}.record-media{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}.record-media figure{margin:0;padding:16px;border:1px solid var(--line);background:var(--panel)}.record-media img,.record-media video{display:block;width:100%;max-height:520px;object-fit:contain}.record-media audio{width:100%}.record-media figcaption{margin-top:10px;color:var(--muted)}</style>

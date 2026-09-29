@@ -1,0 +1,27 @@
+---
+import { labels, sections } from '../lib/catalog.mjs';
+import '../styles/site.css';
+const { lang = 'zh', section = 'map', title } = Astro.props;
+const t = labels[lang as 'zh'|'en'];
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title || t[section as keyof typeof t]} · 光之足迹</title>
+  <meta name="description" content={lang === 'zh' ? '探索宣教历史地点、人物故事与参考文献。史实与信仰反思分别呈现。' : 'Explore historical places, people and source materials.'} />
+  <meta name="robots" content="noindex,nofollow" />
+</head>
+<body class={section === 'map' ? 'map-theme' : 'reading-theme'}>
+  <a href="#main" class="skip">{lang === 'zh' ? '跳至正文' : 'Skip to content'}</a>
+  <header class="header">
+    <a class="brand" href={`/${lang}/map/`}><span class="brand-mark">✦</span><span>光之足迹<small>FOOTPRINTS OF LIGHT</small></span></a>
+    <nav aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
+      {sections.filter(s=>s !== 'places').map(s => <a href={`/${lang}/${s}/`} aria-current={s === section ? 'page' : undefined}>{t[s as keyof typeof t]}</a>)}
+    </nav>
+    <div class="account"><a href={`/${lang === 'zh' ? 'en' : 'zh'}/${section}/`} lang={lang === 'zh' ? 'en' : 'zh'}>{lang === 'zh' ? 'EN' : '中文'}</a><a href={`/${lang}/login/`}>{t.login}</a></div>
+  </header>
+  <main id="main"><slot /></main>
+  <footer>{lang === 'zh' ? '光之足迹 · 历史有据，阅读有光。' : 'Footprints of Light · History with sources.'}<span>{lang === 'zh' ? '新版预览' : 'Preview'}</span></footer>
+</body>
+</html>

@@ -1,0 +1,69 @@
+---
+import Shell from '../../../layouts/Shell.astro';
+export function getStaticPaths() { return ['zh','en'].map(lang=>({params:{lang}})); }
+const {lang}=Astro.params;
+---
+<Shell lang={lang} section="login" title={lang==='zh'?'贡献者登录':'Contributor sign in'}>
+ <section class="intro"><p class="eyebrow">CONTRIBUTOR WORKSPACE</p><h1>{lang==='zh'?'共同守护历史的细节':'Care for the historical record'}</h1><p>{lang==='zh'?'受邀贡献者使用邮箱登录，参与整理与审核。':'Invited contributors sign in by email to curate historical records.'}</p></section>
+ <section class="workspace" data-auth data-lang={lang} data-url={import.meta.env.PUBLIC_SUPABASE_URL || 'https://zjtofadvudkfijlpptmb.supabase.co'} data-key={import.meta.env.PUBLIC_SUPABASE_KEY || 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'}>
+ <form id="login-form" class="card" style="max-width:520px">
+ <label>{lang==='zh'?'邮箱':'Email'}<input name="email" type="email" required autocomplete="username" /></label>
+ <label>{lang==='zh'?'密码':'Password'}<input name="password" type="password" required autocomplete="current-password" /></label>
+ <p><button type="submit">{lang==='zh'?'登录':'Sign in'}</button> <button id="recover" type="button">{lang==='zh'?'忘记密码':'Forgot password'}</button></p>
+ </form>
+ <form id="password-form" class="card" style="max-width:520px" hidden>
+ <label>{lang==='zh'?'新密码（至少12位）':'New password (at least 12 characters)'}<input name="password" type="password" required minlength="12" autocomplete="new-password" /></label>
+ <label>{lang==='zh'?'再次输入密码':'Confirm password'}<input name="confirmation" type="password" required minlength="12" autocomplete="new-password" /></label>
+ <p><button type="submit">{lang==='zh'?'保存密码':'Save password'}</button></p>
+ </form>
+ <div id="signed-in" hidden><p id="account"></p><button id="logout">{lang==='zh'?'退出':'Sign out'}</button><div id="workspace"></div></div>
+ <p id="auth-status" role="status" aria-live="polite"></p>
+ </section>
+</Shell>
+<script>
+import {createClient} from '@supabase/supabase-js';
+import {createWorkspace} from '../../../lib/workspace';
+const root=document.querySelector<HTMLElement>('[data-auth]')!;
+const zh=root.dataset.lang==='zh';
+const invitation=new URLSearchParams(location.hash.slice(1)).get('type')==='invite';
+const sb=createClient(root.dataset.url!,root.dataset.key!,{auth:{persistSession:false,detectSessionInUrl:true}});
+const login=document.querySelector<HTMLFormElement>('#login-form')!;
+const passwordForm=document.querySelector<HTMLFormElement>('#password-form')!;
+const signed=document.querySelector<HTMLElement>('#signed-in')!;
+const status=document.querySelector<HTMLElement>('#auth-status')!;
+let recovery=false;let busy=false;
+const value=(form:HTMLFormElement,name:string)=>(form.elements.namedItem(name) as HTMLInputElement).value;
+async function perform(action:()=>Promise<void>){
+ if(busy)return;busy=true;
+ root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=true);
+ try{await action();}catch{status.textContent=zh?'操作未完成，请检查输入或稍后重试。':'Unable to complete the request. Check your entries or try later.';}
+ finally{busy=false;root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=false);}
+}
+login.addEventListener('submit',e=>{e.preventDefault();perform(async()=>{
+ const {error}=await sb.auth.signInWithPassword({email:value(login,'email').trim(),password:value(login,'password')});
+ (login.elements.namedItem('password') as HTMLInputElement).value='';
+ if(error){status.textContent=zh?'登录失败，请核对邮箱和密码。':'Sign-in failed. Check your email and password.';return;}
+ const {data,error:verify}=await sb.auth.getUser();if(verify||!data.user)throw verify;
+ login.hidden=true;signed.hidden=false;document.querySelector('#account')!.textContent=data.user.email || '';
+ createWorkspace(document.querySelector<HTMLElement>('#workspace')!,sb,data.user,zh);
+ status.textContent=zh?'登录成功。':'Signed in.';
+ });});
+document.querySelector('#recover')!.addEventListener('click',()=>perform(async()=>{
+ const email=login.elements.namedItem('email') as HTMLInputElement;if(!email.reportValidity())return;
+ const {error}=await sb.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:new URL(location.pathname,location.origin).href});
+ if(error)throw error;status.textContent=zh?'如果该邮箱可以接收恢复邮件，请前往邮箱查看。':'If recovery is available for this email, check your inbox.';
+}));
+sb.auth.onAuthStateChange((event)=>{
+ if(event==='PASSWORD_RECOVERY'||(event==='SIGNED_IN'&&invitation)){recovery=true;history.replaceState(null,'',location.pathname);login.hidden=true;passwordForm.hidden=false;signed.hidden=true;}
+});
+passwordForm.addEventListener('submit',e=>{e.preventDefault();perform(async()=>{
+ const password=value(passwordForm,'password');
+ if(!recovery||password.length<12||password!==value(passwordForm,'confirmation')){status.textContent=zh?'请确认链接有效，且两次密码一致、至少12位。':'Use a valid recovery link and matching passwords of at least 12 characters.';return;}
+ const {error}=await sb.auth.updateUser({password});passwordForm.reset();if(error)throw error;
+ await sb.auth.signOut();recovery=false;passwordForm.hidden=true;login.hidden=false;status.textContent=zh?'密码已更新，请登录。':'Password updated. Please sign in.';
+});});
+document.querySelector('#logout')!.addEventListener('click',()=>perform(async()=>{const {error}=await sb.auth.signOut();if(error)throw error;document.querySelector('#workspace')!.replaceChildren();signed.hidden=true;login.hidden=false;status.textContent=zh?'已退出。':'Signed out.';}));
+</script>
+<style is:global>
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;width:min(800px,94vw);max-height:90vh;padding:30px}dialog::backdrop{background:#0009}.record-form{display:grid;gap:16px}.record-form label{display:grid;gap:8px}.record-form textarea,.record-form select{font:inherit;padding:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);width:100%}.media-fields{display:grid;gap:14px;border:1px dashed var(--line);padding:18px}.media-fields legend{color:var(--accent);font-weight:650}.media-fields p{margin:0;color:var(--muted)}.asset-list{border-top:1px solid var(--line);padding-top:14px}.asset-list p{margin:4px 0}
+</style>

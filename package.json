@@ -5,7 +5,7 @@
   "description": "Interactive history map and VR panorama viewer",
   "scripts": {
     "check": "node scripts/check.mjs",
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
     "verify": "npm run check && npm test"
   },
   "engines": {

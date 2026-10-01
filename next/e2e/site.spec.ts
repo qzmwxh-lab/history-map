@@ -27,6 +27,13 @@ test('reading pages do not load map JavaScript and retain language navigation',a
  await expect(page.locator('.account a').first()).toHaveAttribute('href','/zh/library/');
  expect(scripts.some(s=>s.includes('leaflet'))).toBe(false);
 });
+test('public pages are indexable while the contributor login stays private',async({page})=>{
+ await page.route('**/rest/v1/public_archive*',r=>r.fulfill({json:[]}));
+ await page.goto('/zh/library/');
+ await expect(page.locator('meta[name=robots]')).toHaveAttribute('content','index,follow');
+ await page.goto('/zh/login/');
+ await expect(page.locator('meta[name=robots]')).toHaveAttribute('content','noindex,nofollow');
+});
 test('login rejects invalid credentials without exposing password or granting access',async({page})=>{
  await page.route('**/auth/v1/token*',r=>r.fulfill({status:400,json:{error:'invalid_grant',error_description:'Invalid credentials'}}));
  await page.goto('/zh/login/');

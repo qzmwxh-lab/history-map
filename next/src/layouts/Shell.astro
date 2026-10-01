@@ -1,6 +1,7 @@
 ---
 import { labels, sections } from '../lib/catalog.mjs';
 import '../styles/site.css';
+import '../styles/map-heritage.css';
 const { lang = 'zh', section = 'map', title } = Astro.props;
 const t = labels[lang as 'zh'|'en'];
 ---
@@ -15,7 +16,7 @@ const t = labels[lang as 'zh'|'en'];
 <body class={section === 'map' ? 'map-theme' : 'reading-theme'}>
   <a href="#main" class="skip">{lang === 'zh' ? '跳至正文' : 'Skip to content'}</a>
   <header class="header">
-    <a class="brand" href={`/${lang}/map/`}><span class="brand-mark">✦</span><span>光之足迹<small>FOOTPRINTS OF LIGHT</small></span></a>
+    <a class="brand" href={`/${lang}/map/`}><span class="brand-mark" aria-hidden="true"></span><span>光之足迹<small>FOOTPRINTS OF LIGHT</small></span></a>
     <nav aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
       {sections.filter(s=>s !== 'places').map(s => <a href={`/${lang}/${s}/`} aria-current={s === section ? 'page' : undefined}>{t[s as keyof typeof t]}</a>)}
     </nav>

@@ -14,12 +14,20 @@ const intros:Record<string,string[]> = {
 };
 ---
 <Shell lang={lang} section={section}>
-  <section class="intro"><p class="eyebrow">{section === 'map' ? 'THE LIVING ATLAS' : 'THE HISTORICAL COLLECTION'}</p><h1>{t[section as keyof typeof t]}</h1><p>{intros[section!][chinese ? 0 : 1]}</p></section>
-  <section class="workspace" data-catalog data-section={section} data-lang={lang} data-url={import.meta.env.PUBLIC_SUPABASE_URL || 'https://zjtofadvudkfijlpptmb.supabase.co'} data-key={import.meta.env.PUBLIC_SUPABASE_KEY || 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'}>
+  <section class:list={['intro',{'map-intro':section === 'map'}]}><p class="eyebrow">{section === 'map' ? 'THE LIVING ATLAS' : 'THE HISTORICAL COLLECTION'}</p><h1>{t[section as keyof typeof t]}</h1><p>{intros[section!][chinese ? 0 : 1]}</p></section>
+  <section class:list={['workspace',{'map-workspace':section === 'map'}]} data-catalog data-section={section} data-lang={lang} data-url={import.meta.env.PUBLIC_SUPABASE_URL || 'https://zjtofadvudkfijlpptmb.supabase.co'} data-key={import.meta.env.PUBLIC_SUPABASE_KEY || 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'}>
     <div class="toolbar"><label class="search-label"><span>{chinese ? '检索档案' : 'Search records'}</span><input type="search" id="search" placeholder={t.search} /></label><label><span>{chinese ? '截至年份' : 'Through year'}</span><input id="year" type="number" min="1" max="2100" placeholder={chinese ? '全部年代' : 'All years'} /></label><button id="retry">{t.retry}</button></div>
     <p id="status" role="status" aria-live="polite">{t.loading}</p>
     {section === 'map' && <div id="atlas" aria-label={chinese ? '历史地点地图' : 'Historical places map'}></div>}
-    <div id="results" class="cards"></div>
+    {section === 'map' && <>
+      <button id="timeline-toggle" type="button" aria-expanded="false" aria-controls="timeline">{chinese ? '时空轴' : 'Timeline'}</button>
+      <aside id="timeline" hidden aria-label={chinese ? '历史时空轴' : 'Historical timeline'}>
+        <div class="timeline-head"><button id="timeline-play" type="button" aria-label={chinese ? '播放时空轴' : 'Play timeline'}>▶</button><p><strong id="timeline-year"></strong><span id="timeline-era"></span></p><button id="timeline-close" type="button" aria-label={chinese ? '关闭时空轴' : 'Close timeline'}>×</button></div>
+        <div class="timeline-track"><span id="timeline-min"></span><input id="timeline-range" type="range" /><span id="timeline-max"></span></div>
+        <div id="timeline-eras" class="timeline-eras"></div>
+      </aside>
+    </>}
+    <div id="results" class:list={['cards',{'map-results':section === 'map'}]}></div>
     <noscript>{chinese ? '请启用 JavaScript 读取地图档案。' : 'Enable JavaScript to load the archive.'}</noscript>
   </section>
 </Shell>
@@ -31,7 +39,7 @@ const status = document.querySelector<HTMLElement>('#status')!;
 const results = document.querySelector<HTMLElement>('#results')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
 const year = document.querySelector<HTMLInputElement>('#year')!;
-let rows:any[] = []; let map:any; let layer:any; let L:any;
+let rows:any[] = []; let map:any; let layer:any; let countries:any; let L:any; let timelineTimer:number|undefined;
 const initial=new URL(location.href);search.value=initial.searchParams.get('q')||'';year.value=initial.searchParams.get('year')||'';
 function remember(){const url=new URL(location.href);search.value?url.searchParams.set('q',search.value):url.searchParams.delete('q');year.value?url.searchParams.set('year',year.value):url.searchParams.delete('year');if(map){const c=map.getCenter();url.searchParams.set('lat',c.lat.toFixed(4));url.searchParams.set('lng',c.lng.toFixed(4));url.searchParams.set('zoom',String(map.getZoom()));}history.replaceState(null,'',url);}
 function render() {
@@ -48,7 +56,7 @@ function render() {
     article.append(meta,heading,person,desc,link); results.append(article);
     if(layer && p.coordinateSystem === 'WGS84' && Number.isFinite(p.latitude) && Number.isFinite(p.longitude)) {
       const popup=document.createElement('a'); popup.textContent=p.title;popup.href=link.href;
-      const marker=p.precision==='approximate'?L.circle([p.latitude,p.longitude],{radius:5000,color:'#d6b779'}):L.circleMarker([p.latitude,p.longitude],{radius:7,color:'#d6b779'});
+      const marker=L.marker([p.latitude,p.longitude],{icon:L.divIcon({className:'atlas-marker',html:`<span class="atlas-pulse${p.precision==='approximate'?' approximate':''}" aria-hidden="true"><i></i><i></i><span class="atlas-cross"></span></span>`,iconSize:[44,44],iconAnchor:[22,22]})});
       marker.bindPopup(popup).addTo(layer);
     }
   }
@@ -73,6 +81,18 @@ if(root.dataset.section === 'map') {
   map=L.map('atlas').setView([Number.isFinite(lat)&&Math.abs(lat)<=90?lat:28,Number.isFinite(lng)&&Math.abs(lng)<=180?lng:70],Number.isFinite(zoom)?Math.min(18,Math.max(2,zoom)):3); layer=L.layerGroup().addTo(map);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
   map.on('moveend',remember);
+  const boundaryUrls=['https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json','https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'];
+  for(const boundaryUrl of boundaryUrls){try{const response=await fetch(boundaryUrl);if(!response.ok)continue;const geojson=await response.json();countries=L.geoJSON(geojson,{style:()=>({className:'country-boundary',color:'#d6b779',weight:.8,opacity:.4,fillColor:'#d6b779',fillOpacity:.025}),onEachFeature:(_feature:any,country:any)=>{country.on('mouseover',()=>country.setStyle({weight:1.6,opacity:.95,fillOpacity:.12}));country.on('mouseout',()=>countries?.resetStyle(country));country.on('click',()=>{country.setStyle({weight:2.2,opacity:1,fillOpacity:.18});window.setTimeout(()=>countries?.resetStyle(country),900);});}}).addTo(map);countries.bringToBack();break;}catch{}}
 }
 await load();
+if(root.dataset.section === 'map') {
+  const range=document.querySelector<HTMLInputElement>('#timeline-range')!;const display=document.querySelector<HTMLElement>('#timeline-year')!;const era=document.querySelector<HTMLElement>('#timeline-era')!;const play=document.querySelector<HTMLButtonElement>('#timeline-play')!;const panel=document.querySelector<HTMLElement>('#timeline')!;const toggle=document.querySelector<HTMLButtonElement>('#timeline-toggle')!;
+  const eras=[{year:635,zh:'唐朝景教时期',en:'Tang Nestorian era'},{year:1580,zh:'明末天主教传播',en:'Late Ming Catholic era'},{year:1807,zh:'晚清福音入华',en:'Protestant arrival'},{year:1865,zh:'内地会内陆拓荒',en:'China Inland Mission era'},{year:1900,zh:'民国教务发展时期',en:'Republican era'},{year:new Date().getFullYear(),zh:'现代宣教时代',en:'Contemporary era'}];
+  const dated=rows.map(p=>Number(p.year)).filter(Number.isFinite);const min=Math.min(600,...dated);const max=Math.max(new Date().getFullYear(),...dated);range.min=String(min);range.max=String(max);range.value=year.value||String(max);document.querySelector('#timeline-min')!.textContent=String(min);document.querySelector('#timeline-max')!.textContent=String(max);
+  const eraBox=document.querySelector<HTMLElement>('#timeline-eras')!;for(const item of eras){const button=document.createElement('button');button.type='button';button.textContent=lang==='zh'?item.zh:item.en;button.addEventListener('click',()=>updateTimeline(item.year));eraBox.append(button);}
+  function updateTimeline(value:number){const safe=Math.min(max,Math.max(min,value));range.value=String(safe);year.value=String(safe);display.textContent=lang==='zh'?`公元 ${safe} 年`:String(safe);const current=[...eras].reverse().find(item=>safe>=item.year-10)||eras[0];era.textContent=lang==='zh'?current.zh:current.en;[...eraBox.children].forEach((chip,index)=>chip.classList.toggle('active',eras[index]===current));remember();render();}
+  function stopTimeline(){if(timelineTimer!==undefined){window.clearInterval(timelineTimer);timelineTimer=undefined;}play.textContent='▶';}
+  function closeTimeline(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');stopTimeline();}
+  toggle.addEventListener('click',()=>{const opening=panel.hidden;panel.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));if(opening)updateTimeline(Number(range.value));});document.querySelector('#timeline-close')!.addEventListener('click',closeTimeline);range.addEventListener('input',()=>updateTimeline(Number(range.value)));play.addEventListener('click',()=>{if(timelineTimer!==undefined){stopTimeline();return;}if(Number(range.value)>=max)updateTimeline(min);play.textContent='■';timelineTimer=window.setInterval(()=>{const next=Math.min(max,Number(range.value)+3);updateTimeline(next);if(next>=max)stopTimeline();},50);});updateTimeline(Number(range.value));
+}
 </script>

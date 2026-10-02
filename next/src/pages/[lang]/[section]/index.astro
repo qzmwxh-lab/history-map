@@ -39,13 +39,13 @@ const status = document.querySelector<HTMLElement>('#status')!;
 const results = document.querySelector<HTMLElement>('#results')!;
 const search = document.querySelector<HTMLInputElement>('#search')!;
 const year = document.querySelector<HTMLInputElement>('#year')!;
-let rows:any[] = []; let map:any; let layer:any; let countries:any; let L:any; let timelineTimer:number|undefined;
+let rows:any[] = []; let map:any; let layer:any; let countries:any; let L:any; let timelineTimer:number|undefined; let loadFailed=false;
 const initial=new URL(location.href);search.value=initial.searchParams.get('q')||'';year.value=initial.searchParams.get('year')||'';
 function remember(){const url=new URL(location.href);search.value?url.searchParams.set('q',search.value):url.searchParams.delete('q');year.value?url.searchParams.set('year',year.value):url.searchParams.delete('year');if(map){const c=map.getCenter();url.searchParams.set('lat',c.lat.toFixed(4));url.searchParams.set('lng',c.lng.toFixed(4));url.searchParams.set('zoom',String(map.getZoom()));}history.replaceState(null,'',url);}
 function render() {
   results.replaceChildren(); layer?.clearLayers();
   const selected = filterPoints(rows, search.value, year.value);
-  status.textContent = selected.length ? `${selected.length} ${lang === 'zh' ? '条档案' : 'records'}` : t.empty;
+  status.textContent = loadFailed ? t.error : selected.length ? `${selected.length} ${lang === 'zh' ? '条档案' : 'records'}` : t.empty;
   for (const p of selected) {
     const article = document.createElement('article'); article.className='card';
     const meta=document.createElement('small'); meta.textContent=`${p.year ?? '—'} · ${t.pending}`;
@@ -62,7 +62,7 @@ function render() {
   }
 }
 async function load() {
-  status.textContent=t.loading;
+  loadFailed=false; status.textContent=t.loading;
   const button=document.querySelector<HTMLButtonElement>('#retry')!; button.disabled=true;
   try {
     const url=new URL(root.dataset.section === 'map' || root.dataset.section === 'places' ? '/rest/v1/public_atlas' : '/rest/v1/public_archive',root.dataset.url);
@@ -71,7 +71,7 @@ async function load() {
     const all:any[]=[];
     for(let offset=0;;offset+=500){url.searchParams.set('limit','500');url.searchParams.set('offset',String(offset));const response=await fetch(url,{headers:{apikey:root.dataset.key!},signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error(String(response.status));const batch=await response.json();all.push(...batch);if(batch.length<500)break;}
     rows=all.map(row=>publicPoint(row,lang)).filter(Boolean); render();
-  } catch { status.textContent=t.error; } finally { button.disabled=false; }
+  } catch { loadFailed=true; status.textContent=t.error; } finally { button.disabled=false; }
 }
 search.addEventListener('input',()=>{remember();render();}); year.addEventListener('input',()=>{remember();render();});
 document.querySelector('#retry')!.addEventListener('click',load);
@@ -81,8 +81,11 @@ if(root.dataset.section === 'map') {
   map=L.map('atlas').setView([Number.isFinite(lat)&&Math.abs(lat)<=90?lat:28,Number.isFinite(lng)&&Math.abs(lng)<=180?lng:70],Number.isFinite(zoom)?Math.min(18,Math.max(2,zoom)):3); layer=L.layerGroup().addTo(map);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
   map.on('moveend',remember);
+  void loadCountryBoundaries();
+}
+async function loadCountryBoundaries(){
   const boundaryUrls=['https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json','https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'];
-  for(const boundaryUrl of boundaryUrls){try{const response=await fetch(boundaryUrl);if(!response.ok)continue;const geojson=await response.json();countries=L.geoJSON(geojson,{style:()=>({className:'country-boundary',color:'#d6b779',weight:.8,opacity:.4,fillColor:'#d6b779',fillOpacity:.025}),onEachFeature:(_feature:any,country:any)=>{country.on('mouseover',()=>country.setStyle({weight:1.6,opacity:.95,fillOpacity:.12}));country.on('mouseout',()=>countries?.resetStyle(country));country.on('click',()=>{country.setStyle({weight:2.2,opacity:1,fillOpacity:.18});window.setTimeout(()=>countries?.resetStyle(country),900);});}}).addTo(map);countries.bringToBack();break;}catch{}}
+  for(const boundaryUrl of boundaryUrls){try{const response=await fetch(boundaryUrl,{signal:AbortSignal.timeout(5000)});if(!response.ok)continue;const geojson=await response.json();countries=L.geoJSON(geojson,{style:()=>({className:'country-boundary',color:'#d6b779',weight:.8,opacity:.4,fillColor:'#d6b779',fillOpacity:.025}),onEachFeature:(_feature:any,country:any)=>{country.on('mouseover',()=>country.setStyle({weight:1.6,opacity:.95,fillOpacity:.12}));country.on('mouseout',()=>countries?.resetStyle(country));country.on('click',()=>{country.setStyle({weight:2.2,opacity:1,fillOpacity:.18});window.setTimeout(()=>countries?.resetStyle(country),900);});}}).addTo(map);countries.bringToBack();break;}catch{}}
 }
 await load();
 if(root.dataset.section === 'map') {
@@ -93,6 +96,6 @@ if(root.dataset.section === 'map') {
   function updateTimeline(value:number){const safe=Math.min(max,Math.max(min,value));range.value=String(safe);year.value=String(safe);display.textContent=lang==='zh'?`公元 ${safe} 年`:String(safe);const current=[...eras].reverse().find(item=>safe>=item.year-10)||eras[0];era.textContent=lang==='zh'?current.zh:current.en;[...eraBox.children].forEach((chip,index)=>chip.classList.toggle('active',eras[index]===current));remember();render();}
   function stopTimeline(){if(timelineTimer!==undefined){window.clearInterval(timelineTimer);timelineTimer=undefined;}play.textContent='▶';}
   function closeTimeline(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');stopTimeline();}
-  toggle.addEventListener('click',()=>{const opening=panel.hidden;panel.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));if(opening)updateTimeline(Number(range.value));});document.querySelector('#timeline-close')!.addEventListener('click',closeTimeline);range.addEventListener('input',()=>updateTimeline(Number(range.value)));play.addEventListener('click',()=>{if(timelineTimer!==undefined){stopTimeline();return;}if(Number(range.value)>=max)updateTimeline(min);play.textContent='■';timelineTimer=window.setInterval(()=>{const next=Math.min(max,Number(range.value)+3);updateTimeline(next);if(next>=max)stopTimeline();},50);});updateTimeline(Number(range.value));
+  toggle.addEventListener('click',()=>{const opening=panel.hidden;panel.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));opening?updateTimeline(Number(range.value)):stopTimeline();});document.querySelector('#timeline-close')!.addEventListener('click',closeTimeline);range.addEventListener('input',()=>updateTimeline(Number(range.value)));play.addEventListener('click',()=>{if(timelineTimer!==undefined){stopTimeline();return;}if(Number(range.value)>=max)updateTimeline(min);play.textContent='■';timelineTimer=window.setInterval(()=>{const next=Math.min(max,Number(range.value)+3);updateTimeline(next);if(next>=max)stopTimeline();},50);});updateTimeline(Number(range.value));
 }
 </script>

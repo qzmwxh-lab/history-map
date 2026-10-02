@@ -11,6 +11,26 @@ test('published catalog filters safely on desktop and mobile',async({page})=>{
  await expect(page.locator('#status')).toHaveText('没有匹配的公开资料');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+test('map records and timeline remain usable while country borders are delayed',async({page})=>{
+ await page.route('**/rest/v1/public_atlas*',r=>r.fulfill({json:[record]}));
+ await page.route('**/countries.geo.json',()=>new Promise(()=>{}));
+ await page.goto('/zh/map/');
+ await expect(page.locator('.card')).toHaveCount(1);
+ await expect(page.locator('.atlas-cross')).toHaveCount(1);
+ await page.locator('#timeline-toggle').click();
+ await expect(page.locator('#timeline')).toBeVisible();
+ await page.locator('#timeline-play').click();
+ await expect(page.locator('#timeline-play')).toHaveText('■');
+ await page.locator('#timeline-toggle').click();
+ await expect(page.locator('#timeline')).toBeHidden();
+ await expect(page.locator('#timeline-play')).toHaveText('▶');
+});
+test('map request failure remains visible after timeline initialization',async({page})=>{
+ await page.route('**/rest/v1/public_atlas*',r=>r.fulfill({status:503,json:{}}));
+ await page.route('**/countries.geo.json',()=>new Promise(()=>{}));
+ await page.goto('/zh/map/');
+ await expect(page.locator('#status')).toHaveText('暂时无法读取资料，请重试。');
+});
 test('failed request can be retried and is not shown as empty content',async({page})=>{
  let requests=0;
  await page.route('**/rest/v1/public_archive*',r=>++requests===1?r.fulfill({status:503,json:{}}):r.fulfill({json:[record]}));

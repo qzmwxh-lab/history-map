@@ -17,6 +17,15 @@ test('map records and timeline remain usable while country borders are delayed',
  await page.goto('/zh/map/');
  await expect(page.locator('.card')).toHaveCount(1);
  await expect(page.locator('.atlas-cross')).toHaveCount(1);
+ if((page.viewportSize()?.width ?? 0)>800){
+  await expect(page.locator('#map-drawer-toggle')).toHaveAttribute('aria-expanded','true');
+  await page.locator('#map-drawer-toggle').click();
+  await expect(page.locator('body')).toHaveClass(/map-drawer-closed/);
+  await expect.poll(async()=>(await page.locator('#atlas').boundingBox())?.x).toBe(0);
+  await page.locator('#map-drawer-toggle').click();
+  await expect(page.locator('#map-drawer-toggle')).toHaveAttribute('aria-expanded','true');
+  await expect.poll(async()=>(await page.locator('#atlas').boundingBox())?.x).toBe(430);
+ }
  await page.locator('#timeline-toggle').click();
  await expect(page.locator('#timeline')).toBeVisible();
  await page.locator('#timeline-play').click();

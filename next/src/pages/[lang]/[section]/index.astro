@@ -14,12 +14,13 @@ const intros:Record<string,string[]> = {
 };
 ---
 <Shell lang={lang} section={section}>
-  <section class:list={['intro',{'map-intro':section === 'map'}]}><p class="eyebrow">{section === 'map' ? 'THE LIVING ATLAS' : 'THE HISTORICAL COLLECTION'}</p><h1>{t[section as keyof typeof t]}</h1><p>{intros[section!][chinese ? 0 : 1]}</p></section>
+  <section id={section === 'map' ? 'map-intro' : undefined} class:list={['intro',{'map-intro':section === 'map'}]}><p class="eyebrow">{section === 'map' ? 'THE LIVING ATLAS' : 'THE HISTORICAL COLLECTION'}</p><h1>{t[section as keyof typeof t]}</h1><p>{intros[section!][chinese ? 0 : 1]}</p></section>
   <section class:list={['workspace',{'map-workspace':section === 'map'}]} data-catalog data-section={section} data-lang={lang} data-url={import.meta.env.PUBLIC_SUPABASE_URL || 'https://zjtofadvudkfijlpptmb.supabase.co'} data-key={import.meta.env.PUBLIC_SUPABASE_KEY || 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'}>
-    <div class="toolbar"><label class="search-label"><span>{chinese ? '检索档案' : 'Search records'}</span><input type="search" id="search" placeholder={t.search} /></label><label><span>{chinese ? '截至年份' : 'Through year'}</span><input id="year" type="number" min="1" max="2100" placeholder={chinese ? '全部年代' : 'All years'} /></label><button id="retry">{t.retry}</button></div>
+    <div id={section === 'map' ? 'map-tools' : undefined} class="toolbar"><label class="search-label"><span>{chinese ? '检索档案' : 'Search records'}</span><input type="search" id="search" placeholder={t.search} /></label><label><span>{chinese ? '截至年份' : 'Through year'}</span><input id="year" type="number" min="1" max="2100" placeholder={chinese ? '全部年代' : 'All years'} /></label><button id="retry">{t.retry}</button></div>
     <p id="status" role="status" aria-live="polite">{t.loading}</p>
     {section === 'map' && <div id="atlas" aria-label={chinese ? '历史地点地图' : 'Historical places map'}></div>}
     {section === 'map' && <>
+      <button id="map-drawer-toggle" type="button" aria-expanded="true" aria-controls="map-intro map-tools status results" aria-label={chinese ? '收起地图资料抽屉' : 'Collapse map drawer'}>‹</button>
       <button id="timeline-toggle" type="button" aria-expanded="false" aria-controls="timeline">{chinese ? '时空轴' : 'Timeline'}</button>
       <aside id="timeline" hidden aria-label={chinese ? '历史时空轴' : 'Historical timeline'}>
         <div class="timeline-head"><button id="timeline-play" type="button" aria-label={chinese ? '播放时空轴' : 'Play timeline'}>▶</button><p><strong id="timeline-year"></strong><span id="timeline-era"></span></p><button id="timeline-close" type="button" aria-label={chinese ? '关闭时空轴' : 'Close timeline'}>×</button></div>
@@ -79,6 +80,10 @@ if(root.dataset.section === 'map') {
   L=await import('leaflet'); await import('leaflet/dist/leaflet.css');
   const lat=Number(initial.searchParams.get('lat')??28);const lng=Number(initial.searchParams.get('lng')??70);const zoom=Number(initial.searchParams.get('zoom')??3);
   map=L.map('atlas').setView([Number.isFinite(lat)&&Math.abs(lat)<=90?lat:28,Number.isFinite(lng)&&Math.abs(lng)<=180?lng:70],Number.isFinite(zoom)?Math.min(18,Math.max(2,zoom)):3); layer=L.layerGroup().addTo(map);
+  const drawerToggle=document.querySelector<HTMLButtonElement>('#map-drawer-toggle')!;
+  const setDrawer=(open:boolean)=>{document.body.classList.toggle('map-drawer-closed',!open);drawerToggle.setAttribute('aria-expanded',String(open));drawerToggle.setAttribute('aria-label',lang==='zh'?(open?'收起地图资料抽屉':'展开地图资料抽屉'):(open?'Collapse map drawer':'Expand map drawer'));drawerToggle.textContent=open?'‹':'›';window.setTimeout(()=>map.invalidateSize(),360);};
+  drawerToggle.addEventListener('click',()=>setDrawer(drawerToggle.getAttribute('aria-expanded')!=='true'));
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&drawerToggle.getAttribute('aria-expanded')==='true')setDrawer(false);});
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
   map.on('moveend',remember);
   void loadCountryBoundaries();

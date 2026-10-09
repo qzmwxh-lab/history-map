@@ -1,0 +1,25 @@
+---
+import Shell from '../../../../layouts/Shell.astro';
+import ResearchCover from '../../../../components/ResearchCover.astro';
+import { subjects, sourceById, videoSource, verificationLabel } from '../../../../lib/research.mjs';
+import '../../../../styles/collection.css';
+export function getStaticPaths() { return ['zh', 'en'].flatMap(lang => subjects.map(subject => ({ params: { lang, slug: subject.slug }, props: { subject } }))); }
+const { lang } = Astro.params;
+const { subject } = Astro.props;
+const ui = (cn: string, en: string) => lang === 'zh' ? cn : en;
+const video = videoSource(subject);
+---
+<Shell lang={lang} section="people" title={subject.name} languageHref={`/${lang === 'zh' ? 'en' : 'zh'}/people/${subject.slug}/`}>
+  <article class="person-page">
+    <a class="back-link" href={`/${lang}/people/`}>← {lang === 'zh' ? '全部人物故事' : 'All stories'}</a>
+    {lang === 'en' && <p class="collection-notice">Chinese original. English translation awaits editorial review.</p>}
+    <div class="person-hero"><ResearchCover subject={subject} /><div><p class="eyebrow">A LIFE / IN CONTEXT</p><h1>{subject.name}</h1><p class="person-name-en">{subject.en}</p><p>{subject.years}</p><p>{subject.intro}</p><div class="story-actions"><a href={`/research/${subject.slug}.md`} download>{ui('下载人物资料摘要 ↓', 'Download research notes ↓')}</a><a href={`/${lang}/map/?q=${encodeURIComponent(subject.name)}`}>{ui('探索公开地图 →', 'Explore the public map →')}</a></div></div></div>
+    <div class="person-layout"><div class="person-main">
+      <section class="reading-section"><p class="eyebrow">WATCH / AT THE SOURCE</p><h2>{subject.video ? ui('影片与播放线索', 'Film and viewing references') : ui('从阅读开始', 'Start with reading')}</h2>{video && subject.video ? <><h3>{subject.video.title}</h3><p>{subject.video.type} · {subject.video.language}</p><p>{subject.video.status}</p><a class="source-button" href={video.url} target="_blank" rel="noopener noreferrer">{ui('前往影片来源 ↗', 'Visit the film source ↗')}</a><p class="fine-print">站外入口可能需要第三方服务、地区访问或登录。本站未核验完整播放，不镜像托管，不将重演称为同期影像。</p></> : <p>尚无经过核验的可播放视频。先从下方年表与资料出处认识这段历史。</p>}</section>
+      <section class="reading-section"><p class="eyebrow">LIFE / WITH REFERENCES</p><h2>{ui('人物年表', 'Timeline with references')}</h2><ol class="life-timeline">{subject.timeline.map(([year, fact, ref]) => <li><strong>{year}</strong><div><p>{fact}</p><a href={`#ref-${ref}`}>出处 {ref} ↓</a></div></li>)}</ol></section>
+      <section class="reading-section"><h2>{ui('仍需核验的地方', 'Open research questions')}</h2><ul class="research-issues">{subject.issues.map(issue => <li>{issue}</li>)}</ul></section>
+      <section class="reading-section"><p class="eyebrow">FAITH / REFLECTION</p><h2>{ui('阅读与思考', 'Reading and reflection')}</h2><p>编辑提问（不是人物原话，也不是已证实的史实）：当我们阅读这段人生时，如何同时尊重其信仰经验、时代处境与资料中的不确定性？</p></section>
+    </div><aside class="person-aside"><h2>{ui('资料与出处', 'Sources and references')}</h2><p>摘要与来源分开。第三方内容请到原站阅读。</p>{subject.refs.map(id => { const source = sourceById.get(id)!; return <section class="reference" id={`ref-${id}`}><small>{id} · {verificationLabel(source.verification)}</small><h3><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a></h3><p>{source.publisher}</p><details><summary>{ui('来源说明', 'Source notes')}</summary><p>{source.note}</p><p>使用说明：{source.rights}</p></details></section>; })}</aside></div>
+    <p class="fine-print">整理日期：2026-10-09。研究摘要不等同于完整传记；第三方照片、影片和全文均不在本专题下载包中。</p>
+  </article>
+</Shell>

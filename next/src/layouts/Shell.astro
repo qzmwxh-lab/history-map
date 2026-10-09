@@ -2,7 +2,7 @@
 import { labels, sections } from '../lib/catalog.mjs';
 import '../styles/site.css';
 import '../styles/map-heritage.css';
-const { lang = 'zh', section = 'map', title } = Astro.props;
+const { lang = 'zh', section = 'map', title, languageHref } = Astro.props;
 const t = labels[lang as 'zh'|'en'];
 ---
 <!doctype html>
@@ -20,7 +20,7 @@ const t = labels[lang as 'zh'|'en'];
     <nav aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
       {sections.filter(s=>s !== 'places').map(s => <a href={`/${lang}/${s}/`} aria-current={s === section ? 'page' : undefined}>{t[s as keyof typeof t]}</a>)}
     </nav>
-    <div class="account"><a href={`/${lang === 'zh' ? 'en' : 'zh'}/${section}/`} lang={lang === 'zh' ? 'en' : 'zh'}>{lang === 'zh' ? 'EN' : '中文'}</a><a href={`/${lang}/login/`}>{t.login}</a></div>
+    <div class="account"><a href={languageHref || `/${lang === 'zh' ? 'en' : 'zh'}/${section}/`} lang={lang === 'zh' ? 'en' : 'zh'}>{lang === 'zh' ? 'EN' : '中文'}</a><a href={`/${lang}/login/`}>{t.login}</a></div>
   </header>
   <main id="main"><slot /></main>
   <footer>{lang === 'zh' ? '光之足迹 · 历史有据，阅读有光。' : 'Footprints of Light · History with sources.'}</footer>

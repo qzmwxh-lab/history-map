@@ -1,0 +1,1713 @@
+{
+  "version": "2026-10-09",
+  "publication": "研究摘要与来源目录；第三方图像、影片和全文仅链接，不包含私有地图档案。",
+  "subjects": [
+    {
+      "slug": "watchman-nee",
+      "name": "倪柝声",
+      "en": "Watchman Nee",
+      "years": "1903—1972",
+      "kind": "person",
+      "refs": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10"
+      ],
+      "intro": "倪柝声的教会活动、写作与个人经历，留下了不同立场的叙述。本专题从传记、学术书目与博物馆资料入手，把可追查的历史记录与信仰见证分开阅读。",
+      "timeline": [
+        [
+          "1903",
+          "出生；具体地点在不同传记中存在差异。",
+          "N04"
+        ],
+        [
+          "1920",
+          "传记记述其信仰转折；属于传记与见证叙述。",
+          "N04"
+        ],
+        [
+          "1920—1940年代",
+          "开展教会活动与写作；可从学术传记书目进一步研究。",
+          "N02"
+        ],
+        [
+          "1952—1972",
+          "博物馆策展文章记述其被囚经历。",
+          "N01"
+        ],
+        [
+          "1972",
+          "逝世。",
+          "N04"
+        ]
+      ],
+      "cities": [
+        "福州",
+        "上海"
+      ],
+      "video": {
+        "refs": [
+          "N08",
+          "N09"
+        ],
+        "title": "主僕 倪柝聲",
+        "type": "纪录片项目／含重演",
+        "language": "字幕及播放待核",
+        "status": "项目页已读；未核验完整播放"
+      },
+      "issues": [
+        "出生地有不同表述，不补写未经核实的精确出生地点。",
+        "不同教会传记与学术研究应并列阅读；见证与争议性评价不能直接作为史实定论。",
+        "纪录片重演不属于同期历史影像；尚未取得封面与视频托管授权。"
+      ],
+      "angle": "在时代与信仰之间，读懂一个人的一生。"
+    },
+    {
+      "slug": "hudson-taylor",
+      "name": "戴德生",
+      "en": "James Hudson Taylor",
+      "years": "1832—1905",
+      "kind": "person",
+      "refs": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T07",
+        "T08",
+        "T09",
+        "T10"
+      ],
+      "intro": "戴德生与1865年成立的中国内地会密切相关。通过机构史、传记与早期出版物，可以追寻他在中国的工作，也看见与他同行的人。",
+      "timeline": [
+        [
+          "1832",
+          "出生。",
+          "T03"
+        ],
+        [
+          "1850年代",
+          "来到中国并开展工作。",
+          "T03"
+        ],
+        [
+          "1858",
+          "与玛丽亚结婚。",
+          "T03"
+        ],
+        [
+          "1865",
+          "成立中国内地会。",
+          "T01"
+        ],
+        [
+          "1866",
+          "兰茂尔号团队来到中国。",
+          "T01"
+        ],
+        [
+          "1901",
+          "退出日常领导工作。",
+          "T03"
+        ],
+        [
+          "1905",
+          "在长沙逝世。",
+          "T01"
+        ]
+      ],
+      "cities": [
+        "宁波",
+        "杭州",
+        "长沙"
+      ],
+      "video": {
+        "refs": [
+          "T09",
+          "T10"
+        ],
+        "title": "戴德生影片项目",
+        "type": "官方介绍／项目入口",
+        "language": "中文版本与字幕见官方介绍",
+        "status": "项目资料已读；播放及使用许可待核"
+      },
+      "issues": [
+        "影片项目、预告与已经完成的正式影片不能混为一谈。",
+        "历史肖像、团体照、影片画面分别核验授权；此版不镜像托管第三方原件。",
+        "城市节点不等于已确认的精确活动地点或当代可参访场所。"
+      ],
+      "angle": "循着足迹，走向中国内地。"
+    },
+    {
+      "slug": "daniel-nelson",
+      "name": "李立生",
+      "en": "Daniel Nelson Sr.",
+      "years": "1853—1926",
+      "kind": "person",
+      "refs": [
+        "L01",
+        "L02",
+        "L03",
+        "L04",
+        "L05",
+        "L06",
+        "L07"
+      ],
+      "intro": "李立生是一位挪威裔美国路德宗传教士，1890年来到中国。他的经历与河南、信阳的早期教会活动有关，机构档案、地方报道与后来的纪念传记可互相参照。",
+      "timeline": [
+        [
+          "1853",
+          "出生；出生地区表述仍须核对。",
+          "L01"
+        ],
+        [
+          "1882",
+          "传记称其移居美国；待原始档案复核。",
+          "L03"
+        ],
+        [
+          "1890",
+          "来到中国；机构档案提供来华年份线索。",
+          "L04"
+        ],
+        [
+          "20世纪初",
+          "信阳相关活动见地方报道。",
+          "L02"
+        ],
+        [
+          "1926",
+          "逝世。",
+          "L01"
+        ]
+      ],
+      "cities": [
+        "上海",
+        "武汉",
+        "信阳"
+      ],
+      "video": null,
+      "issues": [
+        "本专题指Daniel Nelson Sr.，不要与同名晚辈混淆。",
+        "1890年11月30日抵沪尚未取得独立证据；不作已核实的精确日期发布。",
+        "航海年限、出生地区与遇害经过存在不同表述；保留待核说明。",
+        "暂无经过核验的纪录片；机构口述史目录不等于已取得可播放录音。"
+      ],
+      "angle": "从海上生涯，走向河南的历史线索。"
+    },
+    {
+      "slug": "alopen",
+      "name": "阿罗本",
+      "en": "Alopen / Aluoben",
+      "years": "生卒年未确认；活动于7世纪",
+      "kind": "person",
+      "refs": [
+        "S01",
+        "S02"
+      ],
+      "intro": "唐代景教来华史中的早期人物。与其编造个人肖像，不如从碑铭记录入手，呈现跨语言、跨地域的信仰交流。",
+      "timeline": [
+        [
+          "635",
+          "抵长安的早期记载。",
+          "S01"
+        ],
+        [
+          "638",
+          "相关敕令与建教堂记载。",
+          "S01"
+        ]
+      ],
+      "cities": [
+        "西安"
+      ],
+      "video": null,
+      "issues": [
+        "出身地、真实姓名释读及生卒年没有充分资料，不写精确人生年表。",
+        "635年到长安，不自动证明今天大秦寺塔即当年活动地点；781年立碑不能标成635年现场记录。"
+      ],
+      "angle": "一块碑如何留下早期来华者的名字？"
+    },
+    {
+      "slug": "ricci",
+      "name": "利玛窦",
+      "en": "Matteo Ricci",
+      "years": "1552—1610",
+      "kind": "person",
+      "refs": [
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S11",
+        "S13"
+      ],
+      "intro": "在语言学习、地图制作与信仰对话之间，利玛窦的足迹连接了晚明中国与欧洲。中国学者的参与应与他的工作一同呈现。",
+      "timeline": [
+        [
+          "1583",
+          "进入中国内地并开展早期工作。",
+          "S03"
+        ],
+        [
+          "1602",
+          "北京版中文世界地图形成。",
+          "S03"
+        ],
+        [
+          "1610",
+          "逝世。",
+          "S03"
+        ]
+      ],
+      "cities": [
+        "北京",
+        "肇庆",
+        "上海"
+      ],
+      "video": {
+        "refs": [
+          "S06",
+          "S07"
+        ],
+        "title": "Jonathan Spence利玛窦讲座",
+        "type": "学术讲座，不是人物纪录片",
+        "language": "英文目录；字幕未核",
+        "status": "视频目录已核；独立条目403；未播放"
+      },
+      "issues": [
+        "肖像作者与年代不详；不要声称是同时代写生或真实照片。",
+        "墓址、肇庆遗址与徐家汇后世建筑应分开，不把同页联名视为两人共同修建每座建筑。"
+      ],
+      "angle": "一张世界地图如何开启相遇？"
+    },
+    {
+      "slug": "valignano",
+      "name": "范礼安",
+      "en": "Alessandro Valignano（另拼Valignani）",
+      "years": "1539—1606",
+      "kind": "person",
+      "refs": [
+        "S08",
+        "S09",
+        "S11"
+      ],
+      "intro": "他的重要性在于组织、训练与跨文化策略：让来亚洲的人先学习当地语言、礼仪与思想，再讨论如何表达信仰。",
+      "timeline": [
+        [
+          "1566",
+          "加入耶稣会。",
+          "S08"
+        ],
+        [
+          "1574",
+          "来到亚洲。",
+          "S09"
+        ],
+        [
+          "1606",
+          "在澳门逝世。",
+          "S09"
+        ]
+      ],
+      "cities": [
+        "澳门"
+      ],
+      "video": null,
+      "issues": [
+        "旧站1594可能关联学院，不应直接当成今天大三巴建筑的建成日期。",
+        "他、罗明坚、利玛窦分立人物档案；人物关系不等于共同在场证据。"
+      ],
+      "angle": "为什么传教先要学习语言？"
+    },
+    {
+      "slug": "ruggieri",
+      "name": "罗明坚",
+      "en": "Michele Ruggieri；早年名Pompilio",
+      "years": "1543—1607",
+      "kind": "person",
+      "refs": [
+        "S10",
+        "S11"
+      ],
+      "intro": "罗明坚是早期进入明代中国的耶稣会士之一。中文学习、教理写作与词典合作，可以让故事从日常沟通的困难展开。",
+      "timeline": [
+        [
+          "1579",
+          "来到澳门学习中文及当地习俗。",
+          "S10"
+        ],
+        [
+          "1583",
+          "与利玛窦在肇庆设立居所与教堂。",
+          "S10"
+        ],
+        [
+          "1588",
+          "返回欧洲执行使团筹备任务。",
+          "S10"
+        ]
+      ],
+      "cities": [
+        "澳门"
+      ],
+      "video": null,
+      "issues": [
+        "葡汉词典是合作项目，不写为一个人独立完成。",
+        "肇庆可作传记中的城市节点，但本轮未补入网站坐标或确定遗址现状。"
+      ],
+      "angle": "在陌生语言中写下第一批对话。"
+    },
+    {
+      "slug": "xu",
+      "name": "徐光启",
+      "en": "Xu Guangqi；字子先，号玄扈",
+      "years": "1562—1633",
+      "kind": "person",
+      "refs": [
+        "S12",
+        "S13",
+        "S14"
+      ],
+      "intro": "人物故事可同时呈现他的学术实践与信仰生活，以真实墨迹和译书文献为起点，避免只用抽象的伟人评价。",
+      "timeline": [
+        [
+          "1562",
+          "出生年份由馆藏人物说明确认。",
+          "S12"
+        ],
+        [
+          "明代",
+          "《北耕录》墨迹记录农业观察；具体写作年未核。",
+          "S12"
+        ],
+        [
+          "1633",
+          "逝世年份由馆藏人物说明确认。",
+          "S12"
+        ]
+      ],
+      "cities": [
+        "上海"
+      ],
+      "video": null,
+      "issues": [
+        "本轮尚未用原始文献核其受洗日期与《几何原本》出版版本，先不填。",
+        "旧站1608与后世徐家汇建筑混用风险较高，不能发布成‘1608建立今日圣母院’。"
+      ],
+      "angle": "从一页墨迹读懂实践与信仰。"
+    },
+    {
+      "slug": "morrison",
+      "name": "马礼逊",
+      "en": "Robert Morrison",
+      "years": "1782—1834",
+      "kind": "person",
+      "refs": [
+        "S15",
+        "S16",
+        "S17",
+        "S18"
+      ],
+      "intro": "翻译与印刷是他的主要研究入口。用词典、书信及藏书讨论语言学习，也让米怜与中文同工的劳动进入画面。",
+      "timeline": [
+        [
+          "1807—1823",
+          "SOAS列其在广州、澳门期间取得的藏书。",
+          "S16"
+        ],
+        [
+          "1834",
+          "逝世。",
+          "S15"
+        ],
+        [
+          "1922",
+          "相关藏书转入SOAS；这是收藏史，不是人生事件。",
+          "S16"
+        ]
+      ],
+      "cities": [
+        "广州"
+      ],
+      "video": null,
+      "issues": [
+        "词典的各部分不能简单全部称‘英汉’或‘汉英’，须逐卷核。",
+        "翻译合作及东印度公司背景应保留；不要只用单一英雄叙事。"
+      ],
+      "angle": "在字典与译本之间搭起语言桥梁。"
+    },
+    {
+      "slug": "milne",
+      "name": "米怜",
+      "en": "William Milne",
+      "years": "1785—1822",
+      "kind": "person",
+      "refs": [
+        "S18",
+        "S19",
+        "S20"
+      ],
+      "intro": "他的足迹说明来华事工也发生在东南亚。出版、教育与翻译可以把马六甲和广州的故事连接起来，而不是只显示一个地点。",
+      "timeline": [
+        [
+          "1813",
+          "来到中国沿海，与马礼逊协作。",
+          "S18"
+        ],
+        [
+          "1818起",
+          "马六甲英华书院早期任职；成立年由该页引用书目支持，仍待原件核对。",
+          "S18"
+        ],
+        [
+          "1822",
+          "逝世。",
+          "S18"
+        ]
+      ],
+      "cities": [
+        "马六甲"
+      ],
+      "video": null,
+      "issues": [
+        "区分William Milne与其子William Charles Milne，不混用照片或日期。",
+        "梁发受洗与按立是不同事件；旧书院历史地点不等于今日同名学校地址。"
+      ],
+      "angle": "一所书院、一间印刷所、跨海的文字。"
+    },
+    {
+      "slug": "medhurst",
+      "name": "麦都思",
+      "en": "Walter Henry Medhurst",
+      "years": "1796—1857",
+      "kind": "person",
+      "refs": [
+        "S21",
+        "S16"
+      ],
+      "intro": "从印刷技艺走向语言与出版，他的故事适合以书页和出版协作为核心，连接马六甲、巴达维亚与上海的历史网络。",
+      "timeline": [
+        [
+          "1817",
+          "抵达马六甲。",
+          "S21"
+        ],
+        [
+          "1843",
+          "在上海开展工作。",
+          "S21"
+        ],
+        [
+          "1853",
+          "参与委办译本的出版工作。",
+          "S21"
+        ]
+      ],
+      "cities": [
+        "上海"
+      ],
+      "video": null,
+      "issues": [
+        "他本人和儿子Walter Henry Medhurst的同名记录需区分。",
+        "委办译本与中文出版涉及多人；不要把中文同工和印刷人员隐去。"
+      ],
+      "angle": "书页如何成为连接城市的网络？"
+    },
+    {
+      "slug": "maclay",
+      "name": "麦利和",
+      "en": "Robert Samuel Maclay",
+      "years": "1824—1907",
+      "kind": "person",
+      "refs": [
+        "S22",
+        "S23"
+      ],
+      "intro": "以福州为起点，人物故事可以展开语言学习、学校与跨东亚工作。先把派遣、抵达和建立机构的年份分清。",
+      "timeline": [
+        [
+          "1847",
+          "获派到中国。",
+          "S22"
+        ],
+        [
+          "1848-04-12",
+          "抵福州。",
+          "S22"
+        ],
+        [
+          "1870",
+          "与C. C. Baldwin合作的福州方言词典。",
+          "S22"
+        ]
+      ],
+      "cities": [
+        "福州"
+      ],
+      "video": null,
+      "issues": [
+        "旧站1847与机构确认1848抵达不一致：派遣年、到达年可能被混用。",
+        "Maclay不是George Leslie Mackay（马偕）；不能混用人物素材。"
+      ],
+      "angle": "一个抵达日期，怎样改变故事的起点？"
+    },
+    {
+      "slug": "stott",
+      "name": "曹雅直",
+      "en": "George Stott",
+      "years": "1835—1889",
+      "kind": "person",
+      "refs": [
+        "S24",
+        "S25",
+        "S26"
+      ],
+      "intro": "温州故事不只属于一位外来者。妻子Grace及中国同工与学校师生共同参与，使人物页面可以兼顾个人经历与地方记忆。",
+      "timeline": [
+        [
+          "1866",
+          "到达上海，随后学习语言。",
+          "S24"
+        ],
+        [
+          "1867",
+          "与中国同工前往温州。",
+          "S24"
+        ],
+        [
+          "1887",
+          "因健康等原因离开温州。",
+          "S24"
+        ]
+      ],
+      "cities": [
+        "温州"
+      ],
+      "video": null,
+      "issues": [
+        "回忆录作者是Grace Stott；1897与1898书目须区分版本。",
+        "传记中妻子抵华‘两年后’与1870写法有内部差异；中文同工姓名需从中文史料核字。"
+      ],
+      "angle": "温州的故事，如何由许多人共同写成？"
+    },
+    {
+      "slug": "richard",
+      "name": "李提摩太",
+      "en": "Timothy Richard",
+      "years": "1845—1919",
+      "kind": "person",
+      "refs": [
+        "S27",
+        "S28"
+      ],
+      "intro": "赈灾、教育和文字工作可以组成三个阅读章节。他的信仰与社会行动应放在当时的处境中讨论，研究者评价另作标注。",
+      "timeline": [
+        [
+          "1877",
+          "在太原参与赈灾。",
+          "S27"
+        ],
+        [
+          "1891",
+          "转入文字与知识传播机构的工作。",
+          "S27"
+        ],
+        [
+          "1915",
+          "因健康退休。",
+          "S27"
+        ]
+      ],
+      "cities": [
+        "太原"
+      ],
+      "video": null,
+      "issues": [
+        "赈灾事迹与现代‘造成／解决全国饥荒’的巨大结论不等同。",
+        "太原城市活动证据不自动确认旧站宣教站名称、精确坐标及今日可访性。"
+      ],
+      "angle": "当灾荒来临，信仰如何进入行动？"
+    },
+    {
+      "slug": "little",
+      "name": "李德立",
+      "en": "Edward Selby Little",
+      "years": "1864—1939",
+      "kind": "person",
+      "refs": [
+        "S29",
+        "S30",
+        "S31"
+      ],
+      "intro": "从庐山牯岭到海外档案，他的素材适合做‘人物与地方变迁’专题。地产开发、医疗休养与信仰背景应分层，而不是一句‘发现庐山’概括。",
+      "timeline": [
+        [
+          "1930年代",
+          "在新西兰Kerikeri经营果园的记录。",
+          "S29"
+        ],
+        [
+          "1939",
+          "逝世，馆方列死亡登记线索。",
+          "S29"
+        ],
+        [
+          "1980—1989",
+          "后人研究往来归入英国档案；不是其本人活动年代。",
+          "S30"
+        ]
+      ],
+      "cities": [
+        "九江"
+      ],
+      "video": null,
+      "issues": [
+        "1895牯岭事项、土地交易条款及本地居民背景须从原书与地方档案交叉核，暂不做定论。",
+        "目录引用后人对1911政治作用的主张，不能把它当馆方证实。"
+      ],
+      "angle": "一位人物的足迹，如何留下不同地方的档案？"
+    },
+    {
+      "slug": "pollard",
+      "name": "伯格理",
+      "en": "Samuel Pollard",
+      "years": "1864—1915",
+      "kind": "person",
+      "refs": [
+        "S32",
+        "S33",
+        "S16"
+      ],
+      "intro": "以石门坎的语言、教育与地方社区为主线，人物故事应让苗族参与者出现，不把文字与学校的形成全归于一位人物。",
+      "timeline": [
+        [
+          "1887",
+          "赴中国。",
+          "S32"
+        ],
+        [
+          "1907",
+          "该传记记录昭通一带的相关信仰运动。",
+          "S32"
+        ],
+        [
+          "1915",
+          "逝世。",
+          "S32"
+        ]
+      ],
+      "cities": [
+        "毕节"
+      ],
+      "video": null,
+      "issues": [
+        "石门坎设点1904／1905与1907运动属于不同事项，需逐条核验，不能互相替代。",
+        "其父亦叫Samuel Pollard；不要混用1826年生的父亲资料。译文中的旧族称需解释。"
+      ],
+      "angle": "文字、学校与社区的共同记忆。"
+    },
+    {
+      "slug": "main",
+      "name": "梅滕更",
+      "en": "David Duncan Main；检索别名梅藤更",
+      "years": "1856—1934",
+      "kind": "person",
+      "refs": [
+        "S34",
+        "S35"
+      ],
+      "intro": "医疗史与信仰服务可以在这个人物中交汇。优先用职业机构记录与广济医院相关材料，谨慎处理疗养古堡的后世故事。",
+      "timeline": [
+        [
+          "1881",
+          "获医学资格，并开始在杭州的医疗工作。",
+          "S34"
+        ],
+        [
+          "1905",
+          "成为爱丁堡皇家内科医学院院士。",
+          "S34"
+        ],
+        [
+          "1934",
+          "在爱丁堡逝世。",
+          "S34"
+        ]
+      ],
+      "cities": [
+        "德清"
+      ],
+      "video": null,
+      "issues": [
+        "David Duncan Main不是Moir Duncan；不要只按Duncan检索后混人。",
+        "出生地与具体生日见不同写法，本包只用1856。莫干山1910建筑、权属及人物关系尚未核。"
+      ],
+      "angle": "从医院档案看见服务的一生。"
+    },
+    {
+      "slug": "fraser",
+      "name": "富能仁",
+      "en": "James Outram Fraser",
+      "years": "1886—1938",
+      "kind": "person",
+      "refs": [
+        "S36",
+        "S37"
+      ],
+      "intro": "山地语言与社区关系是故事的核心。以富能仁和Ba Thaw等同工的合作为线索，将信仰表达与地方主体放在同一画面。",
+      "timeline": [
+        [
+          "1908",
+          "赴中国。",
+          "S36"
+        ],
+        [
+          "1910／1913／1915",
+          "首次接触、专门工作及受洗活动是不同节点，不能统称同一成立年。",
+          "S36"
+        ],
+        [
+          "1938",
+          "逝世。",
+          "S36"
+        ]
+      ],
+      "cities": [
+        "大理",
+        "保山"
+      ],
+      "video": {
+        "refs": [
+          "S37"
+        ],
+        "title": "Der Durchbruch / Breakthrough",
+        "type": "纪录剧情片（含重演，不是原始历史影像）",
+        "language": "德文介绍；中文版本及字幕未核",
+        "status": "官方索引介绍；正文读取失败；DVD售罄，须向机构询问，尚未联系"
+      },
+      "issues": [
+        "傈僳文字工作包含Ba Thaw等人的贡献，不写成富能仁独自发明。",
+        "大理地点与保山墓址尚未与原始档案和现代地址核对；不发布精确路线。"
+      ],
+      "angle": "一套文字，如何让人用自己的语言表达信仰？"
+    },
+    {
+      "slug": "wang",
+      "name": "王志明",
+      "en": "Wang Zhiming",
+      "years": "出生年1907／1908有分歧；卒于1973",
+      "kind": "person",
+      "refs": [
+        "S38",
+        "S39"
+      ],
+      "intro": "从地方学校、教会职务到后来的纪念，人物页面可用来源可追溯的资料呈现生命经历。争议年份明确显示，不用煽情叙述替代史料。",
+      "timeline": [
+        [
+          "1944",
+          "获选地方教会职务。",
+          "S38"
+        ],
+        [
+          "1951",
+          "按立为牧师。",
+          "S38"
+        ],
+        [
+          "1973-12-29",
+          "逝世；此日期见纪念机构条目。",
+          "S38"
+        ],
+        [
+          "1998",
+          "威斯敏斯特教堂雕像揭幕；属于纪念史。",
+          "S38"
+        ]
+      ],
+      "cities": [
+        "武定"
+      ],
+      "video": {
+        "refs": [
+          "S38"
+        ],
+        "title": "Wang Zhiming sermon",
+        "type": "纪念讲道视频，不是王志明本人录像",
+        "language": "未播放，语言／字幕未核",
+        "status": "官方页面有入口，依赖第三方及cookie同意；未播放"
+      },
+      "issues": [
+        "S39页头1908、正文1907；不填一个伪精确出生日期，1951按立年龄也不据此反推。",
+        "旧站年份-1为无效占位值，不进入时空轴。现代雕像与照片不因人物已故自动成为公共领域。"
+      ],
+      "angle": "从地方记忆到跨国纪念。"
+    },
+    {
+      "slug": "turfan_christians",
+      "name": "西域景教僧侣",
+      "en": "Christian communities and manuscripts of the Turfan region",
+      "years": "群体专题；各文献须单独定年",
+      "kind": "group",
+      "refs": [
+        "S40",
+        "S41"
+      ],
+      "intro": "这个旧站标签不是一位可辨识的人物。用文献编号、语言和出土地介绍多语言基督教群体，避免虚构生平和肖像。",
+      "timeline": [
+        [
+          "未定年",
+          "U7264：古突厥语基督徒婚礼祝祷残片。",
+          "S40"
+        ],
+        [
+          "未定年",
+          "PS7：中古波斯语《诗篇》译文线索。",
+          "S40"
+        ],
+        [
+          "2017／2019",
+          "相关现代学术整理出版；不是文物制作年份。",
+          "S41"
+        ]
+      ],
+      "cities": [
+        "吐鲁番"
+      ],
+      "video": null,
+      "issues": [
+        "不能把所有吐鲁番基督教手稿都定成700年或归到高昌某个建筑。",
+        "景教、摩尼教、佛教文献要逐件分辨；有十字样式或‘Jesus as bodhisattva’标签不足以直接归属。"
+      ],
+      "angle": "没有留下姓名的人，如何在手稿中被看见？"
+    }
+  ],
+  "sources": [
+    {
+      "id": "N01",
+      "person": "倪柝声",
+      "title": "\"I Maintain My Joy\": The Life and Ministry of Watchman Nee",
+      "publisher": "Museum of the Bible",
+      "url": "https://www.museumofthebible.org/magazine/exhibitions/i-maintain-my-joy",
+      "type": "博物馆策展文章／照片与信件线索",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "Amy Van Dyke 策展文章；包含约1933、1938年肖像、末期书信等图版及出借方信息。文章所述展览已属历史展览，不能作为当前开放信息。",
+      "rights": "permission_required"
+    },
+    {
+      "id": "N02",
+      "person": "倪柝声",
+      "title": "\"The spiritual human is discerned by no one\": An Intellectual Biography of Watchman Nee",
+      "publisher": "University of Chicago · Paul H B Chang",
+      "url": "https://knowledge.uchicago.edu/records/m7yzn-g0460",
+      "type": "2017年博士论文目录",
+      "verification": "catalogue_checked_fulltext_not_read",
+      "checked_on": "2026-10-08",
+      "note": "267页，英文；DOI 10.6082/uchicago.1327。已核对目录及摘要，未阅读或下载论文全文。著作权标注为作者所有。",
+      "rights": "link_only"
+    },
+    {
+      "id": "N03",
+      "person": "倪柝声",
+      "title": "The Spiritual Person: An Intellectual Biography of Watchman Nee",
+      "publisher": "Oxford University Press · Paul H B Chang",
+      "url": "https://academic.oup.com/book/62448",
+      "type": "2026年学术专著目录",
+      "verification": "catalogue_checked_fulltext_not_read",
+      "checked_on": "2026-10-08",
+      "note": "出版日期2026-03-04；DOI 10.1093/9780197793664.001.0001。只核对书目与摘要，不代表已阅读全书；没有购买。",
+      "rights": "link_only"
+    },
+    {
+      "id": "N04",
+      "person": "倪柝声",
+      "title": "Nee, Watchman (1903–1972)",
+      "publisher": "Biographical Dictionary of Chinese Christianity",
+      "url": "https://www.bdcconline.net/en/stories/nee-watchman",
+      "type": "英文二手传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "可追查年表与参考书目。文章有明确教会评价立场；争议性评价不可不经核对写作定论。其出生地说法与出版方传记存在差异。",
+      "rights": "link_only"
+    },
+    {
+      "id": "N05",
+      "person": "倪柝声",
+      "title": "倪柝声",
+      "publisher": "华人基督教传记辞典",
+      "url": "https://www.bdcconline.net/zh-hans/stories/ni-tuosheng",
+      "type": "中文传记入口",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "方便中文读者查阅；与N04属于同一网站，不作为第二个独立证据来源。",
+      "rights": "link_only"
+    },
+    {
+      "id": "N06",
+      "person": "倪柝声",
+      "title": "The Life and Ministry of Watchman Nee",
+      "publisher": "WatchmanNee.org／相关出版方",
+      "url": "https://www.watchmannee.org/life-ministry.html",
+      "type": "出版方信仰传记入口",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "作为出版方观点与查阅入口保留；不下载、复制其出版物。出生地表述与N04不同，须另查原始记录。使用限制参见N07。",
+      "rights": "link_only_no_download"
+    },
+    {
+      "id": "N07",
+      "person": "倪柝声",
+      "title": "Copyright Policy",
+      "publisher": "Living Stream Ministry",
+      "url": "https://www.lsm.org/copyright-policy.html",
+      "type": "版权与使用政策",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "政策强调保留于原站、鼓励链接，并限制电子出版物下载和再分发；本包仅保留入口，不收录其图书、录音或文章全文。",
+      "rights": "policy_reference"
+    },
+    {
+      "id": "N08",
+      "person": "倪柝声",
+      "title": "主僕 倪柝聲／GOD'S SERVANT—WATCHMAN NEE",
+      "publisher": "纪录片项目宣传站",
+      "url": "https://watchmannee2022.wixsite.com/website",
+      "type": "纪录片项目入口",
+      "verification": "page_checked_playback_not_tested",
+      "checked_on": "2026-10-08",
+      "note": "宣传资料称第一季6集、合计267分钟，涵盖1922–1932年，并使用重演。该总时长不可当作预告片时长；重演画面不是同期影像。",
+      "rights": "permission_required"
+    },
+    {
+      "id": "N09",
+      "person": "倪柝声",
+      "title": "紀錄片「主僕倪柝聲」第1集片段",
+      "publisher": "纪录片「主僕倪柝聲」推广频道（搜索索引所示）",
+      "url": "https://www.youtube.com/watch?v=Hknz655coaw",
+      "type": "视频片段线索",
+      "verification": "indexed_only_direct_open_failed",
+      "checked_on": "2026-10-08",
+      "note": "搜索索引显示2022-01-16发布；未成功核验直接播放、实际时长、字幕和嵌入许可。不能列为已验证可播视频。",
+      "rights": "permission_required"
+    },
+    {
+      "id": "N10",
+      "person": "倪柝声",
+      "title": "File:Watchman Nee.jpg",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:Watchman_Nee.jpg",
+      "type": "低清肖像候选",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "230×320。来源链为博客、作者不明；页面有PD-China标记，但也有美国仍受版权保护的分类。未下载，不作为已清权照片。",
+      "rights": "conflicting_jurisdiction_labels"
+    },
+    {
+      "id": "T01",
+      "person": "戴德生",
+      "title": "Our Story",
+      "publisher": "OMF International",
+      "url": "https://omf.org/about-us/our-story/",
+      "type": "机构历史／官方嵌入视频入口",
+      "verification": "page_checked_playback_not_tested",
+      "checked_on": "2026-10-08",
+      "note": "可核对1865年内地会成立、1866年来华等机构年表。页面含Vimeo视频120673172；播放器未成功验证。",
+      "rights": "link_only_embed_permission_unknown"
+    },
+    {
+      "id": "T02",
+      "person": "戴德生",
+      "title": "James Hudson Taylor—Founder of CIM / OMF International",
+      "publisher": "OMF Canada",
+      "url": "https://omf.org/ca/james-hudson-taylor-founder-of-cim-omf-international/",
+      "type": "机构传记线索",
+      "verification": "indexed_only_direct_open_failed",
+      "checked_on": "2026-10-08",
+      "note": "搜索结果可见生平摘要，直接打开失败。索引中安葬地表述与T01、T03不同；应重新人工核对原页，不能当已解决的事实。",
+      "rights": "link_only"
+    },
+    {
+      "id": "T03",
+      "person": "戴德生",
+      "title": "Taylor, J. Hudson (1832–1905)",
+      "publisher": "Boston University School of Theology · Ralph R. Covell",
+      "url": "https://www.bu.edu/missiology/missionary-biography/t-u-v/taylor-j-hudson-1832-1905/",
+      "type": "学术机构转载传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "注明引自1998年Biographical Dictionary of Christian Missions，657–658页。可作交叉核对；原文明确保留版权，不收录全文。",
+      "rights": "link_only_all_rights_reserved"
+    },
+    {
+      "id": "T04",
+      "person": "戴德生",
+      "title": "Missionary collections",
+      "publisher": "SOAS University of London",
+      "url": "https://www.soas.ac.uk/missionary-collections",
+      "type": "机构档案概览",
+      "verification": "page_checked_catalogue_blocked",
+      "checked_on": "2026-10-08",
+      "note": "介绍包含内地会在内的传教档案和书信、照片等材料。具体CIM目录访问遇403，未取得档案原件；仅保留合法访问与询问线索。",
+      "rights": "permission_required"
+    },
+    {
+      "id": "T05",
+      "person": "戴德生",
+      "title": "A Retrospect",
+      "publisher": "James Hudson Taylor／Project Gutenberg",
+      "url": "https://www.gutenberg.org/ebooks/26744",
+      "type": "英文原著电子文本",
+      "verification": "page_checked_text_downloaded",
+      "checked_on": "2026-10-08",
+      "note": "电子书26744；站点标注美国公共领域。本包保存英文纯文本及完整Gutenberg许可；未收录现代译本、配乐、有声版或新增插画。",
+      "rights": "public_domain_usa_license_retained"
+    },
+    {
+      "id": "T06",
+      "person": "戴德生",
+      "title": "File:J Hudson Taylor 1865.jpg",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:J_Hudson_Taylor_1865.jpg",
+      "type": "历史肖像",
+      "verification": "page_checked_original_downloaded",
+      "checked_on": "2026-10-08",
+      "note": "320×480；页面溯源至1902年A Retrospect，标记PD-old及美国公共领域、Public Domain Mark。是本轮优先图片候选，低清不适合大幅全屏。",
+      "rights": "source_marked_pd_old70_expired_and_pd_usa"
+    },
+    {
+      "id": "T07",
+      "person": "戴德生",
+      "title": "File:HudsonTaylorin1893.jpg",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:HudsonTaylorin1893.jpg",
+      "type": "1893年出版物肖像",
+      "verification": "page_checked_original_downloaded",
+      "checked_on": "2026-10-08",
+      "note": "1320×1872；来源Geraldine Guinness的The Story of the China Inland Mission（1893）。公共领域标记限美国判断，其他司法辖区仍需复核；不能因此断言拍摄于1893年。",
+      "rights": "source_marked_pd_usa_other_regions_review"
+    },
+    {
+      "id": "T08",
+      "person": "戴德生",
+      "title": "File:Lammermuirparty.jpg",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:Lammermuirparty.jpg",
+      "type": "1866年团队合影",
+      "verification": "page_checked_original_downloaded",
+      "checked_on": "2026-10-08",
+      "note": "1944×1190；来源Marshall Broomhall的The Jubilee Story of the China Inland Mission（1915）。适合横版封面候选，身份标注及跨地区版权仍需核对。",
+      "rights": "source_marked_pd_usa_other_regions_review"
+    },
+    {
+      "id": "T09",
+      "person": "戴德生",
+      "title": "Video Introduction",
+      "publisher": "Half Crown Media",
+      "url": "https://www.halfcrownmedia.com/video-introduction/",
+      "type": "电影项目官方介绍短片入口",
+      "verification": "page_checked_playback_not_tested",
+      "checked_on": "2026-10-08",
+      "note": "页面列出普通话／粤语及简繁字幕版本。未确认各片实际时长与播放器可用性；可优先询问普通话简体字幕版的嵌入与封面权限。",
+      "rights": "permission_required"
+    },
+    {
+      "id": "T10",
+      "person": "戴德生",
+      "title": "HUDSON & MARIA movie project",
+      "publisher": "Half Crown Media",
+      "url": "https://www.halfcrownmedia.com/",
+      "type": "项目进度参考",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "研究日期看到2026年项目更新。不能把宣传或拍摄进度误写为整部电影已上映、已可播放；本包不购买或下载影片。",
+      "rights": "link_only"
+    },
+    {
+      "id": "L01",
+      "person": "李立生",
+      "title": "Nelson, Daniel (1853–1926)",
+      "publisher": "Biographical Dictionary of Chinese Christianity · James A. Scherer",
+      "url": "https://www.bdcconline.net/en/stories/nelson-daniel",
+      "type": "二手传记／书目线索",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "对应挪威裔美国信义宗传教士Daniel Nelson。列出海上经历14年和中弹40日后去世等说法，与其他资料有差异；1935年同名作者不能误认为已于1926年去世的本人。",
+      "rights": "link_only_all_rights_reserved"
+    },
+    {
+      "id": "L02",
+      "person": "李立生",
+      "title": "鸡公山的发现与开发",
+      "publisher": "信阳晚报 · 2014-05-12",
+      "url": "https://wanbao.xyxww.com.cn/html/2014-05/12/content_155626.htm",
+      "type": "地方史报刊文章",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "提及李立生、丹尼耳·纳尔逊，称参考信阳地方文化资料。可核对地方关联，不当原始档案；海上经历、逝世叙述与L01不同。",
+      "rights": "link_only_permission_required"
+    },
+    {
+      "id": "L03",
+      "person": "李立生",
+      "title": "1926—Daniel Nelson",
+      "publisher": "Asia Harvest · Paul Hattaway",
+      "url": "https://www.asiaharvest.org/china-resources/henan/1926-daniel-nelson",
+      "type": "有脚注的信仰传记节选",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "记述1890年11月来华和信阳经历；叙述中弹后数小时去世，脚注引用1935年传记。信仰解释与史实须分开，书籍节选不收录全文。",
+      "rights": "link_only_copyrighted_book_excerpt"
+    },
+    {
+      "id": "L04",
+      "person": "李立生",
+      "title": "ELCA Region 3 Archives",
+      "publisher": "Luther Seminary Archives",
+      "url": "https://www.luthersem.edu/archives/archives-collections/elca-region-3-archives/",
+      "type": "机构档案与Daniel Nelson Sr.照片入口",
+      "verification": "page_checked",
+      "checked_on": "2026-10-08",
+      "note": "页面明确标注Daniel Nelson Sr.及1890年来华。机构藏品肖像是优先授权候选；未发现明确开放复用许可，未下载照片。",
+      "rights": "permission_required"
+    },
+    {
+      "id": "L05",
+      "person": "李立生",
+      "title": "Edward Sovik—Midwest China Oral History Interviews",
+      "publisher": "Luther Seminary Digital Commons · 1976",
+      "url": "https://digitalcommons.luthersem.edu/china_histories/84/",
+      "type": "口述史目录",
+      "verification": "catalogue_checked_fulltext_not_read",
+      "checked_on": "2026-10-08",
+      "note": "目录说明含与Daniel Nelson Sr.在Sinyang、Honan工作的回忆。未下载或阅读PDF正文，未确认存在可播音频；晚年回忆还需同期记录交叉核对。",
+      "rights": "permission_required"
+    },
+    {
+      "id": "L06",
+      "person": "李立生",
+      "title": "Frank Trnka papers—collection finding aid",
+      "publisher": "Minnesota Historical Society",
+      "url": "https://storage.googleapis.com/mnhs-finding-aids-public/library/findaids/01466.html",
+      "type": "家族与个人材料目录",
+      "verification": "catalogue_checked_items_not_accessed",
+      "checked_on": "2026-10-08",
+      "note": "目录有Nelson夫妇肖像、死亡报告、1926年相关来信及传记线索；部分材料受限，未取得原件。目录中Daniel Nelson Jr.不能与父亲混用。",
+      "rights": "restricted_or_permission_required"
+    },
+    {
+      "id": "L07",
+      "person": "李立生",
+      "title": "Pioneer Missionary Daniel Nelson",
+      "publisher": "Nesse family history website",
+      "url": "https://www.nesse.org/index.php/home/art-and-dorothy-nesse-in-memory/art-nesses-web/china-index/pioneer-missionary-daniel-nelson/",
+      "type": "家族研究线索",
+      "verification": "indexed_only_direct_open_failed",
+      "checked_on": "2026-10-08",
+      "note": "搜索索引出现Sveio／Eltravaag出生地线索，但未成功打开正文。仅作后续检索方向，不作已核实出生地依据。",
+      "rights": "unknown_link_only"
+    },
+    {
+      "id": "S01",
+      "person": "阿罗本",
+      "title": "Alopen",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/en/stories/alopen",
+      "type": "二手传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "635来华；638年敕令。只能作为初步年表；没有可靠肖像。",
+      "rights": "文章有版权；图片授权未核。"
+    },
+    {
+      "id": "S02",
+      "person": "阿罗本",
+      "title": "Silk Roads large-print guide",
+      "publisher": "British Museum",
+      "url": "https://www.britishmuseum.org/exhibitions/silk-roads/large-print-guide",
+      "type": "馆方展览解说",
+      "verification": "indexed_only_open_403",
+      "checked_on": "2026-10-09",
+      "note": "索引介绍635来华与781年景教碑，另列1907年碑照片线索；正文读取403。",
+      "rights": "馆方页面不是统一开放许可；未下载图像。"
+    },
+    {
+      "id": "S03",
+      "person": "利玛窦",
+      "title": "The Many Facets of Matteo Ricci",
+      "publisher": "Library of Congress",
+      "url": "https://wwws.loc.gov/loc/lcib/1005/map.html",
+      "type": "机构讲座报道",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1552—1610；1583入内地；1602地图及其渐进形成。2010年历史活动，不是今日展览。",
+      "rights": "报道与第三方地图照片分别有权利；未认定可搬用全文。"
+    },
+    {
+      "id": "S04",
+      "person": "利玛窦",
+      "title": "坤舆万国全图馆藏目录",
+      "publisher": "Library of Congress",
+      "url": "https://www.loc.gov/item/2010585650/",
+      "type": "地图目录",
+      "verification": "indexed_only_open_403",
+      "checked_on": "2026-10-09",
+      "note": "1602地图数字馆藏入口；实际下载与权利页未核。",
+      "rights": "原作年代久远不等于每一数字版本都已获本站使用许可。"
+    },
+    {
+      "id": "S05",
+      "person": "利玛窦",
+      "title": "历史绘画肖像",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:Matteo_Ricci.jpeg",
+      "type": "图像文件页",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "250×326；作者不详，来源链含St Andrews历史图片页。",
+      "rights": "页面标PD-old/PDM；年代及原藏出处不足，保留研究候选身份，不作高清正式封面。"
+    },
+    {
+      "id": "S06",
+      "person": "利玛窦",
+      "title": "机构讲座视频目录",
+      "publisher": "Library of Congress",
+      "url": "https://www.loc.gov/research-centers/hispanic/news-and-events/event-videos/?c=100&sp=2",
+      "type": "视频目录",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "列出Jonathan Spence于2010年讲述利玛窦的Kislak讲座。",
+      "rights": "目录可读不等于视频可剪辑；播放、字幕、封面与大陆访问未测。"
+    },
+    {
+      "id": "S07",
+      "person": "利玛窦",
+      "title": "利玛窦讲座独立条目",
+      "publisher": "Library of Congress",
+      "url": "https://www.loc.gov/item/2021688429/",
+      "type": "视频项目入口",
+      "verification": "linked_from_checked_page_open_403",
+      "checked_on": "2026-10-09",
+      "note": "由S06实际链接得到；独立页面403，未播放，时长不填。",
+      "rights": "许可未核；不下载、剪辑或自行托管。"
+    },
+    {
+      "id": "S08",
+      "person": "范礼安",
+      "title": "Alessandro Valignano",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/en/stories/valignano-alessandro",
+      "type": "二手传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1539—1606；1566入会；重视本地语言文化及罗明坚、利玛窦的训练。",
+      "rights": "文章保留所有权利；页面肖像版权、原藏未核。"
+    },
+    {
+      "id": "S09",
+      "person": "范礼安",
+      "title": "Valignani, Alessandro",
+      "publisher": "Treccani",
+      "url": "https://www.treccani.it/enciclopedia/alessandro-valignani/",
+      "type": "百科资料",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "独立核对生卒与1566入会、1574到亚洲。",
+      "rights": "现代百科内容受版权保护，仅少量转述和链接。"
+    },
+    {
+      "id": "S10",
+      "person": "罗明坚",
+      "title": "Michele Ruggieri",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/en/stories/ruggieri-michele",
+      "type": "二手传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1543—1607；1579澳门，1583肇庆；中文教理及词典合作线索。",
+      "rights": "文章有版权；肖像只作候选入口。"
+    },
+    {
+      "id": "S11",
+      "person": "范礼安、罗明坚、利玛窦",
+      "title": "Dire il Vangelo in lingua cinese",
+      "publisher": "Centro Culturale Veritas",
+      "url": "https://archivio.centroveritas.it/?p=66",
+      "type": "历史与神学解释",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "2012转载2010讲稿；提供适应文化政策的讨论背景，不作独立原始档案。",
+      "rights": "现代文章未授转载许可；研究者观点须署名、不能当原件。"
+    },
+    {
+      "id": "S12",
+      "person": "徐光启",
+      "title": "《北耕录》论墨册页",
+      "publisher": "上海博物馆",
+      "url": "https://www.shanghaimuseum.net/mu/frontend/pg/m/article/id/CI00005359",
+      "type": "馆藏实物目录",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "徐光启1562—1633；本人农业笔记墨迹，有尺寸、材料和馆方介绍。",
+      "rights": "馆方版权所有；原件年代与数字照片许可分开。"
+    },
+    {
+      "id": "S13",
+      "person": "徐光启、利玛窦",
+      "title": "《几何原本》序照片",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:Preface_of_Euclid%27s_Elements_by_Xu_Guangqi.jpg",
+      "type": "图像文件页",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "Mountain摄于2006年光启公园，1536×2048；已目视确认为《几何原本》序文字的碑刻照片，不是明代原迹。",
+      "rights": "Commons标PD-Art/PD-old-100/PDM，但实际为碑刻照片；现代镌刻、摄影及二维复制品适用性仍需审查。暂作研究候选，未认定可发布。"
+    },
+    {
+      "id": "S14",
+      "person": "徐光启",
+      "title": "Xujiahui Origin",
+      "publisher": "上海市政府英文网",
+      "url": "https://english.shanghai.gov.cn/en-ScenicSpots/20240321/21697ab20f46478fb8f9b7a018a8b24f.html",
+      "type": "地点介绍",
+      "verification": "indexed_only",
+      "checked_on": "2026-10-09",
+      "note": "徐家汇与纪念设施的现地入口；未核今日开放及旧站1608建筑说法。",
+      "rights": "现代照片许可未知；暂只链接。"
+    },
+    {
+      "id": "S15",
+      "person": "马礼逊",
+      "title": "Robert Morrison",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/en/stories/morrison-robert",
+      "type": "二手传记与评述",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1782—1834；翻译与出版应保留米怜、中文助手及既有译本的合作背景。",
+      "rights": "有版权；评价性文字不是原始记录。"
+    },
+    {
+      "id": "S16",
+      "person": "马礼逊、麦都思、伯格理",
+      "title": "Rare book collections",
+      "publisher": "SOAS University of London",
+      "url": "https://www.soas.ac.uk/rare-book-collections",
+      "type": "馆藏概览",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "马礼逊藏书含1807—1823取得的清代书；LMS及Methodist馆藏可作麦都思、伯格理后续档案检索入口。",
+      "rights": "概览不是全部数字原件；查阅和复制需各项核准。"
+    },
+    {
+      "id": "S17",
+      "person": "马礼逊",
+      "title": "中文词典扫描目录",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:A_dictionary_of_the_Chinese_language,_in_three_parts.pdf",
+      "type": "旧书扫描目录",
+      "verification": "indexed_only",
+      "checked_on": "2026-10-09",
+      "note": "仅识别目录与PD-US线索，PDF未下载、未逐页阅读。",
+      "rights": "PD-US不作为全球法律结论；版本、卷册及数字副本权利待核。"
+    },
+    {
+      "id": "S18",
+      "person": "米怜",
+      "title": "William Milne",
+      "publisher": "Boston University",
+      "url": "https://www.bu.edu/missiology/missionary-biography/l-m/milne-william-1785-1822/",
+      "type": "二手传记与书目",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1785—1822；1813来华，马六甲出版与英华书院；附原著书目。",
+      "rights": "1998传记版权保留；正文与古书权利不同。"
+    },
+    {
+      "id": "S19",
+      "person": "米怜",
+      "title": "历史肖像文件页",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:William_Milne.jpg",
+      "type": "图像目录",
+      "verification": "indexed_only_open_failed",
+      "checked_on": "2026-10-09",
+      "note": "索引有肖像；S18称其公共领域，但原始出处与文件页未能完成核对。",
+      "rights": "未下载；不能只凭机构一句PD说明认定每个版本可用。"
+    },
+    {
+      "id": "S20",
+      "person": "米怜",
+      "title": "Memoirs of William Milne（1824）",
+      "publisher": "Google Books／BU书目",
+      "url": "https://books.google.com/books?id=is4GAAAAQAAJ",
+      "type": "旧书入口",
+      "verification": "linked_from_checked_page",
+      "checked_on": "2026-10-09",
+      "note": "由S18书目链接识别1824版；未取得全文、未逐页阅读。",
+      "rights": "古书和现代整理、译文、扫描许可分别核。"
+    },
+    {
+      "id": "S21",
+      "person": "麦都思",
+      "title": "Walter Henry Medhurst",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/en/stories/medhurst-walter-henry",
+      "type": "二手传记与书目",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1796—1857；1817马六甲、1843上海；附1838年China: Its State and Its Prospects书目。",
+      "rights": "文章1998版权保留；书目不能代替读过原著。"
+    },
+    {
+      "id": "S22",
+      "person": "麦利和",
+      "title": "Robert Samuel Maclay",
+      "publisher": "Dickinson College Archives",
+      "url": "https://archives.dickinson.edu/encyclopedia/robert-samuel-maclay-1824-1907",
+      "type": "大学档案人物条目",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1824—1907；1847派遣与1848年4月12日抵福州须区分。",
+      "rights": "传记与附肖像未列可复用许可；先只链接。"
+    },
+    {
+      "id": "S23",
+      "person": "麦利和",
+      "title": "Maclay, Robert Samuel",
+      "publisher": "Boston University",
+      "url": "https://www.bu.edu/missiology/2020/02/28/maclay-robert-samuel-1824-1907/",
+      "type": "二手传记",
+      "verification": "indexed_only",
+      "checked_on": "2026-10-09",
+      "note": "到华1848可对照；毕业年与S22有差异，不扩大为确认事实。",
+      "rights": "图片和文章未取得本站使用授权。"
+    },
+    {
+      "id": "S24",
+      "person": "曹雅直",
+      "title": "George Stott",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/en/stories/stott-george",
+      "type": "二手研究传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1835—1889；1866来华、1867温州；朱星钧等中文名音译待核；妻Grace与中文同工应保留。",
+      "rights": "现代研究文章有版权；图片授权未核。"
+    },
+    {
+      "id": "S25",
+      "person": "曹雅直",
+      "title": "Grace Stott旧书扫描目录",
+      "publisher": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/File:Twenty-six_years_of_missionary_work_in_China_(IA_twentysixyearsof00stotrich).pdf",
+      "type": "旧书扫描目录",
+      "verification": "indexed_only",
+      "checked_on": "2026-10-09",
+      "note": "目录提示1897版本；S24列1898版本。作者是Grace Stott，不是George Stott。PDF未读。",
+      "rights": "PD-US索引标签不等于全球发布许可。"
+    },
+    {
+      "id": "S26",
+      "person": "曹雅直",
+      "title": "Twenty-six Years of Missionary Work in China",
+      "publisher": "Internet Archive",
+      "url": "https://archive.org/details/twentysixyearsof00stotrich",
+      "type": "旧书项目入口",
+      "verification": "linked_catalog_open_failed",
+      "checked_on": "2026-10-09",
+      "note": "与S25同一数字本，不是第二份独立证据；未读全文。",
+      "rights": "下载、插图作者与版本版权待核。"
+    },
+    {
+      "id": "S27",
+      "person": "李提摩太",
+      "title": "Timothy Richard",
+      "publisher": "Boston University",
+      "url": "https://www.bu.edu/missiology/missionary-biography/r-s/richard-timothy-1845-1919/",
+      "type": "二手传记与书目",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1845—1919；1877太原赈灾；1916回忆录书目，现代研究另列。",
+      "rights": "1998传记有版权；不能全文搬运。"
+    },
+    {
+      "id": "S28",
+      "person": "李提摩太",
+      "title": "Forty-five Years in China",
+      "publisher": "Open Library／BU书目",
+      "url": "https://openlibrary.org/works/OL7418072W/Forty-five_years_in_China",
+      "type": "回忆录目录",
+      "verification": "linked_from_checked_page_open_failed",
+      "checked_on": "2026-10-09",
+      "note": "S27实际链接，1916著作线索；目录打开失败，原著未读。",
+      "rights": "现代译文／配音不随原作年代自动开放。"
+    },
+    {
+      "id": "S29",
+      "person": "李德立",
+      "title": "Little, Edward Selby, 1864-1939",
+      "publisher": "National Library of New Zealand",
+      "url": "https://natlib.govt.nz/records/22408780",
+      "type": "姓名权威与档案聚合目录",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "生卒、1930年代Kerikeri活动；含1935照片与剪报目录。",
+      "rights": "看到目录不表示已拿到影像；逐件查复制与发布许可。"
+    },
+    {
+      "id": "S30",
+      "person": "李德立",
+      "title": "Correspondence and notes on Edward Selby Little",
+      "publisher": "Science Museum Group",
+      "url": "https://collection.sciencemuseumgroup.org.uk/documents/aa110109522/correspondence-and-notes-on-edward-selby-little",
+      "type": "档案目录",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "CANT/1/52，1980—1989后人研究往来，约65页；不是李德立本人当年手稿。",
+      "rights": "查阅要求数据保护表；未申请、未取得原件。目录中的后人判断不能当已证实结论。"
+    },
+    {
+      "id": "S31",
+      "person": "李德立",
+      "title": "The Story of Kuling",
+      "publisher": "Internet Archive",
+      "url": "https://archive.org/details/storyofkuling00litt",
+      "type": "旧书入口",
+      "verification": "linked_catalog_open_failed",
+      "checked_on": "2026-10-09",
+      "note": "馆藏元数据提供的1899书籍线索；原书未读，不作为牯岭土地史定论。",
+      "rights": "未下载；古书插图、翻译与扫描来源待核。"
+    },
+    {
+      "id": "S32",
+      "person": "伯格理",
+      "title": "Samuel Pollard",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/en/stories/pollard-samuel",
+      "type": "二手传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1864—1915；1887赴华；页面肖像追溯到1920年Grist传记。",
+      "rights": "现代传记有版权；1920照片须核原著页码、作者与地区适用。"
+    },
+    {
+      "id": "S33",
+      "person": "伯格理",
+      "title": "In Unknown China（1921版）",
+      "publisher": "Open Library",
+      "url": "https://openlibrary.org/books/OL6631505M/In_unknown_China",
+      "type": "旧书目录",
+      "verification": "indexed_only_open_failed",
+      "checked_on": "2026-10-09",
+      "note": "索引核到作者、1921版与324页；记述包括Nosu，不等于专写石门坎。",
+      "rights": "原著未读；旧称族群用语要保留史料语境，不照搬成今日叙述。"
+    },
+    {
+      "id": "S34",
+      "person": "梅滕更",
+      "title": "David Duncan Main",
+      "publisher": "Royal College of Physicians of Edinburgh",
+      "url": "https://www.rcpe.ac.uk/heritage/physicians-database/david-duncan-main-0",
+      "type": "职业机构人物数据库",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1856—1934；1881—1927杭州医疗工作；1901会员、1905院士。",
+      "rights": "机构说明未给图片可复用许可。"
+    },
+    {
+      "id": "S35",
+      "person": "梅滕更",
+      "title": "百年情深，爱丁堡大学代表团访问浙医二院",
+      "publisher": "ZJE（浙大—爱丁堡联合学院）",
+      "url": "https://zje.zju.edu.cn/zje/2019/0312/c77592a2818640/page.htm",
+      "type": "大学历史回顾",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "2019新闻回顾1881年Main来到杭州主持广济医院。",
+      "rights": "2019新闻照片不是梅滕更时代影像；版权保留。"
+    },
+    {
+      "id": "S36",
+      "person": "富能仁",
+      "title": "God’s Mission to the Lisu",
+      "publisher": "OMF International",
+      "url": "https://omf.org/my/gods-mission-to-the-lisu/",
+      "type": "有注释的机构历史研究",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "Walter McConnell，2019；1886—1938、1910/1913/1915不同节点及Ba Thaw共同语言工作。",
+      "rights": "有版权；历史数据不能当2026现况；照片需单独授权。"
+    },
+    {
+      "id": "S37",
+      "person": "富能仁",
+      "title": "Der Durchbruch影片及教学材料介绍",
+      "publisher": "OMF Deutschland",
+      "url": "https://omf.org/de/resource/arbeitsmaterial-zur-dvd-der-durchbruch/",
+      "type": "官方影片资源说明",
+      "verification": "indexed_only_open_failed",
+      "checked_on": "2026-10-09",
+      "note": "2024介绍38分钟纪录剧情片；DVD售罄，机构提供联系获取途径。不表示现有免费在线播放。",
+      "rights": "未联系、未付费、未获文件；嵌入、剪辑、中文翻译与封面许可未核。"
+    },
+    {
+      "id": "S38",
+      "person": "王志明",
+      "title": "Wang Zhiming",
+      "publisher": "Westminster Abbey",
+      "url": "https://www.westminster-abbey.org/abbey-commemorations/commemorations/wang-zhiming",
+      "type": "纪念机构介绍与视频入口",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "1944教会职务、1951按立、1973年逝世；1998雕像；页面有sermon视频入口。",
+      "rights": "雕像照片注明©并提供购买入口；不下载。讲道视频不等于人物纪录片，未播放。"
+    },
+    {
+      "id": "S39",
+      "person": "王志明",
+      "title": "王志明中文传记",
+      "publisher": "BDCC",
+      "url": "https://www.bdcconline.net/zh-hans/stories/wang-zhiming",
+      "type": "二手传记",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "页头1908，正文1907，存在内部冲突；只暂用卒年1973。",
+      "rights": "有版权；不以网页互抄次数消除年份疑点。"
+    },
+    {
+      "id": "S40",
+      "person": "西域景教僧侣",
+      "title": "Scripts and Languages",
+      "publisher": "BBAW Turfanforschung",
+      "url": "https://turfan.bbaw.de/projekt-en/sprachen-und-schriften@set_language=en.html",
+      "type": "文献学项目与实物编号",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "U7264、PS7、SyrHT2/SyrHT20为可追踪文献线索；宗教与语言需逐件分辨。",
+      "rights": "样本图像权利未核；古文献与现代转写、译文及照片分别处理。"
+    },
+    {
+      "id": "S41",
+      "person": "西域景教僧侣",
+      "title": "Publications",
+      "publisher": "BBAW Turfanforschung",
+      "url": "https://turfan.bbaw.de/publikationen-en.html",
+      "type": "学术出版书目",
+      "verification": "page_checked",
+      "checked_on": "2026-10-09",
+      "note": "有2014基督教粟特语文本、2017修道文集、2019礼仪与药学文献研究。",
+      "rights": "只核书目，未读付费全文或原件；未购买。"
+    }
+  ]
+}

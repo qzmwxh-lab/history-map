@@ -1,0 +1,10 @@
+---
+const { subject, compact = false } = Astro.props;
+---
+<div class:list={['research-cover', { compact }]} data-tone={subject.slug.length % 3} aria-label={`${subject.name}编辑设计封面，非历史照片或影片画面`}>
+  <span class="cover-rule" aria-hidden="true"></span>
+  <span class="cover-kicker">FOOTPRINTS / {subject.kind === 'group' ? 'COLLECTION' : 'LIFE'}</span>
+  <span class="cover-name">{subject.name}</span>
+  <span class="cover-years">{subject.years}</span>
+  <span class="cover-note">编辑设计 · {subject.video ? '影片线索' : '人物档案'}</span>
+</div>

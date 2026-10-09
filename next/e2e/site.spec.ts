@@ -42,11 +42,57 @@ test('map request failure remains visible after timeline initialization',async({
 });
 test('failed request can be retried and is not shown as empty content',async({page})=>{
  let requests=0;
- await page.route('**/rest/v1/public_archive*',r=>++requests===1?r.fulfill({status:503,json:{}}):r.fulfill({json:[record]}));
- await page.goto('/zh/people/');
+ await page.route('**/rest/v1/public_atlas*',r=>++requests===1?r.fulfill({status:503,json:{}}):r.fulfill({json:[record]}));
+ await page.goto('/zh/places/');
  await expect(page.locator('#status')).toHaveText('暂时无法读取资料，请重试。');
  await page.locator('#retry').click();
  await expect(page.locator('.card')).toHaveCount(1);
+});
+test('research pages present all subjects, filter sources and keep honest video entries',async({page},testInfo)=>{
+ await page.goto('/zh/people/');
+ await expect(page.locator('[data-entry]')).toHaveCount(20);
+ await expect(page.locator('.featured-grid .story-card')).toHaveCount(3);
+ await page.screenshot({path:testInfo.outputPath('people.png'),fullPage:false});
+ await page.locator('#collection-search').fill('李立生');
+ await expect(page.locator('[data-entry]:visible')).toHaveCount(1);
+ await page.locator('[data-entry]:visible .story-copy h2 a').click();
+ await expect(page.locator('h1')).toHaveText('李立生');
+ await expect(page.locator('video,iframe')).toHaveCount(0);
+ await expect(page.locator('.life-timeline li')).toHaveCount(5);
+ await expect(page.locator('.reference')).toHaveCount(7);
+ await page.screenshot({path:testInfo.outputPath('person.png'),fullPage:false});
+ await page.locator('.account a').first().click();
+ await expect(page.locator('.collection-notice')).toContainText('English translation awaits');
+ await page.goto('/zh/library/');
+ await expect(page.locator('[data-entry]')).toHaveCount(68);
+ await page.locator('#collection-filter').selectOption('倪柝声');
+ await expect(page.locator('[data-entry]:visible')).toHaveCount(10);
+ await page.locator('button[type=reset]').click();
+ await expect(page.locator('[data-entry]:visible')).toHaveCount(68);
+ await page.goto('/zh/routes/');
+ await expect(page.locator('[data-entry]')).toHaveCount(20);
+ await expect(page.locator('.collection-notice')).toContainText('不是已核验的旅游行程');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test('every research profile and downloadable summary is reachable',async({page,request})=>{
+ const response=await request.get('/research/collection.json');
+ expect(response.ok()).toBe(true);
+ const collection=await response.json();
+ const archive=await request.get('/research/research-notes-2026-10-09.zip');
+ expect(archive.ok()).toBe(true);
+ expect((await archive.body()).subarray(0,2).toString()).toBe('PK');
+ for(const subject of collection.subjects){
+  const detail=await request.get(`/zh/people/${subject.slug}/`);
+  expect(detail.ok()).toBe(true);
+  expect(await detail.text()).toContain(subject.name);
+  const notes=await request.get(`/research/${subject.slug}.md`);
+  expect(notes.ok()).toBe(true);
+  expect(await notes.text()).toContain(subject.name);
+ }
+ for(const path of ['/zh/people/','/zh/library/','/zh/people/watchman-nee/']){
+  await page.goto(path);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ }
 });
 test('reading pages do not load map JavaScript and retain language navigation',async({page})=>{
  const scripts:string[]=[];page.on('request',r=>{if(r.resourceType()==='script')scripts.push(r.url());});

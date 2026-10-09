@@ -1,10 +1,12 @@
 ---
 import Shell from '../../../layouts/Shell.astro';
+import ReadingCollection from '../../../components/ReadingCollection.astro';
 import { labels } from '../../../lib/catalog.mjs';
 export function getStaticPaths() { return ['zh','en'].flatMap(lang => ['map','places','people','library','routes'].map(section=>({params:{lang,section}}))); }
 const { lang, section } = Astro.params;
 const t = labels[lang as 'zh'|'en'];
 const chinese = lang === 'zh';
+const curated = ['people', 'library', 'routes'].includes(section!);
 const intros:Record<string,string[]> = {
   map:['沿着地图，重访跨越时代的足迹。','Explore the places where lives and history meet.'],
   places:['一处地点，一段值得追寻的历史。','Every place holds a history worth exploring.'],
@@ -14,6 +16,7 @@ const intros:Record<string,string[]> = {
 };
 ---
 <Shell lang={lang} section={section}>
+  {curated ? <ReadingCollection lang={lang} section={section} /> : <>
   <section id={section === 'map' ? 'map-intro' : undefined} class:list={['intro',{'map-intro':section === 'map'}]}><p class="eyebrow">{section === 'map' ? 'THE LIVING ATLAS' : 'THE HISTORICAL COLLECTION'}</p><h1>{t[section as keyof typeof t]}</h1><p>{intros[section!][chinese ? 0 : 1]}</p></section>
   <section class:list={['workspace',{'map-workspace':section === 'map'}]} data-catalog data-section={section} data-lang={lang} data-url={import.meta.env.PUBLIC_SUPABASE_URL || 'https://zjtofadvudkfijlpptmb.supabase.co'} data-key={import.meta.env.PUBLIC_SUPABASE_KEY || 'sb_publishable_QM9V7Vr7MsnW4aqPj1GPGg_1iX6dyRb'}>
     <div id={section === 'map' ? 'map-tools' : undefined} class="toolbar"><label class="search-label"><span>{chinese ? '检索档案' : 'Search records'}</span><input type="search" id="search" placeholder={t.search} /></label><label><span>{chinese ? '截至年份' : 'Through year'}</span><input id="year" type="number" min="1" max="2100" placeholder={chinese ? '全部年代' : 'All years'} /></label><button id="retry">{t.retry}</button></div>
@@ -31,10 +34,13 @@ const intros:Record<string,string[]> = {
     <div id="results" class:list={['cards',{'map-results':section === 'map'}]}></div>
     <noscript>{chinese ? '请启用 JavaScript 读取地图档案。' : 'Enable JavaScript to load the archive.'}</noscript>
   </section>
+  </>}
 </Shell>
 <script>
 import {labels, filterPoints, publicPoint} from '../../../lib/catalog.mjs';
-const root = document.querySelector<HTMLElement>('[data-catalog]')!;
+const catalogRoot = document.querySelector<HTMLElement>('[data-catalog]');
+if (catalogRoot) {
+const root = catalogRoot;
 const lang = root.dataset.lang as 'zh'|'en'; const t = labels[lang];
 const status = document.querySelector<HTMLElement>('#status')!;
 const results = document.querySelector<HTMLElement>('#results')!;
@@ -102,5 +108,6 @@ if(root.dataset.section === 'map') {
   function stopTimeline(){if(timelineTimer!==undefined){window.clearInterval(timelineTimer);timelineTimer=undefined;}play.textContent='▶';}
   function closeTimeline(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');stopTimeline();}
   toggle.addEventListener('click',()=>{const opening=panel.hidden;panel.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));opening?updateTimeline(Number(range.value)):stopTimeline();});document.querySelector('#timeline-close')!.addEventListener('click',closeTimeline);range.addEventListener('input',()=>updateTimeline(Number(range.value)));play.addEventListener('click',()=>{if(timelineTimer!==undefined){stopTimeline();return;}if(Number(range.value)>=max)updateTimeline(min);play.textContent='■';timelineTimer=window.setInterval(()=>{const next=Math.min(max,Number(range.value)+3);updateTimeline(next);if(next>=max)stopTimeline();},50);});updateTimeline(Number(range.value));
+}
 }
 </script>

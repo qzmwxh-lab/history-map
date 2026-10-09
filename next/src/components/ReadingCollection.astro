@@ -1,0 +1,74 @@
+---
+import { subjects, sources, videoSource, verificationLabel } from '../lib/research.mjs';
+import { labels } from '../lib/catalog.mjs';
+import ResearchCover from './ResearchCover.astro';
+import '../styles/collection.css';
+const { lang, section } = Astro.props;
+const zh = lang === 'zh';
+const ui = (cn: string, en: string) => zh ? cn : en;
+const intros = { people: '从一个人的故事，走进一段有据可循的历史。', library: '沿着出处阅读，让每一段叙述都有据可循。', routes: '连接人物与城市，循着历史线索重新认识地方。' };
+const count = section === 'library' ? sources.length : subjects.length;
+---
+<section class="collection" data-reading-collection data-lang={lang}>
+  <div class="collection-heading">
+    <div><p class="eyebrow">{section === 'people' ? 'LIVES & STORIES' : section === 'library' ? 'SOURCES & DOCUMENTS' : 'JOURNEYS & PLACES'}</p><h1>{labels[lang as 'zh'|'en'][section as 'people'|'library'|'routes']}</h1><p>{intros[section as keyof typeof intros]}</p></div>
+    <p class="collection-number"><strong>{count}</strong><span>{section === 'library' ? '条来源记录' : '人物与群体专题'}</span></p>
+  </div>
+  {!zh && <p class="collection-notice" role="note">Chinese originals are shown below. English translations will be published after editorial review.</p>}
+  <p class="collection-notice">{section === 'people' ? '影片入口前往原机构或项目网站。本站不托管未获授权的影片；封面是编辑设计，不是历史影像。' : section === 'library' ? '这是资料目录，不是全文馆藏。核读页面、核读目录和待核线索分别标示；68条记录不等于68个独立证据来源。' : '这些是研究中的城市线索，不是已核验的旅游行程。遗址位置、开放情况与参访许可请另行确认。'}</p>
+  {section === 'people' && <>
+    <div class="collection-section-title"><h2>{ui('从这三位人物开始', 'Start with three lives')}</h2><span>{ui('人物样板专题', 'Featured stories')}</span></div>
+    <div class="featured-grid">
+      {subjects.slice(0, 3).map(subject => { const video = videoSource(subject); return <article class="story-card">
+        <a class="cover-link" href={`/${lang}/people/${subject.slug}/`} aria-label={`阅读${subject.name}专题`}><ResearchCover subject={subject} /></a>
+        <div class="story-copy"><small>{subject.video ? ui('影片资料 · 站外入口', 'Film project · External source') : ui('阅读专题 · 暂无已核视频', 'Reading · No verified video')}</small><h2><a href={`/${lang}/people/${subject.slug}/`}>{subject.name}</a></h2><p class="story-subtitle">{subject.en}</p><p>{subject.angle}</p><div class="story-actions">{video && <a class="source-button" href={video.url} target="_blank" rel="noopener noreferrer">{ui('查看影片来源 ↗', 'View film source ↗')}</a>}<a href={`/${lang}/people/${subject.slug}/`}>{ui('阅读人物专题 →', 'Read the story →')}</a></div></div>
+      </article>; })}
+    </div>
+  </>}
+  <div class="collection-section-title"><h2>{section === 'people' ? ui('全部人物与群体', 'All people and communities') : section === 'library' ? ui('研究资料目录', 'Research sources') : ui('人物足迹线索', 'Historical place connections')}</h2><div class="story-actions"><a href="/research/research-notes-2026-10-09.zip" download>{ui('下载全部人物研究摘要 ↓', 'Download all research notes ↓')}</a><a href="/research/collection.json" download>{ui('研究索引 JSON ↓', 'Research index JSON ↓')}</a></div></div>
+  <form class="collection-filters" role="search">
+    <label><span>{zh ? '搜索' : 'Search'}</span><input id="collection-search" type="search" placeholder={section === 'library' ? '人物、资料标题、出版机构…' : '人物、年代、城市…'} /></label>
+    <label><span>{section === 'library' ? ui('关联人物', 'Person') : ui('资料类型', 'Type')}</span><select id="collection-filter"><option value="">{ui('全部', 'All')}</option>{section === 'library' ? subjects.map(s => <option value={s.name}>{s.name}</option>) : <><option value="person">{ui('人物', 'People')}</option><option value="group">{ui('群体', 'Communities')}</option><option value="video">{ui('有影片线索', 'Film references')}</option></>}</select></label>
+    <button type="reset">{ui('清除筛选', 'Clear filters')}</button>
+  </form>
+  <p id="collection-status" role="status" aria-live="polite">{count} 条{section === 'library' ? '来源记录' : '专题'}</p>
+  <div class:list={['collection-grid', { 'source-grid': section === 'library' }]}>
+    {section === 'library' ? sources.map(source => <article class="source-card" data-entry data-filter={subjects.filter(subject => subject.refs.includes(source.id)).map(subject => subject.name).join(' ')} data-search={`${source.person} ${source.title} ${source.publisher} ${source.type} ${source.id}`} id={`source-${source.id}`}>
+      <div class="source-meta"><span>{source.id} · {source.type}</span><span>{verificationLabel(source.verification)}</span></div><h2><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a></h2><p class="story-subtitle">{source.person} · {source.publisher}</p><p>{source.note}</p><details><summary>{ui('核验与使用说明', 'Verification and rights')}</summary><p>核对日期：{source.checked_on}</p><p>{source.rights}</p><p>仅提供来源链接，未在本站再分发第三方原件。</p></details>
+    </article>) : subjects.map(subject => <article class:list={['story-card', { 'route-card': section === 'routes' }]} data-entry data-filter={`${subject.kind}${subject.video ? ' video' : ''}`} data-search={`${subject.name} ${subject.en} ${subject.years} ${subject.cities.join(' ')} ${subject.intro}`}>
+      <a class="cover-link" href={`/${lang}/people/${subject.slug}/`} aria-label={`阅读${subject.name}专题`}><ResearchCover subject={subject} compact /></a>
+      <div class="story-copy"><small>{subject.kind === 'group' ? '群体专题' : subject.video ? '含影片线索' : '人物档案'} · {subject.years}</small><h2><a href={`/${lang}/people/${subject.slug}/`}>{subject.name}</a></h2><p class="story-subtitle">{subject.en}</p>{section === 'routes' ? <><ol class="city-trail">{subject.cities.map(city => <li>{city}</li>)}</ol><p>城市线索按研究目录展示，不表示已经确认的旅行顺序。</p><a href={`/${lang}/map/?q=${encodeURIComponent(subject.name)}`}>{ui('在公开地图中检索 →', 'Search the public map →')}</a></> : <p>{subject.intro}</p>}<div class="story-actions"><a href={`/${lang}/people/${subject.slug}/`}>{ui('阅读专题与出处 →', 'Read story and sources →')}</a><a href={`/research/${subject.slug}.md`} download>{ui('资料摘要 ↓', 'Research notes ↓')}</a></div></div>
+    </article>)}
+  </div>
+  <p id="collection-empty" hidden>{ui('没有匹配的资料。试试人物姓氏、城市，或清除筛选。', 'No matches. Try a surname or city, or clear the filters.')}</p>
+</section>
+<script>
+const collection = document.querySelector<HTMLElement>('[data-reading-collection]');
+if (collection) {
+  const search = collection.querySelector<HTMLInputElement>('#collection-search')!;
+  const filter = collection.querySelector<HTMLSelectElement>('#collection-filter')!;
+  const entries = [...collection.querySelectorAll<HTMLElement>('[data-entry]')];
+  const initial = new URL(location.href);
+  search.value = initial.searchParams.get('q') || '';
+  filter.value = initial.searchParams.get('filter') || '';
+  function update() {
+    const query = search.value.trim().toLocaleLowerCase();
+    let count = 0;
+    for (const entry of entries) {
+      entry.hidden = !(entry.dataset.search!.toLocaleLowerCase().includes(query) && (!filter.value || entry.dataset.filter === filter.value || entry.dataset.filter!.split(' ').includes(filter.value)));
+      if (!entry.hidden) count++;
+    }
+    collection!.querySelector('#collection-status')!.textContent = collection!.dataset.lang === 'en' ? `${count} matching records` : `${count} 条匹配资料`;
+    collection!.querySelector<HTMLElement>('#collection-empty')!.hidden = count > 0;
+    const url = new URL(location.href);
+    search.value ? url.searchParams.set('q', search.value) : url.searchParams.delete('q');
+    filter.value ? url.searchParams.set('filter', filter.value) : url.searchParams.delete('filter');
+    history.replaceState(null, '', url);
+  }
+  collection.querySelector('form')!.addEventListener('submit', event => event.preventDefault());
+  search.addEventListener('input', update);
+  filter.addEventListener('change', update);
+  collection.querySelector('form')!.addEventListener('reset', () => { search.value = ''; filter.value = ''; update(); });
+  update();
+}
+</script>
